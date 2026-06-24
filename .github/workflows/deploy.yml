@@ -48,5 +48,5 @@ jobs:
             fi
             
             docker build -t kamysoft-erp:latest .
-            docker run -d --name kamysoft-erp -p 8080:80 --restart unless-stopped kamysoft-erp:latest
+            docker run -d --name kamysoft-erp -p 8089:80 --restart unless-stopped kamysoft-erp:latest
             echo "Deployment completed successfully. Access via Cloudflare Tunnel at erp.26i.uk"
