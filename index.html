@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KamySoft Premium POS & ERP</title>
+    
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="ri-rocket-2-fill"></i>
+                <span>KamySoft</span>
+            </div>
+            
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item active" onclick="switchTab('dashboard')">
+                        <i class="ri-dashboard-3-line"></i>
+                        <span data-i18n="dashboard">لوحة التحكم</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('pos')">
+                        <i class="ri-computer-line"></i>
+                        <span data-i18n="posCashier">الكاشير والمبيعات</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('inventory')">
+                        <i class="ri-archive-stack-line"></i>
+                        <span data-i18n="inventory">إدارة المخزون</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('invoices')">
+                        <i class="ri-file-list-3-line"></i>
+                        <span data-i18n="invoices">الفواتير والتقارير</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('settings')">
+                        <i class="ri-settings-4-line"></i>
+                        <span data-i18n="settings">الإعدادات</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" onclick="toggleLanguage()" id="langToggleBtn">
+                    <i class="ri-translate-2"></i>
+                    <span>English / العربية</span>
+                </button>
+                <button class="btn btn-secondary" onclick="toggleTheme()" id="themeToggleBtn">
+                    <i id="themeToggleIcon" class="ri-sun-line"></i>
+                    <span data-i18n="themeLabel">المظهر</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Layout Area -->
+        <main class="main-content">
+            
+            <!-- Global header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1 id="pageTitle" data-i18n="dashboard">لوحة التحكم</h1>
+                    <p data-i18n="salesReport">مرحباً بك في نظام KamySoft المتكامل للمبيعات والمحاسبة</p>
+                </div>
+                <div class="header-actions">
+                    <div class="glass-card" style="padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600;">
+                        <i class="ri-calendar-line" style="margin-left: 8px;"></i>
+                        <span id="liveClock">2026-06-24</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- TAB: Dashboard -->
+            <section id="dashboardTab" class="tab-content active">
+                <div class="card-grid">
+                    <div class="glass-card purple">
+                        <div class="card-stat">
+                            <div class="stat-info">
+                                <h3 data-i18n="totalSales">إجمالي المبيعات</h3>
+                                <div class="stat-value" id="metricSales">0.00 ر.س</div>
+                            </div>
+                            <div class="stat-icon"><i class="ri-money-dollar-circle-line"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card cyan">
+                        <div class="card-stat">
+                            <div class="stat-info">
+                                <h3 data-i18n="activeProducts">المنتجات النشطة</h3>
+                                <div class="stat-value" id="metricProducts">0</div>
+                            </div>
+                            <div class="stat-icon"><i class="ri-archive-line"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card gold">
+                        <div class="card-stat">
+                            <div class="stat-info">
+                                <h3 data-i18n="invoicesGenerated">الفواتير المصدرة</h3>
+                                <div class="stat-value" id="metricInvoices">0</div>
+                            </div>
+                            <div class="stat-icon"><i class="ri-file-paper-2-line"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card green">
+                        <div class="card-stat">
+                            <div class="stat-info">
+                                <h3 data-i18n="netRevenue">صافي الأرباح</h3>
+                                <div class="stat-value" id="metricRevenue">0.00 ر.س</div>
+                            </div>
+                            <div class="stat-icon"><i class="ri-wallet-3-line"></i></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-details">
+                    <div class="glass-card">
+                        <h3 data-i18n="salesSummary" style="margin-bottom: 20px;">ملخص المبيعات</h3>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="salesAnalyticsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card" style="display: flex; flex-direction: column; gap: 16px;">
+                        <h3 data-i18n="lowStockAlert" style="color: var(--accent-gold);">تنبيهات انخفاض المخزون</h3>
+                        <div id="lowStockAlertList" style="flex-grow: 1; overflow-y: auto;">
+                            <!-- populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- TAB: POS Cashier -->
+            <section id="posTab" class="tab-content">
+                <div class="pos-layout">
+                    
+                    <!-- Products Grid Section -->
+                    <div class="pos-products">
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+                                <input type="text" id="productSearch" class="form-control" placeholder="ابحث عن منتج بالاسم أو الرمز المالي..." data-i18n="searchPlaceholder">
+                            </div>
+                        </div>
+                        
+                        <div class="products-filter">
+                            <button class="filter-chip active" data-category="all" data-i18n="allCategories">جميع الفئات</button>
+                            <button class="filter-chip" data-category="electronics" data-i18n="electronics">إلكترونيات</button>
+                            <button class="filter-chip" data-category="groceries" data-i18n="groceries">مواد غذائية</button>
+                            <button class="filter-chip" data-category="apparel" data-i18n="apparel">ملابس</button>
+                            <button class="filter-chip" data-category="stationery" data-i18n="stationery">قرطاسية</button>
+                        </div>
+                        
+                        <div class="products-grid" id="productsGrid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Cart Side Panel -->
+                    <div class="pos-cart">
+                        <h3 data-i18n="cartTitle" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">السلة الحالية</h3>
+                        <div class="cart-items" id="cartItems">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div class="cart-totals">
+                            <div class="total-row">
+                                <span data-i18n="subtotal">المجموع الفرعي</span>
+                                <span id="cartSubtotal">0.00 ر.س</span>
+                            </div>
+                            <div class="total-row">
+                                <span data-i18n="vat">ضريبة القيمة المضافة (15%)</span>
+                                <span id="cartVat">0.00 ر.س</span>
+                            </div>
+                            <div class="total-row grand-total">
+                                <span data-i18n="grandTotal">المجموع الكلي</span>
+                                <span id="cartGrandTotal">0.00 ر.س</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 16px;">
+                                <button class="btn btn-secondary" onclick="clearCart()" data-i18n="clearCart">تفريغ السلة</button>
+                                <button class="btn btn-primary" onclick="processCheckout()" data-i18n="payCheckout">دفع وإصدار الفاتورة</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+            <!-- TAB: Inventory Manager -->
+            <section id="inventoryTab" class="tab-content">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 data-i18n="inventory">إدارة المخزون</h3>
+                        <button class="btn btn-primary" onclick="openAddProductModal()">
+                            <i class="ri-add-line"></i>
+                            <span data-i18n="addProduct">إضافة منتج جديد</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="prodId">رمز المنتج</th>
+                                    <th data-i18n="prodName">اسم المنتج</th>
+                                    <th data-i18n="prodCategory">الفئة</th>
+                                    <th data-i18n="prodStock">الكمية بالمخزن</th>
+                                    <th data-i18n="prodPrice">السعر</th>
+                                    <th data-i18n="actions">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- TAB: Invoices -->
+            <section id="invoicesTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="invoices" style="margin-bottom: 20px;">الفواتير والتقارير</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="invoiceNum">رقم الفاتورة</th>
+                                    <th data-i18n="invoiceDate">التاريخ</th>
+                                    <th data-i18n="invoiceCustomer">العميل</th>
+                                    <th data-i18n="invoiceTotal">المبلغ الإجمالي</th>
+                                    <th data-i18n="invoiceStatus">الحالة</th>
+                                    <th data-i18n="actions">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- TAB: Settings -->
+            <section id="settingsTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="generalSettings" style="margin-bottom: 24px;">الإعدادات العامة للنظام</h3>
+                    <form onsubmit="saveSystemSettings(event)">
+                        <div class="form-group">
+                            <label for="settingsBusinessName" data-i18n="businessName">اسم المنشأة</label>
+                            <input type="text" id="settingsBusinessName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingsVatNo" data-i18n="vatNumber">الرقم الضريبي للمنشأة</label>
+                            <input type="text" id="settingsVatNo" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingsTaxRate" data-i18n="taxRateLabel">نسبة ضريبة القيمة المضافة (%)</label>
+                            <input type="number" id="settingsTaxRate" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" data-i18n="saveSettings" style="margin-top: 12px;">حفظ التغييرات</button>
+                    </form>
+                </div>
+            </section>
+            
+        </main>
+        
+    </div>
+
+    <!-- MODAL: e-Invoice Print Preview -->
+    <div id="invoiceModal" class="modal-overlay">
+        <div class="modal">
+            <div id="invoicePrintArea">
+                <!-- Populated dynamically -->
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeInvoiceModal()" data-i18n="close">إغلاق</button>
+                <button class="btn btn-primary" onclick="window.print()" data-i18n="print">طباعة واعتماد الفاتورة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Product CRUD (Add/Edit) -->
+    <div id="productEditModal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="productModalTitle" data-i18n="addProduct" style="margin-bottom: 20px;">إضافة منتج جديد</h3>
+            <form onsubmit="saveProduct(event)">
+                <input type="hidden" id="prodFormId">
+                <div class="form-group">
+                    <label for="prodFormNameAR">اسم المنتج (بالعربية)</label>
+                    <input type="text" id="prodFormNameAR" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="prodFormNameEN">Product Name (English)</label>
+                    <input type="text" id="prodFormNameEN" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="prodFormCategory" data-i18n="prodCategory">الفئة</label>
+                    <select id="prodFormCategory" class="form-control">
+                        <option value="electronics" data-i18n="electronics">إلكترونيات</option>
+                        <option value="groceries" data-i18n="groceries">مواد غذائية</option>
+                        <option value="apparel" data-i18n="apparel">ملابس</option>
+                        <option value="stationery" data-i18n="stationery">قرطاسية</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="prodFormStock" data-i18n="prodStock">الكمية بالمخزن</label>
+                    <input type="number" id="prodFormStock" class="form-control" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="prodFormPrice" data-i18n="prodPrice">السعر</label>
+                    <input type="number" id="prodFormPrice" class="form-control" required min="1" step="0.01">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()" data-i18n="close">إغلاق</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="saveProduct">حفظ المنتج</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Clock scripts -->
+    <script>
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById("liveClock").textContent = now.toLocaleString();
+        }, 1000);
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
