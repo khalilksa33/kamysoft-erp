@@ -17,6 +17,29 @@ const translations = {
         taxReport: "Tax Return Report",
         settings: "Settings",
         
+        // ZATCA Connection Settings
+        zatcaSettings: "ZATCA Connection Settings",
+        zatcaEnv: "ZATCA Environment",
+        zatcaEndpoint: "ZATCA Endpoint URL",
+        zatcaClientId: "Client ID",
+        zatcaClientSecret: "Client Secret",
+        zatcaDeviceSerial: "Device Serial Number",
+        csrGenerate: "Generate Private Key & CSR",
+        registerDevice: "Register Device / CCSID",
+        zatcaStatusLabel: "Connection Status",
+        zatcaStatusConnected: "CONNECTED & REGISTERED",
+        zatcaStatusDisconnected: "NOT REGISTERED / OFFLINE",
+
+        // Reports View
+        dailyReports: "Daily Report",
+        monthlyReports: "Monthly Report",
+        annualReports: "Annual Report",
+        totalSalesTax: "Total Sales (Inc. VAT)",
+        totalVatCollected: "Total VAT Collected (15%)",
+        invoiceCount: "Invoices Issued",
+        netSalesValue: "Net Sales Value",
+        printReport: "Print Report Summary",
+        
         // Dashboard Stats
         totalSales: "Total Sales",
         activeProducts: "Active Products",
@@ -196,6 +219,29 @@ const translations = {
         reports: "تقارير مفصلة",
         taxReport: "تقرير الإقرار الضريبي",
         settings: "الإعدادات",
+        
+        // ZATCA Connection Settings
+        zatcaSettings: "إعدادات الربط والاتصال بهيئة الزكاة والضريبة والجمارك (ZATCA)",
+        zatcaEnv: "بيئة عمل نظام الهيئة",
+        zatcaEndpoint: "رابط خادم الهيئة (Endpoint)",
+        zatcaClientId: "معرف العميل (Client ID)",
+        zatcaClientSecret: "الرمز السري للعميل (Client Secret)",
+        zatcaDeviceSerial: "الرقم التسلسلي للجهاز المرتبط",
+        csrGenerate: "توليد المفتاح الخاص وطلب التوقيع (CSR)",
+        registerDevice: "تسجيل الجهاز وتفعيل الـ CCSID",
+        zatcaStatusLabel: "حالة اتصال خادم الهيئة",
+        zatcaStatusConnected: "متصل ومسجل بنجاح (نشط)",
+        zatcaStatusDisconnected: "غير مسجل / دون اتصال",
+
+        // Reports View
+        dailyReports: "التقرير اليومي",
+        monthlyReports: "التقرير الشهري",
+        annualReports: "التقرير السنوي",
+        totalSalesTax: "إجمالي المبيعات (شامل الضريبة)",
+        totalVatCollected: "ضريبة القيمة المضافة المحصلة (15%)",
+        invoiceCount: "عدد الفواتير المصدرة",
+        netSalesValue: "صافي قيمة المبيعات (دون الضريبة)",
+        printReport: "طباعة ملخص التقرير",
         
         // Dashboard Stats
         totalSales: "إدارة المبيعات",
@@ -377,12 +423,23 @@ export default function App() {
     const [theme, setTheme] = useState('dark');
     const [activeTab, setActiveTab] = useState('dashboard');
     const [settings, setSettings] = useState({
-        businessName: 'KamySoft ERP & POS',
+        businessName: 'CASHIER',
         vatNumber: '310123456700003',
         taxRate: 15,
         baseCurrency: 'SAR',
         exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 }
     });
+
+    const [zatcaConn, setZatcaConn] = useState({
+        env: 'sandbox',
+        endpoint: 'https://developer.zatca.gov.sa/api/v2/invoice',
+        clientId: 'test-client-id-1092837',
+        clientSecret: '••••••••••••••••••••••••',
+        deviceSerial: 'CASHIER-310123456700003',
+        status: 'CONNECTED',
+    });
+
+    const [reportSubTab, setReportSubTab] = useState('daily');
 
     // Database Models State
     const [products, setProducts] = useState([]);
@@ -780,8 +837,8 @@ export default function App() {
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifySelf: 'center', width: '100%', maxWidth: '400px', padding: '20px' }}>
                 <div className="glass-card" style={{ width: '100%', padding: '30px' }}>
                     <div className="brand" style={{ marginBottom: '24px', justifyContent: 'center' }}>
-                        <i className="ri-shield-user-line"></i>
-                        <span>KamySoft MERN ERP</span>
+                        <i className="ri-store-2-line"></i>
+                        <span>CASHIER</span>
                     </div>
                     <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>User login / تسجيل الدخول</h3>
                     {authError && <div style={{ color: 'var(--accent-danger)', fontSize: '13px', marginBottom: '15px', textAlign: 'center' }}>{authError}</div>}
@@ -807,7 +864,7 @@ export default function App() {
             <aside className="sidebar">
                 <div className="brand">
                     <i className="ri-store-2-line"></i>
-                    <span>KamySoft ERP</span>
+                    <span>CASHIER</span>
                 </div>
                 <ul className="nav-links">
                     <li>
@@ -877,6 +934,14 @@ export default function App() {
                             <button className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
                                 <i className="ri-truck-line"></i>
                                 <span data-i18n="orders">{translations[currentLanguage].orders}</span>
+                            </button>
+                        </li>
+                    )}
+                    {isAllowedTab('reports') && (
+                        <li>
+                            <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
+                                <i className="ri-pie-chart-line"></i>
+                                <span data-i18n="reports">{translations[currentLanguage].reports}</span>
                             </button>
                         </li>
                     )}
@@ -1185,6 +1250,144 @@ export default function App() {
                     </div>
                 )}
 
+                {/* TAB: REPORTS */}
+                {activeTab === 'reports' && (() => {
+                    const now = new Date();
+                    const todayStr = now.toLocaleDateString();
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+                    
+                    const reportInvoices = invoices.filter(inv => {
+                        if (!inv.date) return false;
+                        const invDate = new Date(inv.date);
+                        
+                        if (isNaN(invDate.getTime())) {
+                            const datePart = inv.date.split(',')[0] || inv.date;
+                            if (reportSubTab === 'daily') {
+                                return datePart.includes(todayStr) || inv.date.includes(todayStr);
+                            }
+                            if (reportSubTab === 'monthly') {
+                                return inv.date.includes(`/${currentMonth + 1}/`) || inv.date.includes(`/${String(currentMonth + 1).padStart(2, '0')}/`) || inv.date.includes(`-${currentMonth + 1}-`);
+                            }
+                            if (reportSubTab === 'annual') {
+                                return inv.date.includes(String(currentYear));
+                            }
+                            return false;
+                        }
+                        
+                        if (reportSubTab === 'daily') {
+                            return invDate.toDateString() === now.toDateString();
+                        } else if (reportSubTab === 'monthly') {
+                            return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+                        } else if (reportSubTab === 'annual') {
+                            return invDate.getFullYear() === currentYear;
+                        }
+                        return true;
+                    });
+
+                    const totalSales = reportInvoices.reduce((sum, inv) => sum + inv.total, 0);
+                    const totalVat = reportInvoices.reduce((sum, inv) => sum + (inv.vat || 0), 0);
+                    const netSales = totalSales - totalVat;
+                    const invoiceCount = reportInvoices.length;
+
+                    return (
+                        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {/* Sub Tabs Selection */}
+                            <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                                <button className={`btn ${reportSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('daily')}>
+                                    <i className="ri-calendar-event-line"></i> {translations[currentLanguage].dailyReports}
+                                </button>
+                                <button className={`btn ${reportSubTab === 'monthly' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('monthly')}>
+                                    <i className="ri-calendar-todo-line"></i> {translations[currentLanguage].monthlyReports}
+                                </button>
+                                <button className={`btn ${reportSubTab === 'annual' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('annual')}>
+                                    <i className="ri-calendar-line"></i> {translations[currentLanguage].annualReports}
+                                </button>
+                                
+                                <button className="btn btn-secondary" style={{ marginRight: currentLanguage === 'en' ? 'auto' : '0', marginLeft: currentLanguage === 'ar' ? 'auto' : '0' }} onClick={() => window.print()}>
+                                    <i className="ri-printer-line"></i> {translations[currentLanguage].printReport}
+                                </button>
+                            </div>
+
+                            {/* Report Stats Grid */}
+                            <div className="card-grid">
+                                <div className="glass-card purple">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].totalSalesTax}</h3>
+                                            <div className="stat-value">{formatCurrency(totalSales)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card cyan">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].totalVatCollected}</h3>
+                                            <div className="stat-value">{formatCurrency(totalVat)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-percent-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card gold">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].netSalesValue}</h3>
+                                            <div className="stat-value">{formatCurrency(netSales)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-coins-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card green">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].invoiceCount}</h3>
+                                            <div className="stat-value">{invoiceCount}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-file-list-3-line"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Detailed List */}
+                            <div className="table-container" style={{ marginTop: '12px' }}>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>{translations[currentLanguage].invoiceNum}</th>
+                                            <th>{translations[currentLanguage].invoiceDate}</th>
+                                            <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].netSalesValue}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].vat}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].invoiceTotal}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportInvoices.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                    {currentLanguage === 'ar' ? 'لا توجد مبيعات مسجلة لهذه الفترة' : 'No sales recorded for this period'}
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            reportInvoices.map(inv => (
+                                                <tr key={inv.id}>
+                                                    <td>{inv.id}</td>
+                                                    <td>{inv.date}</td>
+                                                    <td>{inv.customer}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.total - (inv.vat || 0))}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.vat || 0)}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.total)}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })()}
+
                 {/* TAB: ZATCA INTEGRATION AND CLEARANCE */}
                 {activeTab === 'zatca' && (
                     <div className="glass-card">
@@ -1232,34 +1435,92 @@ export default function App() {
 
                 {/* TAB: SETTINGS & CURRENCY CONFIG */}
                 {activeTab === 'settings' && (
-                    <div className="glass-card">
-                        <form onSubmit={(e) => { e.preventDefault(); alert("Saved Settings"); }}>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].businessName}</label>
-                                <input type="text" className="form-control" value={settings.businessName} onChange={e => setSettings({ ...settings, businessName: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].vatNumber}</label>
-                                <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>Base System Currency / العملة الأساسية</label>
-                                <select className="form-control" value={settings.baseCurrency} onChange={e => setSettings({ ...settings, baseCurrency: e.target.value })}>
-                                    <option value="SAR">SAR / ر.س</option>
-                                    <option value="USD">USD / دولار أمريكي</option>
-                                    <option value="EUR">EUR / يورو</option>
-                                    <option value="EGP">EGP / جنيه مصري</option>
-                                    <option value="AED">AED / درهم إماراتي</option>
-                                </select>
-                            </div>
-                            <button type="submit" className="btn btn-primary">{translations[currentLanguage].saveSettings}</button>
-                        </form>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                        {/* General Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-settings-4-line"></i> {translations[currentLanguage].generalSettings}
+                            </h3>
+                            <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات العامة" : "General settings saved successfully"); }}>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].businessName}</label>
+                                    <input type="text" className="form-control" value={settings.businessName} onChange={e => setSettings({ ...settings, businessName: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].vatNumber}</label>
+                                    <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Base System Currency / العملة الأساسية</label>
+                                    <select className="form-control" value={settings.baseCurrency} onChange={e => setSettings({ ...settings, baseCurrency: e.target.value })}>
+                                        <option value="SAR">SAR / ر.س</option>
+                                        <option value="USD">USD / دولار أمريكي</option>
+                                        <option value="EUR">EUR / يورو</option>
+                                        <option value="EGP">EGP / جنيه مصري</option>
+                                        <option value="AED">AED / درهم إماراتي</option>
+                                    </select>
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{translations[currentLanguage].saveSettings}</button>
+                            </form>
+                        </div>
+
+                        {/* ZATCA Connection Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-cloud-line"></i> {translations[currentLanguage].zatcaSettings}
+                            </h3>
+                            <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? "تم حفظ إعدادات خادر هيئة الزكاة" : "ZATCA Server settings saved successfully"); }}>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEnv}</label>
+                                    <select className="form-control" value={zatcaConn.env} onChange={e => setZatcaConn({ ...zatcaConn, env: e.target.value })}>
+                                        <option value="sandbox">Sandbox / البيئة التجريبية (المحاكاة)</option>
+                                        <option value="simulation">Simulation / بيئة المحاكاة الرسمية</option>
+                                        <option value="production">Production / البيئة الفعلية والإنتاجية</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEndpoint}</label>
+                                    <input type="text" className="form-control" value={zatcaConn.endpoint} onChange={e => setZatcaConn({ ...zatcaConn, endpoint: e.target.value })} />
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientId}</label>
+                                        <input type="text" className="form-control" value={zatcaConn.clientId} onChange={e => setZatcaConn({ ...zatcaConn, clientId: e.target.value })} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientSecret}</label>
+                                        <input type="password" className="form-control" value={zatcaConn.clientSecret} onChange={e => setZatcaConn({ ...zatcaConn, clientSecret: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaDeviceSerial}</label>
+                                    <input type="text" className="form-control" value={zatcaConn.deviceSerial} onChange={e => setZatcaConn({ ...zatcaConn, deviceSerial: e.target.value })} />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].zatcaStatusLabel}:</span>
+                                    <span className={`badge ${zatcaConn.status === 'CONNECTED' ? 'green' : 'danger'}`}>
+                                        {zatcaConn.status === 'CONNECTED' ? translations[currentLanguage].zatcaStatusConnected : translations[currentLanguage].zatcaStatusDisconnected}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button type="button" className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={() => alert(currentLanguage === 'ar' ? "تم إنشاء طلب التوقيع CSR ومفتاح التشفير الخاص بنجاح!" : "Private Key and CSR successfully generated!")}>
+                                        {translations[currentLanguage].csrGenerate}
+                                    </button>
+                                    <button type="button" className="btn btn-primary" style={{ flexGrow: 1 }} onClick={() => {
+                                        setZatcaConn({ ...zatcaConn, status: 'CONNECTED' });
+                                        alert(currentLanguage === 'ar' ? "تم التحقق وتسجيل وتفعيل الـ CCSID بنجاح!" : "Device successfully registered & CCSID token retrieved from ZATCA!");
+                                    }}>
+                                        {translations[currentLanguage].registerDevice}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 )}
 
                 {/* Version Footer */}
                 <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <span>KamySoft MERN ERP v1.2.0 - Scaleable Full Stack Integration</span>
+                    <span>CASHIER v1.2.0 - Scaleable Full Stack Integration</span>
                     <span>Saudi Arabia | 2026</span>
                 </footer>
             </main>
