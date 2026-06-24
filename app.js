@@ -1,5 +1,5 @@
-// KamySoft POS & ERP Controller - Comprehensive & Fixed Version
-// Fully implements 15 flyer specifications, Asset Depreciation, and fixed translations
+// KamySoft POS & ERP Controller - Expanded Version
+// Implements 15 modules, plus Asset Depreciation, A4 Invoicing, and Employee Asset Tracking
 
 const translations = {
     en: {
@@ -103,6 +103,8 @@ const translations = {
         assetSummary: "Financial Asset Depreciation Summary",
         totalDepreciation: "Total Annual Depreciation",
         netBookValue: "Net Book Value of Assets",
+        assignedTo: "Assigned Employee",
+        unassigned: "Unassigned / Available",
         
         // Permissions
         roleSelect: "Switch User Role",
@@ -239,6 +241,8 @@ const translations = {
         assetSummary: "خلاصة الإهلاك المالي للأصول",
         totalDepreciation: "إجمالي الإهلاك السنوي",
         netBookValue: "صافي القيمة الدفترية للأصول",
+        assignedTo: "المستلم / الموظف",
+        unassigned: "غير محدد / متوفر في العهدة",
         
         // Permissions
         roleSelect: "تغيير صلاحية المستخدم",
@@ -311,6 +315,12 @@ let appState = {
         { id: 'CUST-8001', name: 'Khalil Al-Ghamdi / خليل الغامدي', phone: '0501234567', email: 'khalil@26i.uk', points: 150, spent: 1725 },
         { id: 'CUST-8002', name: 'Fahad Al-Otaibi / فهد العتيبي', phone: '0557654321', email: 'fahad@kamysoft.com', points: 45, spent: 480 }
     ],
+
+    employees: [
+        { id: 'EMP-3001', name: 'Khalil Al-Ghamdi / خليل الغامدي', dept: 'IT Operations' },
+        { id: 'EMP-3002', name: 'Ahmad Ali / أحمد علي', dept: 'Finance' },
+        { id: 'EMP-3003', name: 'Sarah Salem / سارة سالم', dept: 'Administration' }
+    ],
     
     suppliers: [
         { id: 'SUPP-9001', company: 'Rawaa Supplies Co. / شركة رواء للتوريد', contact: 'Ahmad Ali', phone: '0599998888', items: 'Smart Monitors, POS printers' },
@@ -323,8 +333,8 @@ let appState = {
     ],
 
     assets: [
-        { id: 'AST-2001', name: 'Server Host B Machine', cost: 4500, salvage: 500, life: 5, date: '2025-01-15', status: 'active', department: 'IT / Operations', serial: 'SN-76543A', supplier: 'Saudi Tech Importers' },
-        { id: 'AST-2002', name: 'Laser Printer HP LaserJet', cost: 1200, salvage: 200, life: 4, date: '2025-03-10', status: 'active', department: 'Administration', serial: 'SN-99881P', supplier: 'Rawaa Supplies Co.' }
+        { id: 'AST-2001', name: 'Server Host B Machine', cost: 4500, salvage: 500, life: 5, date: '2025-01-15', status: 'active', department: 'IT / Operations', serial: 'SN-76543A', supplier: 'Saudi Tech Importers', assignedTo: 'EMP-3001' },
+        { id: 'AST-2002', name: 'Laser Printer HP LaserJet', cost: 1200, salvage: 200, life: 4, date: '2025-03-10', status: 'active', department: 'Administration', serial: 'SN-99881P', supplier: 'Rawaa Supplies Co.', assignedTo: 'EMP-3003' }
     ],
     
     currentFilter: 'all'
@@ -350,17 +360,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadSettings() {
-    const saved = localStorage.getItem("kamysoft_erp_state_v4");
+    const saved = localStorage.getItem("kamysoft_erp_state_v5");
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             appState = { ...appState, ...parsed };
-        } catch (e) { console.error("Error loading state v4", e); }
+        } catch (e) { console.error("Error loading state v5", e); }
     }
 }
 
 function saveState() {
-    localStorage.setItem("kamysoft_erp_state_v4", JSON.stringify(appState));
+    localStorage.setItem("kamysoft_erp_state_v5", JSON.stringify(appState));
 }
 
 // Permissions Manager
@@ -874,11 +884,23 @@ function closeInvoiceModal() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-// Asset Management with straight line depreciation calculation
+// Asset Management with straight line depreciation and employee tracking
 function renderAssets() {
     const list = document.getElementById("assetsTableBody");
+    const select = document.getElementById("assetFormAssigned");
     if (!list) return;
     list.innerHTML = "";
+
+    // Populate employee selector in Modal if available
+    if (select) {
+        select.innerHTML = `<option value="unassigned" data-i18n="unassigned">${translations[appState.currentLanguage].unassigned}</option>`;
+        appState.employees.forEach(emp => {
+            const opt = document.createElement("option");
+            opt.value = emp.id;
+            opt.textContent = emp.name;
+            select.appendChild(opt);
+        });
+    }
 
     const isAr = appState.currentLanguage === 'ar';
     const currency = translations[appState.currentLanguage].currencySymbol;
@@ -900,6 +922,15 @@ function renderAssets() {
         const accumulatedDep = annualDep * yearsElapsed;
         const currentBookValue = Math.max(a.salvage, a.cost - accumulatedDep);
 
+        // Employee assignment label
+        let employeeLabel = translations[appState.currentLanguage].unassigned;
+        if (a.assignedTo && a.assignedTo !== 'unassigned') {
+            const empObj = appState.employees.find(e => e.id === a.assignedTo);
+            if (empObj) {
+                employeeLabel = empObj.name;
+            }
+        }
+
         row.innerHTML = `
             <td>${a.id}</td>
             <td style="font-weight: 600;">🖥️ ${a.name}</td>
@@ -908,6 +939,7 @@ function renderAssets() {
             <td style="font-weight: 700;">${a.cost.toFixed(2)} ${currency}</td>
             <td style="color: var(--accent-danger); font-weight: 600;">${annualDep.toFixed(2)} ${currency}</td>
             <td style="color: var(--accent-success); font-weight: 700;">${currentBookValue.toFixed(2)} ${currency}</td>
+            <td><span class="badge purple">${employeeLabel}</span></td>
             <td><span class="badge ${statusClass}">${statusLabel}</span></td>
             <td>${a.department}</td>
             <td>
@@ -939,6 +971,7 @@ function saveAsset(e) {
     const department = document.getElementById("assetFormDept").value;
     const serial = document.getElementById("assetFormSerial").value;
     const supplier = document.getElementById("assetFormSupplier").value;
+    const assignedTo = document.getElementById("assetFormAssigned").value;
 
     if (!name || cost <= 0 || life <= 0) return;
 
@@ -952,7 +985,8 @@ function saveAsset(e) {
         status,
         department,
         serial,
-        supplier
+        supplier,
+        assignedTo
     });
 
     saveState();
@@ -977,7 +1011,6 @@ function renderExpenses() {
     body.innerHTML = "";
 
     const currency = translations[appState.currentLanguage].currencySymbol;
-    const isAr = appState.currentLanguage === 'ar';
 
     appState.expenses.forEach(exp => {
         const row = document.createElement("tr");
@@ -1309,7 +1342,7 @@ function updateDashboardMetrics() {
 
     document.getElementById("taxNetRevenue").textContent = `${netRevenue.toFixed(2)} ${currency}`;
     
-    // Asset cost metric displays (Depreciation focus cards)
+    // Asset cost metric displays
     const assetValDisplay = document.getElementById("taxAssetTotal");
     if (assetValDisplay) {
         assetValDisplay.textContent = `${assetsCostTotal.toFixed(2)} ${currency}`;

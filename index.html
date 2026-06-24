@@ -367,6 +367,7 @@
                                     <th data-i18n="assetCost">تكلفة الشراء</th>
                                     <th data-i18n="annualDepreciation">الإهلاك السنوي</th>
                                     <th data-i18n="bookValue">القيمة الدفترية</th>
+                                    <th data-i18n="assignedTo">المستلم / الموظف</th>
                                     <th data-i18n="assetStatus">حالة الأصل</th>
                                     <th data-i18n="assetDept">القسم / الموقع</th>
                                     <th data-i18n="actions">الإجراءات</th>
@@ -463,7 +464,7 @@
                 </div>
             </section>
 
-            <!-- TAB: Reports (Financial, Tax Return, Asset Depreciation summary) -->
+            <!-- TAB: Reports -->
             <section id="reportsTab" class="tab-content">
                 <div class="glass-card">
                     <h3 data-i18n="taxReport" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">تقرير الإقرار الضريبي والمالي</h3>
@@ -686,7 +687,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Add Asset (Expanded with straight line depreciation fields) -->
+    <!-- MODAL: Add Asset (Expanded with straight line depreciation fields & employee selection) -->
     <div id="assetModal" class="modal-overlay">
         <div class="modal">
             <h3 data-i18n="addAsset" style="margin-bottom: 20px;">تسجيل أصل رأسمالي جديد</h3>
@@ -729,7 +730,7 @@
                         </select>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                     <div class="form-group">
                         <label for="assetFormDept" data-i18n="assetDept">القسم / الموقع</label>
                         <input type="text" id="assetFormDept" class="form-control" required placeholder="مثال: إدارة العمليات">
@@ -737,6 +738,12 @@
                     <div class="form-group">
                         <label for="assetFormSupplier" data-i18n="assetSupplier">المورد</label>
                         <input type="text" id="assetFormSupplier" class="form-control" placeholder="شركة رواء للتوريد">
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormAssigned" data-i18n="assignedTo">المستلم / الموظف</label>
+                        <select id="assetFormAssigned" class="form-control">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
