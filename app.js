@@ -1,5 +1,5 @@
-// KamySoft POS & ERP Controller - Expanded Version
-// Implements 15 modules, plus Asset Management & A4 printable invoicing
+// KamySoft POS & ERP Controller - Comprehensive & Fixed Version
+// Fully implements 15 flyer specifications, Asset Depreciation, and fixed translations
 
 const translations = {
     en: {
@@ -85,7 +85,7 @@ const translations = {
         addAsset: "Register New Asset",
         assetId: "Asset ID",
         assetName: "Asset Name",
-        assetCost: "Purchase Cost (SAR)",
+        assetCost: "Purchase Cost",
         assetDate: "Purchase Date",
         assetStatus: "Status",
         assetDept: "Department / Location",
@@ -93,7 +93,16 @@ const translations = {
         maintenance: "In Maintenance",
         disposed: "Disposed / Deprecated",
         saveAsset: "Save Asset",
-        totalAssetsValue: "Total Assets Value",
+        totalAssetsValue: "Total Capital Cost",
+        assetSalvage: "Salvage Value",
+        assetLife: "Useful Life (Years)",
+        annualDepreciation: "Annual Depreciation",
+        bookValue: "Current Book Value",
+        serialNo: "Serial Number",
+        assetSupplier: "Supplier",
+        assetSummary: "Financial Asset Depreciation Summary",
+        totalDepreciation: "Total Annual Depreciation",
+        netBookValue: "Net Book Value of Assets",
         
         // Permissions
         roleSelect: "Switch User Role",
@@ -133,7 +142,7 @@ const translations = {
         dashboard: "لوحة التحكم",
         posCashier: "تطبيق الكاشير",
         inventory: "إدارة المخزون",
-        expenses: "إإدارة المصروفات",
+        expenses: "إدارة المصروفات",
         customers: "إدارة العملاء",
         suppliers: "إدارة الموردين",
         invoices: "إدارة الفواتير",
@@ -212,7 +221,7 @@ const translations = {
         addAsset: "تسجيل أصل جديد",
         assetId: "رمز الأصل",
         assetName: "اسم الأصل",
-        assetCost: "تكلفة الشراء (ريال)",
+        assetCost: "تكلفة الشراء",
         assetDate: "تاريخ الشراء",
         assetStatus: "حالة الأصل",
         assetDept: "القسم / الموقع",
@@ -220,7 +229,16 @@ const translations = {
         maintenance: "في الصيانة",
         disposed: "تم استبعاده / تالف",
         saveAsset: "حفظ الأصل",
-        totalAssetsValue: "إجمالي قيمة الأصول",
+        totalAssetsValue: "إجمالي التكلفة الرأسمالية",
+        assetSalvage: "القيمة المتبقية (خردة)",
+        assetLife: "العمر الافتراضي (سنوات)",
+        annualDepreciation: "الإهلاك السنوي",
+        bookValue: "القيمة الدفترية الحالية",
+        serialNo: "الرقم التسلسلي",
+        assetSupplier: "المورد",
+        assetSummary: "خلاصة الإهلاك المالي للأصول",
+        totalDepreciation: "إجمالي الإهلاك السنوي",
+        netBookValue: "صافي القيمة الدفترية للأصول",
         
         // Permissions
         roleSelect: "تغيير صلاحية المستخدم",
@@ -305,8 +323,8 @@ let appState = {
     ],
 
     assets: [
-        { id: 'AST-2001', name: 'Server Rack Host B', cost: 4500, date: '2026-01-15', status: 'active', department: 'IT / Operations' },
-        { id: 'AST-2002', name: 'Laser Printer HP LaserJet', cost: 1200, date: '2026-03-10', status: 'active', department: 'Administration' }
+        { id: 'AST-2001', name: 'Server Host B Machine', cost: 4500, salvage: 500, life: 5, date: '2025-01-15', status: 'active', department: 'IT / Operations', serial: 'SN-76543A', supplier: 'Saudi Tech Importers' },
+        { id: 'AST-2002', name: 'Laser Printer HP LaserJet', cost: 1200, salvage: 200, life: 4, date: '2025-03-10', status: 'active', department: 'Administration', serial: 'SN-99881P', supplier: 'Rawaa Supplies Co.' }
     ],
     
     currentFilter: 'all'
@@ -332,17 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadSettings() {
-    const saved = localStorage.getItem("kamysoft_erp_state_v3");
+    const saved = localStorage.getItem("kamysoft_erp_state_v4");
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             appState = { ...appState, ...parsed };
-        } catch (e) { console.error("Error loading state v3", e); }
+        } catch (e) { console.error("Error loading state v4", e); }
     }
 }
 
 function saveState() {
-    localStorage.setItem("kamysoft_erp_state_v3", JSON.stringify(appState));
+    localStorage.setItem("kamysoft_erp_state_v4", JSON.stringify(appState));
 }
 
 // Permissions Manager
@@ -682,11 +700,10 @@ function openInvoiceModal(invoice, pointsEarned = 0) {
     activeInvoiceObj = invoice;
     const modal = document.getElementById("invoiceModal");
     if (!modal) return;
-    renderInvoiceLayout('thermal'); // Default thermal
+    renderInvoiceLayout('thermal');
     modal.style.display = "flex";
 }
 
-// Dual printable invoice renderer: standard A4 & Thermal roll (80mm)
 function renderInvoiceLayout(format) {
     const printArea = document.getElementById("invoicePrintArea");
     if (!printArea || !activeInvoiceObj) return;
@@ -715,14 +732,11 @@ function renderInvoiceLayout(format) {
         invoice.vat.toFixed(2)
     );
 
-    // Apply formatting CSS switches
     printArea.className = format === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout';
 
     if (format === 'a4') {
-        // Professional A4 Layout
         printArea.innerHTML = `
             <div style="padding: 40px; color: #333; min-height: 250mm;">
-                <!-- A4 Header Company Logo and Name -->
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b5cf6; padding-bottom: 20px;">
                     <div>
                         <h1 style="font-size: 28px; margin: 0; color: #8b5cf6;">${appState.businessName}</h1>
@@ -734,7 +748,6 @@ function renderInvoiceLayout(format) {
                     </div>
                 </div>
 
-                <!-- A4 Customer details -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; font-size: 13px;">
                     <div>
                         <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #555;">${isAr ? 'العميل مفوتر إلى:' : 'Billed To:'}</h3>
@@ -747,7 +760,6 @@ function renderInvoiceLayout(format) {
                     </div>
                 </div>
 
-                <!-- A4 Items Table -->
                 <table style="width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 13px;">
                     <thead>
                         <tr style="background: #8b5cf6; color: white;">
@@ -762,7 +774,6 @@ function renderInvoiceLayout(format) {
                     </tbody>
                 </table>
 
-                <!-- A4 Total Calculations & ZATCA QR Code -->
                 <div style="margin-top: 40px; display: grid; grid-template-columns: 2fr 1fr; gap: 40px; font-size: 13px;">
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #ccc; padding: 20px; border-radius: 8px;">
                         <div id="invoiceQrCode"></div>
@@ -795,7 +806,6 @@ function renderInvoiceLayout(format) {
             </div>
         `;
     } else {
-        // Standard Thermal Roll Layout (80mm)
         printArea.innerHTML = `
             <div class="invoice-print" style="padding: 10px; color: black;">
                 <div class="invoice-header">
@@ -848,7 +858,6 @@ function renderInvoiceLayout(format) {
         `;
     }
 
-    // Render ZATCA visual QR Code
     setTimeout(() => {
         new QRCode(document.getElementById("invoiceQrCode"), {
             text: qrBase64,
@@ -865,7 +874,7 @@ function closeInvoiceModal() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-// Asset Management (Spec Integration)
+// Asset Management with straight line depreciation calculation
 function renderAssets() {
     const list = document.getElementById("assetsTableBody");
     if (!list) return;
@@ -873,6 +882,7 @@ function renderAssets() {
 
     const isAr = appState.currentLanguage === 'ar';
     const currency = translations[appState.currentLanguage].currencySymbol;
+    const currentYear = new Date().getFullYear();
 
     appState.assets.forEach(a => {
         const row = document.createElement("tr");
@@ -883,11 +893,21 @@ function renderAssets() {
 
         const statusLabel = translations[appState.currentLanguage][a.status] || a.status;
 
+        // Straight-line Depreciation Calculations
+        const annualDep = (a.cost - a.salvage) / a.life;
+        const purchaseYear = new Date(a.date).getFullYear();
+        const yearsElapsed = Math.max(0, currentYear - purchaseYear);
+        const accumulatedDep = annualDep * yearsElapsed;
+        const currentBookValue = Math.max(a.salvage, a.cost - accumulatedDep);
+
         row.innerHTML = `
             <td>${a.id}</td>
             <td style="font-weight: 600;">🖥️ ${a.name}</td>
+            <td style="font-size: 12px; color: var(--text-secondary);">${a.serial || 'N/A'}</td>
             <td>${a.date}</td>
             <td style="font-weight: 700;">${a.cost.toFixed(2)} ${currency}</td>
+            <td style="color: var(--accent-danger); font-weight: 600;">${annualDep.toFixed(2)} ${currency}</td>
+            <td style="color: var(--accent-success); font-weight: 700;">${currentBookValue.toFixed(2)} ${currency}</td>
             <td><span class="badge ${statusClass}">${statusLabel}</span></td>
             <td>${a.department}</td>
             <td>
@@ -912,19 +932,27 @@ function saveAsset(e) {
     e.preventDefault();
     const name = document.getElementById("assetFormName").value;
     const cost = parseFloat(document.getElementById("assetFormCost").value) || 0;
+    const salvage = parseFloat(document.getElementById("assetFormSalvage").value) || 0;
+    const life = parseInt(document.getElementById("assetFormLife").value) || 5;
     const date = document.getElementById("assetFormDate").value || new Date().toISOString().split('T')[0];
     const status = document.getElementById("assetFormStatus").value;
     const department = document.getElementById("assetFormDept").value;
+    const serial = document.getElementById("assetFormSerial").value;
+    const supplier = document.getElementById("assetFormSupplier").value;
 
-    if (!name || cost <= 0) return;
+    if (!name || cost <= 0 || life <= 0) return;
 
     appState.assets.push({
         id: `AST-${2000 + appState.assets.length + 1}`,
         name,
         cost,
+        salvage,
+        life,
         date,
         status,
-        department
+        department,
+        serial,
+        supplier
     });
 
     saveState();
@@ -949,6 +977,7 @@ function renderExpenses() {
     body.innerHTML = "";
 
     const currency = translations[appState.currentLanguage].currencySymbol;
+    const isAr = appState.currentLanguage === 'ar';
 
     appState.expenses.forEach(exp => {
         const row = document.createElement("tr");
@@ -1210,8 +1239,21 @@ function updateDashboardMetrics() {
     let expensesTotal = 0;
     appState.expenses.forEach(e => expensesTotal += e.amount);
 
-    let assetsTotal = 0;
-    appState.assets.forEach(a => assetsTotal += a.cost);
+    let assetsCostTotal = 0;
+    let annualDepTotal = 0;
+    let netBookValueTotal = 0;
+    const currentYear = new Date().getFullYear();
+
+    appState.assets.forEach(a => {
+        assetsCostTotal += a.cost;
+        const annualDep = (a.cost - a.salvage) / a.life;
+        annualDepTotal += annualDep;
+        
+        const purchaseYear = new Date(a.date).getFullYear();
+        const yearsElapsed = Math.max(0, currentYear - purchaseYear);
+        const currentBookVal = Math.max(a.salvage, a.cost - (annualDep * yearsElapsed));
+        netBookValueTotal += currentBookVal;
+    });
 
     const currency = translations[appState.currentLanguage].currencySymbol;
 
@@ -1267,10 +1309,20 @@ function updateDashboardMetrics() {
 
     document.getElementById("taxNetRevenue").textContent = `${netRevenue.toFixed(2)} ${currency}`;
     
-    // Asset cost metric display
+    // Asset cost metric displays (Depreciation focus cards)
     const assetValDisplay = document.getElementById("taxAssetTotal");
     if (assetValDisplay) {
-        assetValDisplay.textContent = `${assetsTotal.toFixed(2)} ${currency}`;
+        assetValDisplay.textContent = `${assetsCostTotal.toFixed(2)} ${currency}`;
+    }
+
+    const depValDisplay = document.getElementById("taxAssetDep");
+    if (depValDisplay) {
+        depValDisplay.textContent = `${annualDepTotal.toFixed(2)} ${currency}`;
+    }
+
+    const nbValueDisplay = document.getElementById("taxAssetBook");
+    if (nbValueDisplay) {
+        nbValueDisplay.textContent = `${netBookValueTotal.toFixed(2)} ${currency}`;
     }
 }
 
@@ -1360,17 +1412,6 @@ function renderInventory() {
         `;
         list.appendChild(row);
     });
-}
-
-function openAddProductModal() {
-    document.getElementById("productModalTitle").textContent = translations[appState.currentLanguage].addProduct;
-    document.getElementById("prodFormId").value = "";
-    document.getElementById("prodFormNameEN").value = "";
-    document.getElementById("prodFormNameAR").value = "";
-    document.getElementById("prodFormCategory").value = "electronics";
-    document.getElementById("prodFormStock").value = "";
-    document.getElementById("prodFormPrice").value = "";
-    document.getElementById("productEditModal").style.display = "flex";
 }
 
 function openProductEditModal(id) {

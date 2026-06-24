@@ -362,8 +362,11 @@
                                 <tr>
                                     <th data-i18n="assetId">رمز الأصل</th>
                                     <th data-i18n="assetName">اسم الأصل</th>
+                                    <th data-i18n="serialNo">الرقم التسلسلي</th>
                                     <th data-i18n="assetDate">تاريخ الشراء</th>
                                     <th data-i18n="assetCost">تكلفة الشراء</th>
+                                    <th data-i18n="annualDepreciation">الإهلاك السنوي</th>
+                                    <th data-i18n="bookValue">القيمة الدفترية</th>
                                     <th data-i18n="assetStatus">حالة الأصل</th>
                                     <th data-i18n="assetDept">القسم / الموقع</th>
                                     <th data-i18n="actions">الإجراءات</th>
@@ -460,7 +463,7 @@
                 </div>
             </section>
 
-            <!-- TAB: Reports -->
+            <!-- TAB: Reports (Financial, Tax Return, Asset Depreciation summary) -->
             <section id="reportsTab" class="tab-content">
                 <div class="glass-card">
                     <h3 data-i18n="taxReport" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">تقرير الإقرار الضريبي والمالي</h3>
@@ -500,18 +503,42 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px;">
+                    <h3 data-i18n="assetSummary" style="margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px;">خلاصة الإهلاك المالي للأصول</h3>
+                    <div class="card-grid" style="margin-bottom: 24px;">
+                        <div class="glass-card purple">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="totalAssetsValue">إجمالي القيمة الرأسمالية للأصول</h3>
+                                    <div class="stat-value" id="taxAssetTotal">0.00 ر.س</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card gold">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="totalDepreciation">إجمالي الإهلاك السنوي للأصول</h3>
+                                    <div class="stat-value" id="taxAssetDep">0.00 ر.س</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card green">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="netBookValue">صافي القيمة الدفترية للأصول</h3>
+                                    <div class="stat-value" id="taxAssetBook">0.00 ر.س</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
                         <div class="glass-card" style="border-left: 4px solid var(--accent-gold);">
                             <h3 data-i18n="netTaxDue">صافي الضريبة المستحقة للهيئة</h3>
-                            <div class="stat-value" id="taxDue" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
-                        </div>
-                        <div class="glass-card" style="border-left: 4px solid var(--accent-purple);">
-                            <h3 data-i18n="totalAssetsValue">إجمالي قيمة الأصول</h3>
-                            <div class="stat-value" id="taxAssetTotal" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                            <div class="stat-value" id="taxDue" style="font-size: 28px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
                         </div>
                         <div class="glass-card" style="border-left: 4px solid var(--accent-success);">
                             <h3 data-i18n="netEarnings">صافي الأرباح (المبيعات - المصاريف)</h3>
-                            <div class="stat-value" id="taxNetRevenue" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                            <div class="stat-value" id="taxNetRevenue" style="font-size: 28px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
                         </div>
                     </div>
                 </div>
@@ -560,7 +587,7 @@
         
     </div>
 
-    <!-- MODAL: e-Invoice Print Preview (Dual A4 & Thermal format choices) -->
+    <!-- MODAL: e-Invoice Print Preview -->
     <div id="invoiceModal" class="modal-overlay">
         <div class="modal">
             
@@ -574,7 +601,7 @@
             </div>
 
             <div id="invoicePrintArea">
-                <!-- Populated dynamically (Thermal or A4 format) -->
+                <!-- Populated dynamically -->
             </div>
 
             <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 12px;">
@@ -659,34 +686,58 @@
         </div>
     </div>
 
-    <!-- MODAL: Add Asset -->
+    <!-- MODAL: Add Asset (Expanded with straight line depreciation fields) -->
     <div id="assetModal" class="modal-overlay">
         <div class="modal">
             <h3 data-i18n="addAsset" style="margin-bottom: 20px;">تسجيل أصل رأسمالي جديد</h3>
             <form onsubmit="saveAsset(event)">
-                <div class="form-group">
-                    <label for="assetFormName" data-i18n="assetName">اسم الأصل</label>
-                    <input type="text" id="assetFormName" class="form-control" required placeholder="مثال: خادم حاسوبي Host B">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="assetFormName" data-i18n="assetName">اسم الأصل</label>
+                        <input type="text" id="assetFormName" class="form-control" required placeholder="مثال: خادم Host B">
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormSerial" data-i18n="serialNo">الرقم التسلسلي</label>
+                        <input type="text" id="assetFormSerial" class="form-control" placeholder="SN-12345X">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="assetFormCost" data-i18n="assetCost">تكلفة شراء الأصل</label>
-                    <input type="number" id="assetFormCost" class="form-control" required min="1" step="0.01">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="assetFormCost" data-i18n="assetCost">تكلفة شراء الأصل</label>
+                        <input type="number" id="assetFormCost" class="form-control" required min="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormSalvage" data-i18n="assetSalvage">القيمة المتبقية (خردة)</label>
+                        <input type="number" id="assetFormSalvage" class="form-control" required min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormLife" data-i18n="assetLife">العمر الافتراضي (سنوات)</label>
+                        <input type="number" id="assetFormLife" class="form-control" required min="1" value="5">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="assetFormDate" data-i18n="assetDate">تاريخ الشراء</label>
-                    <input type="date" id="assetFormDate" class="form-control" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="assetFormDate" data-i18n="assetDate">تاريخ الشراء</label>
+                        <input type="date" id="assetFormDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormStatus" data-i18n="assetStatus">حالة الأصل</label>
+                        <select id="assetFormStatus" class="form-control">
+                            <option value="active" data-i18n="active">نشط / قيد التشغيل</option>
+                            <option value="maintenance" data-i18n="maintenance">في الصيانة</option>
+                            <option value="disposed" data-i18n="disposed">تم استبعاده / تالف</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="assetFormStatus" data-i18n="assetStatus">حالة الأصل</label>
-                    <select id="assetFormStatus" class="form-control">
-                        <option value="active" data-i18n="active">نشط / قيد التشغيل</option>
-                        <option value="maintenance" data-i18n="maintenance">في الصيانة</option>
-                        <option value="disposed" data-i18n="disposed">تم استبعاده / تالف</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="assetFormDept" data-i18n="assetDept">القسم / الموقع</label>
-                    <input type="text" id="assetFormDept" class="form-control" required placeholder="مثال: قسم تقنية المعلومات">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="assetFormDept" data-i18n="assetDept">القسم / الموقع</label>
+                        <input type="text" id="assetFormDept" class="form-control" required placeholder="مثال: إدارة العمليات">
+                    </div>
+                    <div class="form-group">
+                        <label for="assetFormSupplier" data-i18n="assetSupplier">المورد</label>
+                        <input type="text" id="assetFormSupplier" class="form-control" placeholder="شركة رواء للتوريد">
+                    </div>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="closeAssetModal()" data-i18n="close">إغلاق</button>
