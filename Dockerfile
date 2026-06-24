@@ -1,13 +1,21 @@
-# Use a lightweight Nginx web server to serve static assets
-FROM nginx:alpine
+# Build Stage for React Frontend
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
-# Copy application static files to Nginx public folder
-COPY index.html /usr/share/nginx/html/
-COPY style.css /usr/share/nginx/html/
-COPY app.js /usr/share/nginx/html/
+# Production Stage for Node Express Backend
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --only=production
+COPY . .
+# Copy compiled frontend assets to backend served path
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Expose port 80
-EXPOSE 80
+EXPOSE 8089
+ENV PORT=8089
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]

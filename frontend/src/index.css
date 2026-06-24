@@ -1,9 +1,8 @@
 /* 
-   KamySoft Premium POS & ERP Stylesheet
+   KamySoft Premium POS & ERP Stylesheet - React Edition
    Supports English (LTR) & Arabic (RTL) natively
+   Optimized with reduced snappy transitions for button hovers (No lag/elastic effects)
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
     /* Color Palette */
@@ -25,13 +24,13 @@
     --font-en: 'Outfit', sans-serif;
     --font-ar: 'Cairo', sans-serif;
     
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
 }
 
-/* Light theme overrides if toggled */
+/* Light theme overrides */
 [data-theme="light"] {
     --bg-primary: #f3f4f6;
     --bg-secondary: #ffffff;
@@ -58,7 +57,7 @@ body {
     font-family: var(--font-en);
     min-height: 100vh;
     overflow-x: hidden;
-    transition: var(--transition);
+    transition: background-color 0.2s ease;
 }
 
 body[dir="rtl"] {
@@ -141,7 +140,7 @@ body[dir="rtl"] .main-content {
     text-decoration: none;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .nav-item:hover, .nav-item.active {
@@ -202,7 +201,7 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
     align-items: center;
 }
 
-/* Buttons */
+/* Snappy Buttons (Animations and elastic transitions reduced/removed) */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -213,7 +212,12 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
     border: 1px solid transparent;
     cursor: pointer;
     font-weight: 600;
-    transition: var(--transition);
+    /* Reduced hover animation speed to 0.05s and removed transform translateY */
+    transition: background 0.05s ease, border-color 0.05s ease, box-shadow 0.05s ease;
+}
+
+.btn:active {
+    opacity: 0.85;
 }
 
 .btn-primary {
@@ -222,8 +226,8 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
 }
 
 .btn-primary:hover {
-    box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
-    transform: translateY(-1px);
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+    /* No translateY scale transforms to keep it snappy and responsive */
 }
 
 .btn-secondary {
@@ -242,7 +246,7 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
 }
 
 .btn-danger:hover {
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
 }
 
 /* Glass Cards */
@@ -258,14 +262,14 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
     border-radius: var(--radius-lg);
     padding: 24px;
     backdrop-filter: blur(16px);
-    transition: var(--transition);
+    transition: border-color 0.15s ease, transform 0.15s ease;
     position: relative;
     overflow: hidden;
 }
 
 .glass-card:hover {
     border-color: var(--accent-purple);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .card-stat {
@@ -335,19 +339,8 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
         grid-template-columns: 1fr;
     }
     .sidebar {
-        display: none; /* simple responsive handling */
+        display: none;
     }
-}
-
-/* Tabs switcher */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
 }
 
 /* Tables styling */
@@ -428,7 +421,7 @@ tr:hover td {
     color: var(--text-secondary);
     cursor: pointer;
     white-space: nowrap;
-    transition: var(--transition);
+    transition: background 0.08s ease, color 0.08s ease;
 }
 
 .filter-chip.active, .filter-chip:hover {
@@ -449,7 +442,7 @@ tr:hover td {
     border-radius: var(--radius-md);
     padding: 16px;
     cursor: pointer;
-    transition: var(--transition);
+    transition: border-color 0.1s ease, transform 0.1s ease;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -457,7 +450,7 @@ tr:hover td {
 
 .product-card:hover {
     border-color: var(--accent-cyan);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .product-img {
@@ -559,7 +552,7 @@ tr:hover td {
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
@@ -571,7 +564,7 @@ tr:hover td {
     border-radius: var(--radius-lg);
     padding: 32px;
     width: 90%;
-    max-width: 800px; /* Expanded for A4 dimensions */
+    max-width: 800px;
     position: relative;
     max-height: 95vh;
     overflow-y: auto;
@@ -598,7 +591,7 @@ tr:hover td {
     padding: 12px 16px;
     color: white;
     font-family: inherit;
-    transition: var(--transition);
+    transition: border-color 0.15s ease;
 }
 
 .form-control:focus {
@@ -670,7 +663,6 @@ tr:hover td {
     .app-container, .modal-overlay {
         display: none !important;
     }
-    /* Expose only the active print area */
     #invoicePrintArea {
         display: block !important;
         position: absolute;
