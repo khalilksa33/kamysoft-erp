@@ -390,6 +390,63 @@ app.put('/api/orders/:id', authenticateToken, (req, res) => {
     ord.status = req.body.status;
     res.json(ord);
 });
+app.post('/api/orders', authenticateToken, (req, res) => {
+    const ord = { ...req.body, id: `ORD-${Date.now().toString().slice(-4)}` };
+    mockDb.orders.push(ord);
+    res.json(ord);
+});
+app.delete('/api/orders/:id', authenticateToken, (req, res) => {
+    mockDb.orders = mockDb.orders.filter(o => o.id !== req.params.id);
+    res.sendStatus(204);
+});
+
+// EXPENSES CRUD ADDITIONS
+app.put('/api/expenses/:id', authenticateToken, (req, res) => {
+    const idx = mockDb.expenses.findIndex(e => e.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Expense not found' });
+    mockDb.expenses[idx] = { ...mockDb.expenses[idx], ...req.body };
+    res.json(mockDb.expenses[idx]);
+});
+app.delete('/api/expenses/:id', authenticateToken, (req, res) => {
+    mockDb.expenses = mockDb.expenses.filter(e => e.id !== req.params.id);
+    res.sendStatus(204);
+});
+
+// USERS MANAGEMENT CRUD
+app.get('/api/users', authenticateToken, (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    const cleanUsers = mockDb.users.map(u => ({ id: u.id, username: u.username, role: u.role }));
+    res.json(cleanUsers);
+});
+app.post('/api/users', authenticateToken, (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    const { username, password, role } = req.body;
+    const user = {
+        id: Date.now().toString(),
+        username,
+        passwordHash: bcrypt.hashSync(password || '123456', 10),
+        role
+    };
+    mockDb.users.push(user);
+    res.json({ id: user.id, username: user.username, role: user.role });
+});
+app.put('/api/users/:id', authenticateToken, (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    const idx = mockDb.users.findIndex(u => u.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'User not found' });
+    const { username, password, role } = req.body;
+    mockDb.users[idx].username = username || mockDb.users[idx].username;
+    mockDb.users[idx].role = role || mockDb.users[idx].role;
+    if (password) {
+        mockDb.users[idx].passwordHash = bcrypt.hashSync(password, 10);
+    }
+    res.json({ id: mockDb.users[idx].id, username: mockDb.users[idx].username, role: mockDb.users[idx].role });
+});
+app.delete('/api/users/:id', authenticateToken, (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    mockDb.users = mockDb.users.filter(u => u.id !== req.params.id);
+    res.sendStatus(204);
+});
 
 // ----------------------------------------------------
 // FRONTEND SERVING (Vite production assets build)

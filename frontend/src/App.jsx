@@ -479,6 +479,17 @@ export default function App() {
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [expForm, setExpForm] = useState({ category: 'rent', amount: '', description: '', date: '' });
 
+    const [showUserModal, setShowUserModal] = useState(false);
+    const [userForm, setUserForm] = useState({ username: '', password: '', role: 'Cashier' });
+    const [usersList, setUsersList] = useState([
+        { id: '1', username: 'admin', role: 'Admin' },
+        { id: '2', username: 'manager', role: 'Manager' },
+        { id: '3', username: 'cashier', role: 'Cashier' }
+    ]);
+
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [orderForm, setOrderForm] = useState({ customer: '', items: '', total: '', status: 'Pending', date: new Date().toLocaleString() });
+
     // ZATCA Sandbox Output Log Console state
     const [zatcaConsole, setZatcaConsole] = useState([
         { type: "SYSTEM", text: "ZATCA Phase 2 Sandbox clearance engine active. Ready." }
@@ -529,6 +540,7 @@ export default function App() {
         fetch('/api/employees').then(res => res.json()).then(data => setEmployees(data)).catch(() => {});
         fetch('/api/suppliers').then(res => res.json()).then(data => setSuppliers(data)).catch(() => {});
         fetch('/api/orders').then(res => res.json()).then(data => setOrders(data)).catch(() => {});
+        fetch('/api/users').then(res => res.json()).then(data => setUsersList(data)).catch(() => {});
     }, [token]);
 
     // Apply configurations on load
@@ -813,6 +825,136 @@ export default function App() {
             const mock = { ...assetForm, id: `AST-${Date.now().toString().slice(-4)}` };
             setAssets([...assets, mock]);
             setShowAssetModal(false);
+        });
+    };
+
+    const handleSaveExpense = (e) => {
+        e.preventDefault();
+        const method = expForm.id ? 'PUT' : 'POST';
+        const url = expForm.id ? `/api/expenses/${expForm.id}` : '/api/expenses';
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(expForm)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (expForm.id) {
+                setExpenses(expenses.map(e => e.id === expForm.id ? data : e));
+            } else {
+                setExpenses([...expenses, data]);
+            }
+            setShowExpenseModal(false);
+            setExpForm({ category: 'rent', amount: '', description: '', date: '' });
+        })
+        .catch(() => {
+            if (expForm.id) {
+                setExpenses(expenses.map(e => e.id === expForm.id ? { ...expForm } : e));
+            } else {
+                const mock = { ...expForm, id: `EXP-${Date.now().toString().slice(-4)}` };
+                setExpenses([...expenses, mock]);
+            }
+            setShowExpenseModal(false);
+            setExpForm({ category: 'rent', amount: '', description: '', date: '' });
+        });
+    };
+
+    const handleDeleteExpense = (id) => {
+        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المصروف؟' : 'Are you sure you want to delete this expense?')) return;
+        fetch(`/api/expenses/${id}`, { method: 'DELETE', headers: headers })
+        .then(() => {
+            setExpenses(expenses.filter(e => e.id !== id));
+        })
+        .catch(() => {
+            setExpenses(expenses.filter(e => e.id !== id));
+        });
+    };
+
+    const handleSaveOrder = (e) => {
+        e.preventDefault();
+        const method = orderForm.id ? 'PUT' : 'POST';
+        const url = orderForm.id ? `/api/orders/${orderForm.id}` : '/api/orders';
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(orderForm)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (orderForm.id) {
+                setOrders(orders.map(o => o.id === orderForm.id ? data : o));
+            } else {
+                setOrders([...orders, data]);
+            }
+            setShowOrderModal(false);
+            setOrderForm({ customer: '', items: '', total: '', status: 'Pending', date: new Date().toLocaleString() });
+        })
+        .catch(() => {
+            if (orderForm.id) {
+                setOrders(orders.map(o => o.id === orderForm.id ? { ...orderForm } : o));
+            } else {
+                const mock = { ...orderForm, id: `ORD-${Date.now().toString().slice(-4)}` };
+                setOrders([...orders, mock]);
+            }
+            setShowOrderModal(false);
+            setOrderForm({ customer: '', items: '', total: '', status: 'Pending', date: new Date().toLocaleString() });
+        });
+    };
+
+    const handleDeleteOrder = (id) => {
+        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا الطلب؟' : 'Are you sure you want to delete this order?')) return;
+        fetch(`/api/orders/${id}`, { method: 'DELETE', headers: headers })
+        .then(() => {
+            setOrders(orders.filter(o => o.id !== id));
+        })
+        .catch(() => {
+            setOrders(orders.filter(o => o.id !== id));
+        });
+    };
+
+    const handleSaveUser = (e) => {
+        e.preventDefault();
+        const method = userForm.id ? 'PUT' : 'POST';
+        const url = userForm.id ? `/api/users/${userForm.id}` : '/api/users';
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(userForm)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (userForm.id) {
+                setUsersList(usersList.map(u => u.id === userForm.id ? data : u));
+            } else {
+                setUsersList([...usersList, data]);
+            }
+            setShowUserModal(false);
+            setUserForm({ username: '', password: '', role: 'Cashier' });
+        })
+        .catch(() => {
+            if (userForm.id) {
+                setUsersList(usersList.map(u => u.id === userForm.id ? { ...userForm } : u));
+            } else {
+                const mock = { ...userForm, id: Date.now().toString() };
+                setUsersList([...usersList, mock]);
+            }
+            setShowUserModal(false);
+            setUserForm({ username: '', password: '', role: 'Cashier' });
+        });
+    };
+
+    const handleDeleteUser = (id) => {
+        if (id === user.id) {
+            alert(currentLanguage === 'ar' ? 'لا يمكنك حذف حسابك الحالي!' : 'You cannot delete your own active account!');
+            return;
+        }
+        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المستخدم؟' : 'Are you sure you want to delete this user?')) return;
+        fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers })
+        .then(() => {
+            setUsersList(usersList.filter(u => u.id !== id));
+        })
+        .catch(() => {
+            setUsersList(usersList.filter(u => u.id !== id));
         });
     };
 
@@ -1407,6 +1549,190 @@ export default function App() {
                         </div>
                     </div>
                 )}
+                {/* TAB: EXPENSES */}
+                {activeTab === 'expenses' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="expenses">{translations[currentLanguage].expenses}</h3>
+                            <button className="btn btn-primary" onClick={() => { setExpForm({ category: 'rent', amount: '', description: '', date: '' }); setShowExpenseModal(true); }}>
+                                {translations[currentLanguage].addExpense}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].expenseCat}</th>
+                                        <th>{translations[currentLanguage].expenseDesc}</th>
+                                        <th>{translations[currentLanguage].expenseDate}</th>
+                                        <th>{translations[currentLanguage].expenseAmount}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expenses.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا توجد مصروفات مسجلة' : 'No expenses recorded'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        expenses.map(exp => (
+                                            <tr key={exp.id}>
+                                                <td><span className="badge purple">{translations[currentLanguage][exp.category] || exp.category}</span></td>
+                                                <td>{exp.description}</td>
+                                                <td>{exp.date}</td>
+                                                <td>{formatCurrency(exp.amount)}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setExpForm(exp); setShowExpenseModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteExpense(exp.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: ORDERS */}
+                {activeTab === 'orders' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="orders">{translations[currentLanguage].orders}</h3>
+                            <button className="btn btn-primary" onClick={() => { setOrderForm({ customer: '', items: '', total: '', status: 'Pending', date: new Date().toLocaleString() }); setShowOrderModal(true); }}>
+                                {currentLanguage === 'ar' ? 'إضافة طلب جديد' : 'Record New Order'}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].orderNum}</th>
+                                        <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                        <th>{translations[currentLanguage].orderItems}</th>
+                                        <th>{translations[currentLanguage].invoiceTotal}</th>
+                                        <th>{translations[currentLanguage].orderStatus}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا توجد طلبات جارية' : 'No active orders'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        orders.map(ord => (
+                                            <tr key={ord.id}>
+                                                <td>{ord.id}</td>
+                                                <td>{ord.customer}</td>
+                                                <td>{ord.items}</td>
+                                                <td>{formatCurrency(Number(ord.total) || ord.total)}</td>
+                                                <td>
+                                                    <span className={`badge ${ord.status === 'Completed' || ord.status === 'Delivered' ? 'green' : ord.status === 'Pending' ? 'danger' : 'gold'}`}>
+                                                        {translations[currentLanguage][`status${ord.status}`] || ord.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <select className="form-control" style={{ padding: '4px 8px', fontSize: '12px' }} value={ord.status} onChange={e => {
+                                                            const updatedStatus = e.target.value;
+                                                            fetch(`/api/orders/${ord.id}`, {
+                                                                method: 'PUT',
+                                                                headers: headers,
+                                                                body: JSON.stringify({ status: updatedStatus })
+                                                            })
+                                                            .then(res => res.json())
+                                                            .then(data => {
+                                                                setOrders(orders.map(o => o.id === ord.id ? { ...o, status: updatedStatus } : o));
+                                                            })
+                                                            .catch(() => {
+                                                                setOrders(orders.map(o => o.id === ord.id ? { ...o, status: updatedStatus } : o));
+                                                            });
+                                                        }}>
+                                                            <option value="Pending">{translations[currentLanguage].statusPending}</option>
+                                                            <option value="Preparing">{translations[currentLanguage].statusPreparing}</option>
+                                                            <option value="Ready">{translations[currentLanguage].statusReady}</option>
+                                                            <option value="Delivered">{translations[currentLanguage].statusDelivered}</option>
+                                                        </select>
+                                                        <button className="btn btn-secondary" onClick={() => { setOrderForm(ord); setShowOrderModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteOrder(ord.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: USER MANAGEMENT (PERMISSIONS) */}
+                {activeTab === 'permissions' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div>
+                                <h3 data-i18n="permissions">{translations[currentLanguage].permissions}</h3>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].restrictMsg}</p>
+                            </div>
+                            {user.role === 'Admin' && (
+                                <button className="btn btn-primary" onClick={() => { setUserForm({ username: '', password: '', role: 'Cashier' }); setShowUserModal(true); }}>
+                                    {currentLanguage === 'ar' ? 'إضافة مستخدم جديد' : 'Add New System User'}
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User Name / اسم المستخدم</th>
+                                        <th>System Role / دور الصلاحية</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usersList.map(u => (
+                                        <tr key={u.id}>
+                                            <td><strong>{u.username}</strong></td>
+                                            <td>
+                                                <span className={`badge ${u.role === 'Admin' ? 'purple' : u.role === 'Manager' ? 'cyan' : 'gold'}`}>
+                                                    {u.role === 'Admin' ? translations[currentLanguage].roleAdmin : u.role === 'Manager' ? translations[currentLanguage].roleManager : translations[currentLanguage].roleCashier}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {user.role === 'Admin' && (
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === user.id}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* TAB: INVOICES & REPRINT */}
                 {activeTab === 'invoices' && (
@@ -1961,6 +2287,116 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowSupplierModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT EXPENSE */}
+            {showExpenseModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {expForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات المصروف' : 'Edit Expense Details') : translations[currentLanguage].addExpense}
+                        </h3>
+                        <form onSubmit={handleSaveExpense}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseCat}</label>
+                                <select className="form-control" value={expForm.category} onChange={e => setExpForm({ ...expForm, category: e.target.value })}>
+                                    <option value="rent">{translations[currentLanguage].rent}</option>
+                                    <option value="shipping">{translations[currentLanguage].shipping}</option>
+                                    <option value="salaries">{translations[currentLanguage].salaries}</option>
+                                    <option value="marketing">{translations[currentLanguage].marketing}</option>
+                                    <option value="other">{translations[currentLanguage].other}</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseAmount}</label>
+                                <input type="number" className="form-control" value={expForm.amount || ''} onChange={e => setExpForm({ ...expForm, amount: Number(e.target.value) })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseDesc}</label>
+                                <input type="text" className="form-control" value={expForm.description || ''} onChange={e => setExpForm({ ...expForm, description: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseDate}</label>
+                                <input type="date" className="form-control" value={expForm.date || ''} onChange={e => setExpForm({ ...expForm, date: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowExpenseModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT ORDER */}
+            {showOrderModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {orderForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات الطلب' : 'Edit Order Details') : (currentLanguage === 'ar' ? 'إضافة طلب جديد' : 'Record New Order')}
+                        </h3>
+                        <form onSubmit={handleSaveOrder}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceCustomer}</label>
+                                <input type="text" className="form-control" value={orderForm.customer || ''} onChange={e => setOrderForm({ ...orderForm, customer: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].orderItems}</label>
+                                <input type="text" className="form-control" value={orderForm.items || ''} onChange={e => setOrderForm({ ...orderForm, items: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceTotal}</label>
+                                <input type="number" className="form-control" value={orderForm.total || ''} onChange={e => setOrderForm({ ...orderForm, total: Number(e.target.value) })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].orderStatus}</label>
+                                <select className="form-control" value={orderForm.status} onChange={e => setOrderForm({ ...orderForm, status: e.target.value })}>
+                                    <option value="Pending">{translations[currentLanguage].statusPending}</option>
+                                    <option value="Preparing">{translations[currentLanguage].statusPreparing}</option>
+                                    <option value="Ready">{translations[currentLanguage].statusReady}</option>
+                                    <option value="Delivered">{translations[currentLanguage].statusDelivered}</option>
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowOrderModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT USER */}
+            {showUserModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {userForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات المستخدم' : 'Edit User Credentials') : (currentLanguage === 'ar' ? 'إضافة مستخدم جديد' : 'Add New System User')}
+                        </h3>
+                        <form onSubmit={handleSaveUser}>
+                            <div className="form-group">
+                                <label>Username / اسم المستخدم</label>
+                                <input type="text" className="form-control" value={userForm.username || ''} onChange={e => setUserForm({ ...userForm, username: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>Password / كلمة المرور {userForm.id && '(Leave blank to keep current / اترك فارغاً للحفاظ على الحالية)'}</label>
+                                <input type="password" className="form-control" value={userForm.password || ''} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required={!userForm.id} />
+                            </div>
+                            <div className="form-group">
+                                <label>User Role / دور الصلاحية</label>
+                                <select className="form-control" value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
+                                    <option value="Admin">{translations[currentLanguage].roleAdmin}</option>
+                                    <option value="Manager">{translations[currentLanguage].roleManager}</option>
+                                    <option value="Cashier">{translations[currentLanguage].roleCashier}</option>
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowUserModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">Save / حفظ</button>
                             </div>
                         </form>
