@@ -34,7 +34,13 @@
                 <li>
                     <a class="nav-item" onclick="switchTab('pos')">
                         <i class="ri-computer-line"></i>
-                        <span data-i18n="posCashier">الكاشير والمبيعات</span>
+                        <span data-i18n="posCashier">تطبيق الكاشير</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('orders')">
+                        <i class="ri-restaurant-2-line"></i>
+                        <span data-i18n="orders">إدارة الطلبات</span>
                     </a>
                 </li>
                 <li>
@@ -44,9 +50,39 @@
                     </a>
                 </li>
                 <li>
+                    <a class="nav-item" onclick="switchTab('expenses')">
+                        <i class="ri-hand-coin-line"></i>
+                        <span data-i18n="expenses">إدارة المصروفات</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('customers')">
+                        <i class="ri-user-shared-line"></i>
+                        <span data-i18n="customers">إدارة العملاء</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('suppliers')">
+                        <i class="ri-user-received-line"></i>
+                        <span data-i18n="suppliers">إدارة الموردين</span>
+                    </a>
+                </li>
+                <li>
                     <a class="nav-item" onclick="switchTab('invoices')">
                         <i class="ri-file-list-3-line"></i>
-                        <span data-i18n="invoices">الفواتير والتقارير</span>
+                        <span data-i18n="invoices">إدارة الفواتير</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('reports')">
+                        <i class="ri-pie-chart-line"></i>
+                        <span data-i18n="reports">تقارير مفصلة</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" onclick="switchTab('permissions')">
+                        <i class="ri-shield-user-line"></i>
+                        <span data-i18n="permissions">إدارة الصلاحيات</span>
                     </a>
                 </li>
                 <li>
@@ -79,6 +115,11 @@
                     <p data-i18n="salesReport">مرحباً بك في نظام KamySoft المتكامل للمبيعات والمحاسبة</p>
                 </div>
                 <div class="header-actions">
+                    <!-- Switch active user role demonstration -->
+                    <div class="glass-card" style="padding: 8px 16px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                        <i class="ri-shield-check-line" style="color: var(--accent-cyan);"></i>
+                        <strong id="activeRoleDisplay">Admin</strong>
+                    </div>
                     <div class="glass-card" style="padding: 8px 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600;">
                         <i class="ri-calendar-line" style="margin-left: 8px;"></i>
                         <span id="liveClock">2026-06-24</span>
@@ -92,7 +133,7 @@
                     <div class="glass-card purple">
                         <div class="card-stat">
                             <div class="stat-info">
-                                <h3 data-i18n="totalSales">إجمالي المبيعات</h3>
+                                <h3 data-i18n="totalSales">إدارة المبيعات</h3>
                                 <div class="stat-value" id="metricSales">0.00 ر.س</div>
                             </div>
                             <div class="stat-icon"><i class="ri-money-dollar-circle-line"></i></div>
@@ -162,6 +203,7 @@
                             <button class="filter-chip" data-category="groceries" data-i18n="groceries">مواد غذائية</button>
                             <button class="filter-chip" data-category="apparel" data-i18n="apparel">ملابس</button>
                             <button class="filter-chip" data-category="stationery" data-i18n="stationery">قرطاسية</button>
+                            <button class="filter-chip" data-category="office" data-i18n="office">مكتب</button>
                         </div>
                         
                         <div class="products-grid" id="productsGrid">
@@ -172,13 +214,32 @@
                     <!-- Cart Side Panel -->
                     <div class="pos-cart">
                         <h3 data-i18n="cartTitle" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">السلة الحالية</h3>
+                        
+                        <!-- CRM Customer Selector & Coupons -->
+                        <div style="margin-top: 12px; display: flex; gap: 8px;">
+                            <select id="cartCustomerSelect" class="form-control" style="padding: 6px 12px; font-size: 13px; flex-grow: 1;">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+
                         <div class="cart-items" id="cartItems">
                             <!-- Populated dynamically -->
                         </div>
+
+                        <!-- Coupon / Bonat (Spec 15) -->
+                        <div style="padding-top: 12px; border-top: 1px solid var(--glass-border); display: flex; gap: 8px; margin-bottom: 12px;">
+                            <input type="text" id="cartCouponInput" class="form-control" placeholder="كوبون بونات / KAMY50" style="padding: 6px 12px; font-size: 13px; flex-grow: 1;">
+                            <button class="btn btn-secondary" onclick="applyLoyaltyCoupon()" data-i18n="couponLabel" style="padding: 6px 12px; font-size: 13px;">تطبيق الخصم</button>
+                        </div>
+
                         <div class="cart-totals">
                             <div class="total-row">
                                 <span data-i18n="subtotal">المجموع الفرعي</span>
                                 <span id="cartSubtotal">0.00 ر.س</span>
+                            </div>
+                            <div class="total-row">
+                                <span data-i18n="discount">الخصم</span>
+                                <span id="cartDiscount">0.00 ر.س</span>
                             </div>
                             <div class="total-row">
                                 <span data-i18n="vat">ضريبة القيمة المضافة (15%)</span>
@@ -188,13 +249,39 @@
                                 <span data-i18n="grandTotal">المجموع الكلي</span>
                                 <span id="cartGrandTotal">0.00 ر.س</span>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 16px;">
-                                <button class="btn btn-secondary" onclick="clearCart()" data-i18n="clearCart">تفريغ السلة</button>
-                                <button class="btn btn-primary" onclick="processCheckout()" data-i18n="payCheckout">دفع وإصدار الفاتورة</button>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 8px; margin-top: 12px;">
+                                <button class="btn btn-secondary" onclick="clearCart()" data-i18n="clearCart">تفريغ</button>
+                                <button class="btn btn-secondary" onclick="holdCart()" data-i18n="holdCart">تعليق</button>
+                                <button class="btn btn-primary" onclick="processCheckout()" data-i18n="payCheckout">إصدار الفاتورة</button>
                             </div>
                         </div>
                     </div>
                     
+                </div>
+            </section>
+
+            <!-- TAB: Orders Management -->
+            <section id="ordersTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="orders" style="margin-bottom: 20px;">إدارة الطلبات والتحضير</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="orderNum">رقم الطلب</th>
+                                    <th data-i18n="invoiceDate">التاريخ</th>
+                                    <th data-i18n="invoiceCustomer">العميل</th>
+                                    <th>البيان</th>
+                                    <th data-i18n="invoiceTotal">المبلغ</th>
+                                    <th data-i18n="orderStatus">الحالة</th>
+                                    <th data-i18n="actions">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
             
@@ -227,11 +314,100 @@
                     </div>
                 </div>
             </section>
+
+            <!-- TAB: Expenses Manager -->
+            <section id="expensesTab" class="tab-content">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 data-i18n="expenses">إدارة المصروفات</h3>
+                        <button class="btn btn-primary" onclick="openAddExpenseModal()">
+                            <i class="ri-add-line"></i>
+                            <span data-i18n="addExpense">تسجيل مصروف جديد</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="prodId">رمز العملية</th>
+                                    <th data-i18n="expenseDate">التاريخ</th>
+                                    <th data-i18n="expenseCat">الفئة</th>
+                                    <th data-i18n="expenseDesc">البيان</th>
+                                    <th data-i18n="expenseAmount">المبلغ</th>
+                                    <th data-i18n="actions">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: Customers Management -->
+            <section id="customersTab" class="tab-content">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 data-i18n="customers">إدارة العملاء</h3>
+                        <button class="btn btn-primary" onclick="openAddCustomerModal()">
+                            <i class="ri-user-add-line"></i>
+                            <span data-i18n="addCustomer">إضافة عميل جديد</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th data-i18n="custName">اسم العميل</th>
+                                    <th data-i18n="phone">الجوال</th>
+                                    <th data-i18n="email">البريد الإلكتروني</th>
+                                    <th data-i18n="loyaltyPoints">نقاط بونات</th>
+                                    <th data-i18n="totalPurchases">إجمالي المشتريات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: Suppliers Management -->
+            <section id="suppliersTab" class="tab-content">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 data-i18n="suppliers">إدارة الموردين</h3>
+                        <button class="btn btn-primary" onclick="openAddSupplierModal()">
+                            <i class="ri-add-line"></i>
+                            <span data-i18n="addSupplier">إضافة مورد جديد</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th data-i18n="suppName">المورد / الشركة</th>
+                                    <th>مسؤول الاتصال</th>
+                                    <th data-i18n="phone">الجوال</th>
+                                    <th data-i18n="suppliedItems">المنتجات الموردة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliersTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
             
             <!-- TAB: Invoices -->
             <section id="invoicesTab" class="tab-content">
                 <div class="glass-card">
-                    <h3 data-i18n="invoices" style="margin-bottom: 20px;">الفواتير والتقارير</h3>
+                    <h3 data-i18n="invoices" style="margin-bottom: 20px;">إدارة الفواتير</h3>
                     <div class="table-container">
                         <table>
                             <thead>
@@ -248,6 +424,76 @@
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: Reports (Financial & Tax Return) -->
+            <section id="reportsTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="taxReport" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">تقرير الإقرار الضريبي والمالي</h3>
+                    
+                    <div class="card-grid" style="margin-bottom: 24px;">
+                        <div class="glass-card purple">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="taxableSales">إجمالي المبيعات الخاضعة للضريبة</h3>
+                                    <div class="stat-value" id="taxSales">0.00 ر.س</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card cyan">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="taxCollected">ضريبة القيمة المضافة المحصلة (15%)</h3>
+                                    <div class="stat-value" id="taxCollected">0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card gold">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="taxableExpenses">إجمالي المصاريف الخاضعة للضريبة</h3>
+                                    <div class="stat-value" id="taxExpenses">0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card green">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="taxPaid">ضريبة القيمة المضافة المدفوعة (15%)</h3>
+                                    <div class="stat-value" id="taxPaid">0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                        <div class="glass-card" style="border-left: 4px solid var(--accent-gold);">
+                            <h3 data-i18n="netTaxDue">صافي الضريبة المستحقة للهيئة</h3>
+                            <div class="stat-value" id="taxDue" style="font-size: 32px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                        </div>
+                        <div class="glass-card" style="border-left: 4px solid var(--accent-success);">
+                            <h3 data-i18n="netEarnings">صافي الأرباح (المبيعات - المصاريف)</h3>
+                            <div class="stat-value" id="taxNetRevenue" style="font-size: 32px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: Permissions / Role switcher -->
+            <section id="permissionsTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="permissions" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">إدارة الصلاحيات والمستخدمين</h3>
+                    <p data-i18n="restrictMsg" style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">يتم إخفاء بعض التبويبات تلقائياً بناءً على صلاحيات دورك النشط.</p>
+                    
+                    <div class="form-group" style="max-width: 400px;">
+                        <label for="permissionsRoleSwitch" data-i18n="roleSelect">تغيير صلاحية المستخدم للمعاينة</label>
+                        <select id="permissionsRoleSwitch" class="form-control" onchange="setRole(this.value)">
+                            <option value="Admin" data-i18n="roleAdmin">مدير النظام (كامل الصلاحيات)</option>
+                            <option value="Manager" data-i18n="roleManager">مشرف (المبيعات، المخزون، المصروفات)</option>
+                            <option value="Cashier" data-i18n="roleCashier">كاشير (المبيعات والكاشير فقط)</option>
+                        </select>
                     </div>
                 </div>
             </section>
@@ -286,7 +532,7 @@
             </div>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button class="btn btn-secondary" onclick="closeInvoiceModal()" data-i18n="close">إغلاق</button>
-                <button class="btn btn-primary" onclick="window.print()" data-i18n="print">طباعة واعتماد الفاتورة</button>
+                <button class="btn btn-primary" onclick="window.print()" data-i18n="print">طباعة الفاتورة</button>
             </div>
         </div>
     </div>
@@ -312,6 +558,7 @@
                         <option value="groceries" data-i18n="groceries">مواد غذائية</option>
                         <option value="apparel" data-i18n="apparel">ملابس</option>
                         <option value="stationery" data-i18n="stationery">قرطاسية</option>
+                        <option value="office" data-i18n="office">أثاث ومعدات مكتبية</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -325,6 +572,95 @@
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="closeProductModal()" data-i18n="close">إغلاق</button>
                     <button type="submit" class="btn btn-primary" data-i18n="saveProduct">حفظ المنتج</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Expense -->
+    <div id="expenseModal" class="modal-overlay">
+        <div class="modal">
+            <h3 data-i18n="addExpense" style="margin-bottom: 20px;">تسجيل مصروف جديد</h3>
+            <form onsubmit="saveExpense(event)">
+                <div class="form-group">
+                    <label for="expFormCategory" data-i18n="expenseCat">الفئة</label>
+                    <select id="expFormCategory" class="form-control">
+                        <option value="rent" data-i18n="rent">الإيجارات والخدمات</option>
+                        <option value="shipping" data-i18n="shipping">الشحن والخدمات اللوجستية</option>
+                        <option value="salaries" data-i18n="salaries">الرواتب والأجور</option>
+                        <option value="marketing" data-i18n="marketing">التسويق والدعاية</option>
+                        <option value="other" data-i18n="other">مصاريف أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expFormAmount" data-i18n="expenseAmount">المبلغ الإجمالي</label>
+                    <input type="number" id="expFormAmount" class="form-control" required min="1" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="expFormDesc" data-i18n="expenseDesc">البيان / الوصف</label>
+                    <input type="text" id="expFormDesc" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="expFormDate" data-i18n="expenseDate">التاريخ</label>
+                    <input type="date" id="expFormDate" class="form-control">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()" data-i18n="close">إغلاق</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="addExpense">تسجيل المصروف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Customer -->
+    <div id="customerModal" class="modal-overlay">
+        <div class="modal">
+            <h3 data-i18n="addCustomer" style="margin-bottom: 20px;">إضافة عميل جديد</h3>
+            <form onsubmit="saveCustomer(event)">
+                <div class="form-group">
+                    <label for="custFormName" data-i18n="custName">اسم العميل</label>
+                    <input type="text" id="custFormName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="custFormPhone" data-i18n="phone">رقم الجوال</label>
+                    <input type="text" id="custFormPhone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="custFormEmail" data-i18n="email">البريد الإلكتروني</label>
+                    <input type="email" id="custFormEmail" class="form-control">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()" data-i18n="close">إغلاق</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="addCustomer">إضافة العميل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Supplier -->
+    <div id="supplierModal" class="modal-overlay">
+        <div class="modal">
+            <h3 data-i18n="addSupplier" style="margin-bottom: 20px;">إضافة مورد جديد</h3>
+            <form onsubmit="saveSupplier(event)">
+                <div class="form-group">
+                    <label for="suppFormCompany" data-i18n="suppName">المنشأة / الشركة</label>
+                    <input type="text" id="suppFormCompany" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="suppFormContact">مسؤول الاتصال</label>
+                    <input type="text" id="suppFormContact" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="suppFormPhone" data-i18n="phone">الجوال</label>
+                    <input type="text" id="suppFormPhone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="suppFormItems" data-i18n="suppliedItems">المنتجات الموردة</label>
+                    <input type="text" id="suppFormItems" class="form-control">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeSupplierModal()" data-i18n="close">إغلاق</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="addSupplier">إضافة المورد</button>
                 </div>
             </form>
         </div>
