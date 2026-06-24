@@ -163,7 +163,7 @@ const translations = {
         
         // Missing Translations fixed
         themeLabel: "Theme Mode",
-        salesReport: "Welcome to KamySoft Comprehensive POS & ERP System",
+        salesReport: "Welcome to Cashier, POS & Assets Management System",
         invoiceDate: "Date & Time",
         invoiceCustomer: "Customer",
         invoiceTotal: "Total Amount",
@@ -366,7 +366,7 @@ const translations = {
         
         // Missing Translations fixed
         themeLabel: "المظهر",
-        salesReport: "مرحباً بك في نظام KamySoft المتكامل للمبيعات والمحاسبة",
+        salesReport: "مرحباً بك في نظام كاشير لإدارة المبيعات والأصول",
         invoiceDate: "التاريخ والوقت",
         invoiceCustomer: "العميل",
         invoiceTotal: "المبلغ الإجمالي",
@@ -816,6 +816,92 @@ export default function App() {
         });
     };
 
+    const handleSaveCustomer = (e) => {
+        e.preventDefault();
+        const method = custForm.id ? 'PUT' : 'POST';
+        const url = custForm.id ? `/api/customers/${custForm.id}` : '/api/customers';
+        
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(custForm)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (custForm.id) {
+                setCustomers(customers.map(c => c.id === custForm.id ? data : c));
+            } else {
+                setCustomers([...customers, data]);
+            }
+            setShowCustomerModal(false);
+            setCustForm({ name: '', phone: '', email: '' });
+        })
+        .catch(() => {
+            if (custForm.id) {
+                setCustomers(customers.map(c => c.id === custForm.id ? { ...custForm } : c));
+            } else {
+                const mock = { ...custForm, id: `CUST-${Date.now().toString().slice(-4)}`, loyaltyPoints: 0, totalPurchases: 0 };
+                setCustomers([...customers, mock]);
+            }
+            setShowCustomerModal(false);
+            setCustForm({ name: '', phone: '', email: '' });
+        });
+    };
+
+    const handleDeleteCustomer = (id) => {
+        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this customer?')) return;
+        fetch(`/api/customers/${id}`, { method: 'DELETE', headers: headers })
+        .then(() => {
+            setCustomers(customers.filter(c => c.id !== id));
+        })
+        .catch(() => {
+            setCustomers(customers.filter(c => c.id !== id));
+        });
+    };
+
+    const handleSaveSupplier = (e) => {
+        e.preventDefault();
+        const method = suppForm.id ? 'PUT' : 'POST';
+        const url = suppForm.id ? `/api/suppliers/${suppForm.id}` : '/api/suppliers';
+        
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(suppForm)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (suppForm.id) {
+                setSuppliers(suppliers.map(s => s.id === suppForm.id ? data : s));
+            } else {
+                setSuppliers([...suppliers, data]);
+            }
+            setShowSupplierModal(false);
+            setSuppForm({ company: '', contact: '', phone: '', items: '' });
+        })
+        .catch(() => {
+            if (suppForm.id) {
+                setSuppliers(suppliers.map(s => s.id === suppForm.id ? { ...suppForm } : s));
+            } else {
+                const mock = { ...suppForm, id: `SUPP-${Date.now().toString().slice(-4)}` };
+                setSuppliers([...suppliers, mock]);
+            }
+            setShowSupplierModal(false);
+            setSuppForm({ company: '', contact: '', phone: '', items: '' });
+        });
+    };
+
+    const handleDeleteSupplier = (id) => {
+        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this supplier?')) return;
+        fetch(`/api/suppliers/${id}`, { method: 'DELETE', headers: headers })
+        .then(() => {
+            setSuppliers(suppliers.filter(s => s.id !== id));
+        })
+        .catch(() => {
+            setSuppliers(suppliers.filter(s => s.id !== id));
+        });
+    };
+
     // Calculate Asset Depreciation schedule
     const calculateAssetValues = (a) => {
         const currentYear = new Date().getFullYear();
@@ -1210,6 +1296,112 @@ export default function App() {
                                             </tr>
                                         );
                                     })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: CUSTOMERS */}
+                {activeTab === 'customers' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="customers">{translations[currentLanguage].customers}</h3>
+                            <button className="btn btn-primary" onClick={() => { setCustForm({ name: '', phone: '', email: '' }); setShowCustomerModal(true); }}>
+                                {translations[currentLanguage].addCustomer}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].custName}</th>
+                                        <th>{translations[currentLanguage].phone}</th>
+                                        <th>{translations[currentLanguage].email}</th>
+                                        <th>{translations[currentLanguage].loyaltyPoints}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {customers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا يوجد عملاء مسجلين حالياً' : 'No customers registered currently'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        customers.map(c => (
+                                            <tr key={c.id}>
+                                                <td>{c.name}</td>
+                                                <td>{c.phone}</td>
+                                                <td>{c.email}</td>
+                                                <td><span className="badge purple">{c.loyaltyPoints || 0} PTS</span></td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setCustForm(c); setShowCustomerModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteCustomer(c.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: SUPPLIERS */}
+                {activeTab === 'suppliers' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="suppliers">{translations[currentLanguage].suppliers}</h3>
+                            <button className="btn btn-primary" onClick={() => { setSuppForm({ company: '', contact: '', phone: '', items: '' }); setShowSupplierModal(true); }}>
+                                {translations[currentLanguage].addSupplier}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].suppName}</th>
+                                        <th>{translations[currentLanguage].suppContact}</th>
+                                        <th>{translations[currentLanguage].phone}</th>
+                                        <th>{translations[currentLanguage].suppliedItems}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {suppliers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا يوجد موردون مسجلون حالياً' : 'No suppliers registered currently'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        suppliers.map(s => (
+                                            <tr key={s.id}>
+                                                <td>{s.company}</td>
+                                                <td>{s.contact}</td>
+                                                <td>{s.phone}</td>
+                                                <td>{s.items}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setSuppForm(s); setShowSupplierModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteSupplier(s.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -1708,6 +1900,68 @@ export default function App() {
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowAssetModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">{translations[currentLanguage].saveAsset}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT CUSTOMER */}
+            {showCustomerModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {custForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات العميل' : 'Edit Customer Details') : translations[currentLanguage].addCustomer}
+                        </h3>
+                        <form onSubmit={handleSaveCustomer}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].custName}</label>
+                                <input type="text" className="form-control" value={custForm.name || ''} onChange={e => setCustForm({ ...custForm, name: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].phone}</label>
+                                <input type="text" className="form-control" value={custForm.phone || ''} onChange={e => setCustForm({ ...custForm, phone: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].email}</label>
+                                <input type="email" className="form-control" value={custForm.email || ''} onChange={e => setCustForm({ ...custForm, email: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowCustomerModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT SUPPLIER */}
+            {showSupplierModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {suppForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات المورد' : 'Edit Supplier Details') : translations[currentLanguage].addSupplier}
+                        </h3>
+                        <form onSubmit={handleSaveSupplier}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppName}</label>
+                                <input type="text" className="form-control" value={suppForm.company || ''} onChange={e => setSuppForm({ ...suppForm, company: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppContact}</label>
+                                <input type="text" className="form-control" value={suppForm.contact || ''} onChange={e => setSuppForm({ ...suppForm, contact: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].phone}</label>
+                                <input type="text" className="form-control" value={suppForm.phone || ''} onChange={e => setSuppForm({ ...suppForm, phone: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppliedItems}</label>
+                                <input type="text" className="form-control" value={suppForm.items || ''} onChange={e => setSuppForm({ ...suppForm, items: e.target.value })} placeholder="e.g. Garments, Electronics" required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowSupplierModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
                             </div>
                         </form>
                     </div>
