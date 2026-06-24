@@ -86,6 +86,12 @@
                     </a>
                 </li>
                 <li>
+                    <a class="nav-item" onclick="switchTab('zatca')">
+                        <i class="ri-cloud-line"></i>
+                        <span data-i18n="zatcaPortal">بوابة الربط الإلكتروني (ZATCA)</span>
+                    </a>
+                </li>
+                <li>
                     <a class="nav-item" onclick="switchTab('permissions')">
                         <i class="ri-shield-user-line"></i>
                         <span data-i18n="permissions">إدارة الصلاحيات</span>
@@ -272,7 +278,7 @@
                                     <th data-i18n="orderNum">رقم الطلب</th>
                                     <th data-i18n="invoiceDate">التاريخ</th>
                                     <th data-i18n="invoiceCustomer">العميل</th>
-                                    <th>البيان</th>
+                                    <th data-i18n="orderItems">البيان</th>
                                     <th data-i18n="invoiceTotal">المبلغ</th>
                                     <th data-i18n="orderStatus">الحالة</th>
                                     <th data-i18n="actions">الإجراءات</th>
@@ -562,6 +568,67 @@
                 </div>
             </section>
             
+            <!-- TAB: ZATCA Phase 2 Sandbox clearance & Integration -->
+            <section id="zatcaTab" class="tab-content">
+                <div class="glass-card">
+                    <h3 data-i18n="zatcaPortal" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">بوابة التكامل والربط الإلكتروني (ZATCA)</h3>
+                    
+                    <div class="card-grid" style="margin-bottom: 24px;">
+                        <div class="glass-card cyan">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="zatcaStatus">حالة الربط</h3>
+                                    <div class="stat-value" style="font-size: 20px; color: var(--accent-success);" data-i18n="xmlValidationOk">مطابقة هيكلية UBL 2.1: سليم وصالح</div>
+                                </div>
+                                <div class="stat-icon"><i class="ri-checkbox-circle-line"></i></div>
+                            </div>
+                        </div>
+                        <div class="glass-card gold">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="invoicesGenerated">الفواتير المعلقة</h3>
+                                    <div class="stat-value" id="zatcaPendingCount">0</div>
+                                </div>
+                                <div class="stat-icon"><i class="ri-time-line"></i></div>
+                            </div>
+                        </div>
+                        <div class="glass-card green">
+                            <div class="card-stat">
+                                <div class="stat-info">
+                                    <h3 data-i18n="reportedStatus">تم الإرسال والاعتماد</h3>
+                                    <div class="stat-value" id="zatcaReportedCount">0</div>
+                                </div>
+                                <div class="stat-icon"><i class="ri-cloud-windy-line"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="glass-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); padding: 20px;">
+                            <h4 style="color: var(--accent-cyan); margin-bottom: 15px;" data-i18n="reportToZatca">إرسال واعتماد الفاتورة</h4>
+                            
+                            <div class="form-group">
+                                <label for="zatcaInvoiceSelect" data-i18n="invoices">اختر الفاتورة للربط</label>
+                                <select id="zatcaInvoiceSelect" class="form-control" style="margin-bottom: 15px;">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="triggerZatcaPortalSubmission()" style="width: 100%;" data-i18n="reportToZatca">
+                                <i class="ri-cloud-upload-line" style="margin-left: 8px;"></i>إرسال الفاتورة إلى هيئة الزكاة
+                            </button>
+                        </div>
+                        
+                        <div class="glass-card" style="background: #000; border: 1px solid #333; padding: 20px; font-family: monospace; border-radius: 8px;">
+                            <h4 style="color: #4ade80; margin-bottom: 12px;" data-i18n="sandboxConsole">شاشة استجابة محاكاة الهيئة</h4>
+                            <div id="zatcaConsoleLog" style="height: 180px; overflow-y: auto; font-size: 12px; color: #bbb; line-height: 1.5; padding: 5px;">
+                                <div>[SYSTEM] ZATCA Integration Portal Simulation online. Ready for clearance.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
             <!-- TAB: Settings -->
             <section id="settingsTab" class="tab-content">
                 <div class="glass-card">
@@ -619,11 +686,11 @@
             <form onsubmit="saveProduct(event)">
                 <input type="hidden" id="prodFormId">
                 <div class="form-group">
-                    <label for="prodFormNameAR">اسم المنتج (بالعربية)</label>
+                    <label for="prodFormNameAR" data-i18n="prodNameAr">اسم المنتج (بالعربية)</label>
                     <input type="text" id="prodFormNameAR" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="prodFormNameEN">Product Name (English)</label>
+                    <label for="prodFormNameEN" data-i18n="prodNameEn">Product Name (English)</label>
                     <input type="text" id="prodFormNameEN" class="form-control" required>
                 </div>
                 <div class="form-group">
@@ -789,7 +856,7 @@
                     <input type="text" id="suppFormCompany" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="suppFormContact">مسؤول الاتصال</label>
+                    <label for="suppFormContact" data-i18n="suppContact">مسؤول الاتصال</label>
                     <input type="text" id="suppFormContact" class="form-control">
                 </div>
                 <div class="form-group">
