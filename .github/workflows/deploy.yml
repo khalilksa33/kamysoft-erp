@@ -7,46 +7,19 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker Image locally
+      - name: Deploy Container on Host B
         run: |
+          # Clean up old containers
+          docker stop kamysoft-erp || true
+          docker rm kamysoft-erp || true
+          
+          # Build and run
           docker build -t kamysoft-erp:latest .
-
-      # Standard deploy via SSH
-      - name: Deploy to Host B via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            # Clean up old containers
-            docker stop kamysoft-erp || true
-            docker rm kamysoft-erp || true
-            
-            # Rebuild / Deploy container
-            # (Note: In a typical SSH setup, we copy the files or pull them from a registry.
-            # Below we pull the repository or copy the directory, then build and run)
-            if [ ! -d "kamysoft-erp" ]; then
-              git clone https://github.com/khalilksa33/kamysoft-erp.git
-              cd kamysoft-erp
-            else
-              cd kamysoft-erp
-              git pull origin main
-            fi
-            
-            docker build -t kamysoft-erp:latest .
-            docker run -d --name kamysoft-erp -p 8089:80 --restart unless-stopped kamysoft-erp:latest
-            echo "Deployment completed successfully. Access via Cloudflare Tunnel at erp.26i.uk"
+          docker run -d --name kamysoft-erp -p 8089:80 --restart unless-stopped kamysoft-erp:latest
+          echo "Deployment completed successfully. Access via Cloudflare Tunnel at erp.26i.uk"
