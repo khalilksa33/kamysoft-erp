@@ -56,6 +56,12 @@
                     </a>
                 </li>
                 <li>
+                    <a class="nav-item" onclick="switchTab('assets')">
+                        <i class="ri-briefcase-line"></i>
+                        <span data-i18n="assets">إدارة الأصول</span>
+                    </a>
+                </li>
+                <li>
                     <a class="nav-item" onclick="switchTab('customers')">
                         <i class="ri-user-shared-line"></i>
                         <span data-i18n="customers">إدارة العملاء</span>
@@ -115,7 +121,6 @@
                     <p data-i18n="salesReport">مرحباً بك في نظام KamySoft المتكامل للمبيعات والمحاسبة</p>
                 </div>
                 <div class="header-actions">
-                    <!-- Switch active user role demonstration -->
                     <div class="glass-card" style="padding: 8px 16px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 8px; font-size: 13px;">
                         <i class="ri-shield-check-line" style="color: var(--accent-cyan);"></i>
                         <strong id="activeRoleDisplay">Admin</strong>
@@ -189,7 +194,6 @@
             <section id="posTab" class="tab-content">
                 <div class="pos-layout">
                     
-                    <!-- Products Grid Section -->
                     <div class="pos-products">
                         <div style="display: flex; gap: 16px; align-items: center;">
                             <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
@@ -211,11 +215,9 @@
                         </div>
                     </div>
                     
-                    <!-- Cart Side Panel -->
                     <div class="pos-cart">
                         <h3 data-i18n="cartTitle" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">السلة الحالية</h3>
                         
-                        <!-- CRM Customer Selector & Coupons -->
                         <div style="margin-top: 12px; display: flex; gap: 8px;">
                             <select id="cartCustomerSelect" class="form-control" style="padding: 6px 12px; font-size: 13px; flex-grow: 1;">
                                 <!-- Populated dynamically -->
@@ -226,7 +228,6 @@
                             <!-- Populated dynamically -->
                         </div>
 
-                        <!-- Coupon / Bonat (Spec 15) -->
                         <div style="padding-top: 12px; border-top: 1px solid var(--glass-border); display: flex; gap: 8px; margin-bottom: 12px;">
                             <input type="text" id="cartCouponInput" class="form-control" placeholder="كوبون بونات / KAMY50" style="padding: 6px 12px; font-size: 13px; flex-grow: 1;">
                             <button class="btn btn-secondary" onclick="applyLoyaltyCoupon()" data-i18n="couponLabel" style="padding: 6px 12px; font-size: 13px;">تطبيق الخصم</button>
@@ -345,6 +346,37 @@
                 </div>
             </section>
 
+            <!-- TAB: Asset Management -->
+            <section id="assetsTab" class="tab-content">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 data-i18n="assets">إدارة الأصول الرأسمالية</h3>
+                        <button class="btn btn-primary" onclick="openAddAssetModal()">
+                            <i class="ri-add-line"></i>
+                            <span data-i18n="addAsset">تسجيل أصل جديد</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="assetId">رمز الأصل</th>
+                                    <th data-i18n="assetName">اسم الأصل</th>
+                                    <th data-i18n="assetDate">تاريخ الشراء</th>
+                                    <th data-i18n="assetCost">تكلفة الشراء</th>
+                                    <th data-i18n="assetStatus">حالة الأصل</th>
+                                    <th data-i18n="assetDept">القسم / الموقع</th>
+                                    <th data-i18n="actions">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- TAB: Customers Management -->
             <section id="customersTab" class="tab-content">
                 <div class="glass-card">
@@ -428,7 +460,7 @@
                 </div>
             </section>
 
-            <!-- TAB: Reports (Financial & Tax Return) -->
+            <!-- TAB: Reports -->
             <section id="reportsTab" class="tab-content">
                 <div class="glass-card">
                     <h3 data-i18n="taxReport" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">تقرير الإقرار الضريبي والمالي</h3>
@@ -468,20 +500,24 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px;">
                         <div class="glass-card" style="border-left: 4px solid var(--accent-gold);">
                             <h3 data-i18n="netTaxDue">صافي الضريبة المستحقة للهيئة</h3>
-                            <div class="stat-value" id="taxDue" style="font-size: 32px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                            <div class="stat-value" id="taxDue" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                        </div>
+                        <div class="glass-card" style="border-left: 4px solid var(--accent-purple);">
+                            <h3 data-i18n="totalAssetsValue">إجمالي قيمة الأصول</h3>
+                            <div class="stat-value" id="taxAssetTotal" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
                         </div>
                         <div class="glass-card" style="border-left: 4px solid var(--accent-success);">
                             <h3 data-i18n="netEarnings">صافي الأرباح (المبيعات - المصاريف)</h3>
-                            <div class="stat-value" id="taxNetRevenue" style="font-size: 32px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
+                            <div class="stat-value" id="taxNetRevenue" style="font-size: 24px; font-weight: 700; margin-top: 12px;">0.00 ر.س</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB: Permissions / Role switcher -->
+            <!-- TAB: Permissions -->
             <section id="permissionsTab" class="tab-content">
                 <div class="glass-card">
                     <h3 data-i18n="permissions" style="margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">إدارة الصلاحيات والمستخدمين</h3>
@@ -524,13 +560,24 @@
         
     </div>
 
-    <!-- MODAL: e-Invoice Print Preview -->
+    <!-- MODAL: e-Invoice Print Preview (Dual A4 & Thermal format choices) -->
     <div id="invoiceModal" class="modal-overlay">
         <div class="modal">
-            <div id="invoicePrintArea">
-                <!-- Populated dynamically -->
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">
+                <button class="btn btn-secondary" onclick="renderInvoiceLayout('thermal')" style="flex-grow: 1;">
+                    <i class="ri-ticket-line"></i> Thermal Receipt (80mm)
+                </button>
+                <button class="btn btn-secondary" onclick="renderInvoiceLayout('a4')" style="flex-grow: 1;">
+                    <i class="ri-file-text-line"></i> A4 Invoice Document
+                </button>
             </div>
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+
+            <div id="invoicePrintArea">
+                <!-- Populated dynamically (Thermal or A4 format) -->
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 12px;">
                 <button class="btn btn-secondary" onclick="closeInvoiceModal()" data-i18n="close">إغلاق</button>
                 <button class="btn btn-primary" onclick="window.print()" data-i18n="print">طباعة الفاتورة</button>
             </div>
@@ -607,6 +654,43 @@
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()" data-i18n="close">إغلاق</button>
                     <button type="submit" class="btn btn-primary" data-i18n="addExpense">تسجيل المصروف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Asset -->
+    <div id="assetModal" class="modal-overlay">
+        <div class="modal">
+            <h3 data-i18n="addAsset" style="margin-bottom: 20px;">تسجيل أصل رأسمالي جديد</h3>
+            <form onsubmit="saveAsset(event)">
+                <div class="form-group">
+                    <label for="assetFormName" data-i18n="assetName">اسم الأصل</label>
+                    <input type="text" id="assetFormName" class="form-control" required placeholder="مثال: خادم حاسوبي Host B">
+                </div>
+                <div class="form-group">
+                    <label for="assetFormCost" data-i18n="assetCost">تكلفة شراء الأصل</label>
+                    <input type="number" id="assetFormCost" class="form-control" required min="1" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="assetFormDate" data-i18n="assetDate">تاريخ الشراء</label>
+                    <input type="date" id="assetFormDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="assetFormStatus" data-i18n="assetStatus">حالة الأصل</label>
+                    <select id="assetFormStatus" class="form-control">
+                        <option value="active" data-i18n="active">نشط / قيد التشغيل</option>
+                        <option value="maintenance" data-i18n="maintenance">في الصيانة</option>
+                        <option value="disposed" data-i18n="disposed">تم استبعاده / تالف</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="assetFormDept" data-i18n="assetDept">القسم / الموقع</label>
+                    <input type="text" id="assetFormDept" class="form-control" required placeholder="مثال: قسم تقنية المعلومات">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAssetModal()" data-i18n="close">إغلاق</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="saveAsset">حفظ الأصل</button>
                 </div>
             </form>
         </div>

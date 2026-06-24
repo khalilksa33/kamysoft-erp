@@ -1,7 +1,6 @@
-// KamySoft POS & ERP Controller - Comprehensive Version
-// Fully implements all 15 specifications from the flyer
+// KamySoft POS & ERP Controller - Expanded Version
+// Implements 15 modules, plus Asset Management & A4 printable invoicing
 
-// Multi-language Translation Dictionaries
 const translations = {
     en: {
         dashboard: "Dashboard",
@@ -12,6 +11,7 @@ const translations = {
         suppliers: "Suppliers",
         invoices: "Invoices Management",
         orders: "Orders Management",
+        assets: "Asset Management",
         permissions: "Permissions",
         reports: "Detailed Reports",
         taxReport: "Tax Return Report",
@@ -80,6 +80,20 @@ const translations = {
         loyaltyPoints: "Loyalty Points",
         totalPurchases: "Total Purchases",
         suppliedItems: "Products Supplied",
+
+        // Assets
+        addAsset: "Register New Asset",
+        assetId: "Asset ID",
+        assetName: "Asset Name",
+        assetCost: "Purchase Cost (SAR)",
+        assetDate: "Purchase Date",
+        assetStatus: "Status",
+        assetDept: "Department / Location",
+        active: "Active / operational",
+        maintenance: "In Maintenance",
+        disposed: "Disposed / Deprecated",
+        saveAsset: "Save Asset",
+        totalAssetsValue: "Total Assets Value",
         
         // Permissions
         roleSelect: "Switch User Role",
@@ -119,11 +133,12 @@ const translations = {
         dashboard: "لوحة التحكم",
         posCashier: "تطبيق الكاشير",
         inventory: "إدارة المخزون",
-        expenses: "إدارة المصروفات",
+        expenses: "إإدارة المصروفات",
         customers: "إدارة العملاء",
         suppliers: "إدارة الموردين",
         invoices: "إدارة الفواتير",
         orders: "إدارة الطلبات",
+        assets: "إدارة الأصول",
         permissions: "إدارة الصلاحيات",
         reports: "تقارير مفصلة",
         taxReport: "تقرير الإقرار الضريبي",
@@ -192,12 +207,26 @@ const translations = {
         loyaltyPoints: "نقاط الولاء",
         totalPurchases: "إجمالي المشتريات",
         suppliedItems: "المنتجات الموردة",
+
+        // Assets
+        addAsset: "تسجيل أصل جديد",
+        assetId: "رمز الأصل",
+        assetName: "اسم الأصل",
+        assetCost: "تكلفة الشراء (ريال)",
+        assetDate: "تاريخ الشراء",
+        assetStatus: "حالة الأصل",
+        assetDept: "القسم / الموقع",
+        active: "نشط / قيد التشغيل",
+        maintenance: "في الصيانة",
+        disposed: "تم استبعاده / تالف",
+        saveAsset: "حفظ الأصل",
+        totalAssetsValue: "إجمالي قيمة الأصول",
         
         // Permissions
         roleSelect: "تغيير صلاحية المستخدم",
         currentRole: "الصلاحية الحالية",
         roleAdmin: "مدير النظام (كامل الصلاحيات)",
-        roleManager: "مشرف (المبيعات، المخزون، التقارير)",
+        roleManager: "مشرف (المبيعات، المخزون، المصروفات)",
         roleCashier: "كاشير (المبيعات والكاشير فقط)",
         restrictMsg: "يتم إخفاء بعض التبويبات تلقائياً بناءً على صلاحيات دورك النشط.",
 
@@ -229,14 +258,14 @@ const translations = {
     }
 };
 
-// Application State with comprehensive module data
+// Default App State
 let appState = {
     currentLanguage: 'ar',
     theme: 'dark',
     taxRate: 15,
     businessName: 'KamySoft ERP & POS',
     vatNumber: '310123456700003',
-    currentRole: 'Admin', // Admin, Manager, Cashier
+    currentRole: 'Admin',
     activeCustomer: 'walk-in',
     activeCoupon: null,
     
@@ -248,11 +277,11 @@ let appState = {
         { id: '1005', nameEN: 'Organic Coffee Beans 1kg', nameAR: 'حبوب قهوة عضوية 1 كجم', price: 75, stock: 30, category: 'groceries', emoji: '☕' }
     ],
     cart: [],
-    heldCarts: [], // Simulates holding cart lanes
+    heldCarts: [],
     
     invoices: [
-        { id: 'INV-1001', date: '2026-06-24 10:30', customer: 'Walk-in Customer / عميل نقدي', items: [{ id: '1001', name: 'شاشة ذكية فاخرة 27 بوصة', price: 950, qty: 1 }], total: 1092.5, vat: 142.5 },
-        { id: 'INV-1002', date: '2026-06-24 11:15', customer: 'Khalil Al-Ghamdi', items: [{ id: '1002', name: 'قارئ باركود لاسلكي ليزري', price: 250, qty: 2 }], total: 575, vat: 75 }
+        { id: 'INV-1001', date: '2026-06-24 10:30', customer: 'Walk-in Customer / عميل نقدي', items: [{ id: '1001', name: 'شاشة ذكية فاخرة 27 بوصة', price: 950, qty: 1 }], total: 1092.5, vat: 142.5, discount: 0 },
+        { id: 'INV-1002', date: '2026-06-24 11:15', customer: 'Khalil Al-Ghamdi', items: [{ id: '1002', name: 'قارئ باركود لاسلكي ليزري', price: 250, qty: 2 }], total: 575, vat: 75, discount: 0 }
     ],
     
     expenses: [
@@ -274,6 +303,11 @@ let appState = {
         { id: 'ORD-7001', date: '2026-06-24 12:00', customer: 'خليل الغامدي', items: 'طابعة فواتير حرارية مباشرة x1', total: 368, status: 'Preparing' },
         { id: 'ORD-7002', date: '2026-06-24 13:00', customer: 'عميل نقدي', items: 'حبوب قهوة عضوية 1 كجم x3', total: 258.75, status: 'Ready' }
     ],
+
+    assets: [
+        { id: 'AST-2001', name: 'Server Rack Host B', cost: 4500, date: '2026-01-15', status: 'active', department: 'IT / Operations' },
+        { id: 'AST-2002', name: 'Laser Printer HP LaserJet', cost: 1200, date: '2026-03-10', status: 'active', department: 'Administration' }
+    ],
     
     currentFilter: 'all'
 };
@@ -289,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCustomers();
     renderSuppliers();
     renderOrders();
+    renderAssets();
     renderInvoicesTable();
     updateDashboardMetrics();
     initCharts();
@@ -296,36 +331,30 @@ document.addEventListener("DOMContentLoaded", () => {
     applyPermissions();
 });
 
-// State persistence
 function loadSettings() {
-    const saved = localStorage.getItem("kamysoft_erp_state_v2");
+    const saved = localStorage.getItem("kamysoft_erp_state_v3");
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             appState = { ...appState, ...parsed };
-        } catch (e) { console.error("Error loading state v2", e); }
+        } catch (e) { console.error("Error loading state v3", e); }
     }
 }
 
 function saveState() {
-    localStorage.setItem("kamysoft_erp_state_v2", JSON.stringify(appState));
+    localStorage.setItem("kamysoft_erp_state_v3", JSON.stringify(appState));
 }
 
-// Permissions Manager (Spec 10)
+// Permissions Manager
 function applyPermissions() {
     const role = appState.currentRole;
     document.getElementById("activeRoleDisplay").textContent = translations[appState.currentLanguage][`role${role}`];
 
-    // Restrict sidebar items based on role
-    // Admin: see everything
-    // Manager: hide Permissions and Settings
-    // Cashier: hide Inventory, Expenses, CRM (Cust/Supp), Permissions, Settings, Reports
     document.querySelectorAll(".nav-item[onclick]").forEach(item => {
         const targetTab = item.getAttribute("onclick").match(/'([^']+)'/)[1];
-        
         let allowed = true;
         if (role === 'Cashier') {
-            if (['inventory', 'expenses', 'customers', 'suppliers', 'permissions', 'reports', 'settings'].includes(targetTab)) {
+            if (['inventory', 'expenses', 'customers', 'suppliers', 'assets', 'permissions', 'reports', 'settings'].includes(targetTab)) {
                 allowed = false;
             }
         } else if (role === 'Manager') {
@@ -333,7 +362,6 @@ function applyPermissions() {
                 allowed = false;
             }
         }
-        
         item.style.display = allowed ? 'flex' : 'none';
     });
 }
@@ -345,7 +373,6 @@ function setRole(role) {
     switchTab('dashboard');
 }
 
-// Translations Applier
 function applyLanguage(lang) {
     appState.currentLanguage = lang;
     document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
@@ -370,6 +397,7 @@ function applyLanguage(lang) {
     renderCustomers();
     renderSuppliers();
     renderOrders();
+    renderAssets();
     renderInvoicesTable();
     updateDashboardMetrics();
     applyPermissions();
@@ -396,7 +424,7 @@ function updateCurrencyDisplays() {
     document.querySelectorAll(".currency-lbl").forEach(el => el.textContent = symbol);
 }
 
-// Render Products Grid
+// POS grid rendering
 function renderProducts() {
     const grid = document.getElementById("productsGrid");
     if (!grid) return;
@@ -431,7 +459,7 @@ function renderProducts() {
     });
 }
 
-// Cart Management & Loyalty (Spec 15 integration)
+// Cart Mechanics
 function addToCart(productId) {
     const product = appState.products.find(p => p.id === productId);
     if (!product || product.stock <= 0) return;
@@ -458,7 +486,6 @@ function updateCartQty(productId, delta) {
     renderCart();
 }
 
-// Bonat Loyalty Code System (Flyer's 50% discount coupon simulation)
 function applyLoyaltyCoupon() {
     const code = document.getElementById("cartCouponInput").value.trim().toUpperCase();
     const isAr = appState.currentLanguage === 'ar';
@@ -528,7 +555,6 @@ function updateCartTotals(subtotal, discount, vat, grandTotal) {
     document.getElementById("cartGrandTotal").textContent = `${grandTotal.toFixed(2)} ${currency}`;
 }
 
-// POS Hold / Unhold Cart Simulation
 function holdCart() {
     if (appState.cart.length === 0) return;
     appState.heldCarts.push({
@@ -547,7 +573,7 @@ function clearCart() {
     renderCart();
 }
 
-// Checkout and e-Invoicing
+// Checkout & e-Invoicing
 function processCheckout() {
     if (appState.cart.length === 0) return;
 
@@ -558,7 +584,6 @@ function processCheckout() {
     let subtotal = 0;
     const items = appState.cart.map(item => {
         subtotal += item.product.price * item.qty;
-        // Deduct inventory
         const prod = appState.products.find(p => p.id === item.product.id);
         if (prod) prod.stock -= item.qty;
         return {
@@ -578,10 +603,7 @@ function processCheckout() {
     const vat = taxableAmount * (appState.taxRate / 100);
     const grandTotal = taxableAmount + vat;
 
-    // Loyalty Points (1 point for every 10 SAR spent)
     const pointsEarned = Math.floor(grandTotal / 10);
-    
-    // Assign to Customer if selected
     const custSelect = document.getElementById("cartCustomerSelect").value;
     let customerName = appState.currentLanguage === 'ar' ? 'عميل نقدي' : 'Walk-in Cashier Customer';
     
@@ -606,7 +628,6 @@ function processCheckout() {
 
     appState.invoices.push(newInvoice);
 
-    // Create Order tracking item automatically
     appState.orders.push({
         id: `ORD-${Date.now().toString().slice(-4)}`,
         date: formattedDate,
@@ -655,22 +676,33 @@ function generateSaudiTLV(seller, vatNum, timestamp, total, vat) {
     return btoa(String.fromCharCode.apply(null, combined));
 }
 
-function openInvoiceModal(invoice, pointsEarned = 0) {
-    const modal = document.getElementById("invoiceModal");
-    const printArea = document.getElementById("invoicePrintArea");
-    if (!modal || !printArea) return;
+let activeInvoiceObj = null;
 
+function openInvoiceModal(invoice, pointsEarned = 0) {
+    activeInvoiceObj = invoice;
+    const modal = document.getElementById("invoiceModal");
+    if (!modal) return;
+    renderInvoiceLayout('thermal'); // Default thermal
+    modal.style.display = "flex";
+}
+
+// Dual printable invoice renderer: standard A4 & Thermal roll (80mm)
+function renderInvoiceLayout(format) {
+    const printArea = document.getElementById("invoicePrintArea");
+    if (!printArea || !activeInvoiceObj) return;
+
+    const invoice = activeInvoiceObj;
     const isAr = appState.currentLanguage === 'ar';
     const currency = translations[appState.currentLanguage].currencySymbol;
 
     let itemsRows = "";
-    invoice.items.forEach(item => {
+    invoice.items.forEach((item, index) => {
         itemsRows += `
             <tr>
-                <td>${item.name}</td>
+                <td>${format === 'a4' ? index + 1 : ''} ${item.name}</td>
                 <td style="text-align: center;">${item.qty}</td>
-                <td style="text-align: right;">${item.price} ${currency}</td>
-                <td style="text-align: right;">${(item.price * item.qty).toFixed(2)} ${currency}</td>
+                <td style="text-align: right;">${item.price.toFixed(2)}</td>
+                <td style="text-align: right;">${(item.price * item.qty).toFixed(2)}</td>
             </tr>
         `;
     });
@@ -683,64 +715,140 @@ function openInvoiceModal(invoice, pointsEarned = 0) {
         invoice.vat.toFixed(2)
     );
 
-    printArea.innerHTML = `
-        <div class="invoice-print">
-            <div class="invoice-header">
-                <h2>${appState.businessName}</h2>
-                <div style="font-size: 13px; color: #555;">${isAr ? translations.ar.taxInvoice : translations.en.taxInvoice}</div>
-            </div>
-            <div class="invoice-details">
-                <div>
-                    <strong>${isAr ? 'الفاتورة:' : 'Invoice:'}</strong> ${invoice.id}<br>
-                    <strong>${isAr ? 'التاريخ:' : 'Date:'}</strong> ${invoice.date}
-                </div>
-                <div style="text-align: right;">
-                    <strong>${isAr ? 'الرقم الضريبي:' : 'VAT No:'}</strong> ${appState.vatNumber}<br>
-                    <strong>${isAr ? 'العميل:' : 'Customer:'}</strong> ${invoice.customer}
-                </div>
-            </div>
-            <table style="width: 100%; text-align: left; margin-top: 15px;">
-                <thead>
-                    <tr style="background: #f8f9fa;">
-                        <th>${isAr ? 'البيان' : 'Item'}</th>
-                        <th style="text-align: center;">${isAr ? 'الكمية' : 'Qty'}</th>
-                        <th style="text-align: right;">${isAr ? 'السعر' : 'Rate'}</th>
-                        <th style="text-align: right;">${isAr ? 'المجموع' : 'Total'}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsRows}
-                </tbody>
-            </table>
-            <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 13px;">
-                ${invoice.discount > 0 ? `
-                <div style="display: flex; justify-content: space-between; color: var(--accent-danger);">
-                    <span>${isAr ? 'الخصم / بونات:' : 'Discount / Bonat:'}</span>
-                    <strong>-${invoice.discount.toFixed(2)} ${currency}</strong>
-                </div>` : ''}
-                <div style="display: flex; justify-content: space-between;">
-                    <span>${isAr ? 'الضريبة (15%):' : 'VAT (15%):'}</span>
-                    <strong>${invoice.vat.toFixed(2)} ${currency}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 16px; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px;">
-                    <span>${isAr ? 'المجموع الكلي:' : 'Total Amount:'}</span>
-                    <strong style="color: #8b5cf6;">${invoice.total.toFixed(2)} ${currency}</strong>
-                </div>
-                ${pointsEarned > 0 ? `
-                <div style="display: flex; justify-content: space-between; color: var(--accent-success); margin-top: 8px; font-weight: 600;">
-                    <span>${isAr ? 'نقاط بونات المحتسبة:' : 'Bonat Points Earned:'}</span>
-                    <span>+${pointsEarned}</span>
-                </div>` : ''}
-            </div>
-            <div class="invoice-qr">
-                <div id="invoiceQrCode"></div>
-                <div style="font-size: 10px; color: #666; margin-top: 8px;">FATOORA Compliant QR / فاتورة إلكترونية</div>
-            </div>
-        </div>
-    `;
+    // Apply formatting CSS switches
+    printArea.className = format === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout';
 
-    modal.style.display = "flex";
+    if (format === 'a4') {
+        // Professional A4 Layout
+        printArea.innerHTML = `
+            <div style="padding: 40px; color: #333; min-height: 250mm;">
+                <!-- A4 Header Company Logo and Name -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b5cf6; padding-bottom: 20px;">
+                    <div>
+                        <h1 style="font-size: 28px; margin: 0; color: #8b5cf6;">${appState.businessName}</h1>
+                        <p style="font-size: 13px; color: #666; margin: 5px 0 0 0;">${isAr ? translations.ar.taxInvoice : translations.en.taxInvoice}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h2 style="font-size: 20px; color: #666; margin: 0;">${isAr ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</h2>
+                        <p style="font-size: 12px; color: #888; margin: 5px 0 0 0;">VAT Number / الرقم الضريبي: ${appState.vatNumber}</p>
+                    </div>
+                </div>
 
+                <!-- A4 Customer details -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; font-size: 13px;">
+                    <div>
+                        <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #555;">${isAr ? 'العميل مفوتر إلى:' : 'Billed To:'}</h3>
+                        <p style="margin-top: 8px; font-weight: bold;">${invoice.customer}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #555; text-align: right;">${isAr ? 'تفاصيل الفاتورة:' : 'Invoice Details:'}</h3>
+                        <p style="margin-top: 8px;"><strong>${isAr ? 'رقم الفاتورة:' : 'Invoice No:'}</strong> ${invoice.id}</p>
+                        <p><strong>${isAr ? 'التاريخ والوقت:' : 'Date & Time:'}</strong> ${invoice.date}</p>
+                    </div>
+                </div>
+
+                <!-- A4 Items Table -->
+                <table style="width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #8b5cf6; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;"># البيان</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الكمية / Qty</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">السعر / Rate</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">المجموع / Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsRows}
+                    </tbody>
+                </table>
+
+                <!-- A4 Total Calculations & ZATCA QR Code -->
+                <div style="margin-top: 40px; display: grid; grid-template-columns: 2fr 1fr; gap: 40px; font-size: 13px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #ccc; padding: 20px; border-radius: 8px;">
+                        <div id="invoiceQrCode"></div>
+                        <div style="font-size: 10px; color: #666; margin-top: 10px; text-align: center;">FATOORA ZATCA Compliant QR Code / فاتورة إلكترونية معتمدة</div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <span>${isAr ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
+                            <span>${(invoice.total - invoice.vat + invoice.discount).toFixed(2)} ${currency}</span>
+                        </div>
+                        ${invoice.discount > 0 ? `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; color: #d32f2f;">
+                            <span>${isAr ? 'الخصم:' : 'Discount:'}</span>
+                            <span>-${invoice.discount.toFixed(2)} ${currency}</span>
+                        </div>` : ''}
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <span>${isAr ? 'ضريبة القيمة المضافة (15%):' : 'VAT (15%):'}</span>
+                            <span>${invoice.vat.toFixed(2)} ${currency}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 18px; font-weight: bold; color: #8b5cf6;">
+                            <span>${isAr ? 'المجموع الكلي:' : 'Total Amount:'}</span>
+                            <span>${invoice.total.toFixed(2)} ${currency}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 60px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 20px;">
+                    شكراً لتعاملكم معنا | Thank you for your business
+                </div>
+            </div>
+        `;
+    } else {
+        // Standard Thermal Roll Layout (80mm)
+        printArea.innerHTML = `
+            <div class="invoice-print" style="padding: 10px; color: black;">
+                <div class="invoice-header">
+                    <h2>${appState.businessName}</h2>
+                    <div style="font-size: 13px; color: #555;">${isAr ? translations.ar.taxInvoice : translations.en.taxInvoice}</div>
+                </div>
+                <div class="invoice-details">
+                    <div>
+                        <strong>${isAr ? 'الفاتورة:' : 'Invoice:'}</strong> ${invoice.id}<br>
+                        <strong>${isAr ? 'التاريخ:' : 'Date:'}</strong> ${invoice.date}
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>${isAr ? 'الرقم الضريبي:' : 'VAT No:'}</strong> ${appState.vatNumber}<br>
+                        <strong>${isAr ? 'العميل:' : 'Customer:'}</strong> ${invoice.customer}
+                    </div>
+                </div>
+                <table style="width: 100%; text-align: left; margin-top: 15px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th>${isAr ? 'البيان' : 'Item'}</th>
+                            <th style="text-align: center;">${isAr ? 'الكمية' : 'Qty'}</th>
+                            <th style="text-align: right;">${isAr ? 'السعر' : 'Rate'}</th>
+                            <th style="text-align: right;">${isAr ? 'المجموع' : 'Total'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsRows}
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 13px;">
+                    ${invoice.discount > 0 ? `
+                    <div style="display: flex; justify-content: space-between; color: var(--accent-danger);">
+                        <span>${isAr ? 'الخصم / بونات:' : 'Discount / Bonat:'}</span>
+                        <strong>-${invoice.discount.toFixed(2)} ${currency}</strong>
+                    </div>` : ''}
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${isAr ? 'الضريبة (15%):' : 'VAT (15%):'}</span>
+                        <strong>${invoice.vat.toFixed(2)} ${currency}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 16px; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px;">
+                        <span>${isAr ? 'المجموع الكلي:' : 'Total Amount:'}</span>
+                        <strong style="color: #8b5cf6;">${invoice.total.toFixed(2)} ${currency}</strong>
+                    </div>
+                </div>
+                <div class="invoice-qr">
+                    <div id="invoiceQrCode"></div>
+                    <div style="font-size: 10px; color: #666; margin-top: 8px;">FATOORA Compliant QR / فاتورة إلكترونية</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Render ZATCA visual QR Code
     setTimeout(() => {
         new QRCode(document.getElementById("invoiceQrCode"), {
             text: qrBase64,
@@ -757,19 +865,94 @@ function closeInvoiceModal() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-// Expenses Management (Spec 4)
+// Asset Management (Spec Integration)
+function renderAssets() {
+    const list = document.getElementById("assetsTableBody");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const isAr = appState.currentLanguage === 'ar';
+    const currency = translations[appState.currentLanguage].currencySymbol;
+
+    appState.assets.forEach(a => {
+        const row = document.createElement("tr");
+
+        let statusClass = "green";
+        if (a.status === 'maintenance') statusClass = "gold";
+        if (a.status === 'disposed') statusClass = "danger";
+
+        const statusLabel = translations[appState.currentLanguage][a.status] || a.status;
+
+        row.innerHTML = `
+            <td>${a.id}</td>
+            <td style="font-weight: 600;">🖥️ ${a.name}</td>
+            <td>${a.date}</td>
+            <td style="font-weight: 700;">${a.cost.toFixed(2)} ${currency}</td>
+            <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+            <td>${a.department}</td>
+            <td>
+                <button class="btn btn-danger" style="padding: 6px 12px;" onclick="deleteAsset('${a.id}')">
+                    <i class="ri-delete-bin-line"></i>
+                </button>
+            </td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function openAddAssetModal() {
+    document.getElementById("assetModal").style.display = "flex";
+}
+
+function closeAssetModal() {
+    document.getElementById("assetModal").style.display = "none";
+}
+
+function saveAsset(e) {
+    e.preventDefault();
+    const name = document.getElementById("assetFormName").value;
+    const cost = parseFloat(document.getElementById("assetFormCost").value) || 0;
+    const date = document.getElementById("assetFormDate").value || new Date().toISOString().split('T')[0];
+    const status = document.getElementById("assetFormStatus").value;
+    const department = document.getElementById("assetFormDept").value;
+
+    if (!name || cost <= 0) return;
+
+    appState.assets.push({
+        id: `AST-${2000 + appState.assets.length + 1}`,
+        name,
+        cost,
+        date,
+        status,
+        department
+    });
+
+    saveState();
+    closeAssetModal();
+    renderAssets();
+    updateDashboardMetrics();
+}
+
+function deleteAsset(id) {
+    if (confirm(appState.currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا الأصل؟' : 'Are you sure you want to delete this asset?')) {
+        appState.assets = appState.assets.filter(a => a.id !== id);
+        saveState();
+        renderAssets();
+        updateDashboardMetrics();
+    }
+}
+
+// Expenses Management
 function renderExpenses() {
     const body = document.getElementById("expensesTableBody");
     if (!body) return;
     body.innerHTML = "";
 
     const currency = translations[appState.currentLanguage].currencySymbol;
-    const isAr = appState.currentLanguage === 'ar';
 
     appState.expenses.forEach(exp => {
         const row = document.createElement("tr");
         const categoryName = translations[appState.currentLanguage][exp.category] || exp.category;
-        
         row.innerHTML = `
             <td>${exp.id}</td>
             <td>${exp.date}</td>
@@ -826,14 +1009,13 @@ function deleteExpense(id) {
     }
 }
 
-// CRM - Customer & Supplier (Spec 6 & 7)
+// CRM - Customers & Suppliers
 function renderCustomers() {
     const list = document.getElementById("customersTableBody");
     const select = document.getElementById("cartCustomerSelect");
     if (!list) return;
     list.innerHTML = "";
     
-    // Clear select options except walkin
     if (select) {
         select.innerHTML = `<option value="walk-in" data-i18n="walkIn">${translations[appState.currentLanguage].walkIn}</option>`;
     }
@@ -939,18 +1121,16 @@ function saveSupplier(e) {
     renderSuppliers();
 }
 
-// Orders Management (Spec 9)
+// Orders Management
 function renderOrders() {
     const body = document.getElementById("ordersTableBody");
     if (!body) return;
     body.innerHTML = "";
 
-    const isAr = appState.currentLanguage === 'ar';
     const currency = translations[appState.currentLanguage].currencySymbol;
 
     appState.orders.forEach(ord => {
         const row = document.createElement("tr");
-
         let statusClass = "gold";
         if (ord.status === 'Completed' || ord.status === 'Delivered') statusClass = "green";
         if (ord.status === 'Cancelled') statusClass = "danger";
@@ -988,7 +1168,7 @@ function updateOrderStatus(orderId, newStatus) {
     }
 }
 
-// Invoices & Tax Returns Reports (Spec 8 & 13)
+// Invoices List & reports
 function renderInvoicesTable() {
     const list = document.getElementById("invoicesTableBody");
     if (!list) return;
@@ -1022,7 +1202,7 @@ function reprintInvoice(invId) {
     }
 }
 
-// Dashboard and reports metrics calculations
+// Dashboard metrics calculations
 function updateDashboardMetrics() {
     let salesTotal = 0;
     appState.invoices.forEach(i => salesTotal += i.total);
@@ -1030,19 +1210,21 @@ function updateDashboardMetrics() {
     let expensesTotal = 0;
     appState.expenses.forEach(e => expensesTotal += e.amount);
 
+    let assetsTotal = 0;
+    appState.assets.forEach(a => assetsTotal += a.cost);
+
     const currency = translations[appState.currentLanguage].currencySymbol;
 
     document.getElementById("metricSales").textContent = `${salesTotal.toFixed(2)} ${currency}`;
     document.getElementById("metricProducts").textContent = appState.products.length;
     document.getElementById("metricInvoices").textContent = appState.invoices.length;
     
-    // Net profit (Spec 13 & 12)
     const netRevenue = salesTotal - expensesTotal;
     const revElement = document.getElementById("metricRevenue");
     revElement.textContent = `${netRevenue.toFixed(2)} ${currency}`;
     revElement.style.color = netRevenue >= 0 ? 'var(--accent-success)' : 'var(--accent-danger)';
 
-    // Live Low stock notifications
+    // Dynamic Low stock warnings
     const lowStockContainer = document.getElementById("lowStockAlertList");
     if (lowStockContainer) {
         lowStockContainer.innerHTML = "";
@@ -1068,14 +1250,10 @@ function updateDashboardMetrics() {
         }
     }
 
-    // Build Tax Return Report (Spec 13)
-    // 15% VAT on Sales (VAT output)
-    const taxOnSales = salesTotal * (15 / 115); // inclusive of 15% standard
+    // Reports summary
+    const taxOnSales = salesTotal * (15 / 115);
     const taxableSalesAmount = salesTotal - taxOnSales;
-
-    // 15% VAT on Expenses (VAT input)
-    const taxOnExpenses = expensesTotal * 0.15; // standard add-on calculation
-
+    const taxOnExpenses = expensesTotal * 0.15;
     const netTaxPayable = taxOnSales - taxOnExpenses;
 
     document.getElementById("taxSales").textContent = `${taxableSalesAmount.toFixed(2)} ${currency}`;
@@ -1088,14 +1266,19 @@ function updateDashboardMetrics() {
     dueElement.style.color = netTaxPayable >= 0 ? 'var(--accent-gold)' : 'var(--accent-success)';
 
     document.getElementById("taxNetRevenue").textContent = `${netRevenue.toFixed(2)} ${currency}`;
+    
+    // Asset cost metric display
+    const assetValDisplay = document.getElementById("taxAssetTotal");
+    if (assetValDisplay) {
+        assetValDisplay.textContent = `${assetsTotal.toFixed(2)} ${currency}`;
+    }
 }
 
-// Chart initialization & rendering (Spec 12 Detailed Reports)
+// Chart
 let salesChartInstance = null;
 function initCharts() {
     const ctx = document.getElementById("salesAnalyticsChart");
     if (!ctx) return;
-
     const isAr = appState.currentLanguage === 'ar';
 
     salesChartInstance = new Chart(ctx, {
@@ -1151,7 +1334,6 @@ function renderInventory() {
 
     appState.products.forEach(p => {
         const row = document.createElement("tr");
-
         let badge = `<span class="badge green">${isAr ? 'ممتاز' : 'Healthy'}</span>`;
         if (p.stock === 0) {
             badge = `<span class="badge danger">${isAr ? 'نفذت الكمية' : 'Out of Stock'}</span>`;
@@ -1302,7 +1484,6 @@ function switchTab(tabName) {
 
 // Event Listeners setup
 function setupEventListeners() {
-    // POS filter chips
     document.querySelectorAll(".filter-chip").forEach(chip => {
         chip.addEventListener("click", (e) => {
             document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
@@ -1311,7 +1492,5 @@ function setupEventListeners() {
             renderProducts();
         });
     });
-
-    // Product search input
     document.getElementById("productSearch").addEventListener("input", renderProducts);
 }
