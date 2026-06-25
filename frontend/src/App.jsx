@@ -460,6 +460,8 @@ export default function App() {
     const [quotations, setQuotations] = useState([]);
     const [activeQuotation, setActiveQuotation] = useState(null);
     const [showQuotationModal, setShowQuotationModal] = useState(false);
+    const [showQuotationCrudModal, setShowQuotationCrudModal] = useState(false);
+    const [quotationForm, setQuotationForm] = useState({ customer: '', itemsText: '', total: '' });
 
     // Database Models State
     const [products, setProducts] = useState([]);
@@ -841,6 +843,65 @@ export default function App() {
         .catch(() => {
             setQuotations(quotations.filter(q => q.id !== quoteId));
         });
+    };
+
+    const handleSaveQuotation = (e) => {
+        e.preventDefault();
+        const total = parseFloat(quotationForm.total) || 0;
+        const vat = total * (settings.taxRate / 100);
+        const parsedItems = (quotationForm.itemsText || '').split(',').map((str, idx) => {
+            const parts = str.trim().split('x');
+            const name = parts[0].trim();
+            const qty = parts[1] ? parseInt(parts[1].trim(), 10) || 1 : 1;
+            const price = total ? (total / qty) : 0;
+            return { id: `item-${idx}`, name, price, qty };
+        });
+
+        const postData = {
+            customer: quotationForm.customer,
+            items: parsedItems,
+            discount: 0,
+            total: total + vat,
+            vat: vat
+        };
+
+        if (quotationForm.id) {
+            fetch(`/api/quotations/${quotationForm.id}`, {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify(postData)
+            })
+            .then(res => res.json())
+            .then(updatedQuote => {
+                setQuotations(quotations.map(q => q.id === quotationForm.id ? { ...q, ...updatedQuote } : q));
+                setShowQuotationCrudModal(false);
+            })
+            .catch(() => {
+                const updatedMock = { ...quotationForm, ...postData };
+                setQuotations(quotations.map(q => q.id === quotationForm.id ? updatedMock : q));
+                setShowQuotationCrudModal(false);
+            });
+        } else {
+            fetch('/api/quotations', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(postData)
+            })
+            .then(res => res.json())
+            .then(newQuote => {
+                setQuotations([...quotations, newQuote]);
+                setShowQuotationCrudModal(false);
+            })
+            .catch(() => {
+                const mockQuote = {
+                    ...postData,
+                    id: `QTN-${Date.now().toString().slice(-4)}`,
+                    date: new Date().toLocaleString()
+                };
+                setQuotations([...quotations, mockQuote]);
+                setShowQuotationCrudModal(false);
+            });
+        }
     };
 
     // ----------------------------------------------------
@@ -1904,6 +1965,12 @@ export default function App() {
                 {/* TAB: QUOTATIONS */}
                 {activeTab === 'quotations' && (
                     <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="quotations">{translations[currentLanguage].quotations}</h3>
+                            <button className="btn btn-primary" onClick={() => { setQuotationForm({ customer: '', itemsText: '', total: '' }); setShowQuotationCrudModal(true); }}>
+                                {translations[currentLanguage].addQuotation}
+                            </button>
+                        </div>
                         <div className="table-container">
                             <table>
                                 <thead>
@@ -1916,24 +1983,39 @@ export default function App() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {quotations.map(q => (
-                                        <tr key={q.id}>
-                                            <td>{q.id}</td>
-                                            <td>{q.date}</td>
-                                            <td>{q.customer}</td>
-                                            <td>{formatCurrency(q.total)}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '8px' }}>
-                                                    <button className="btn btn-secondary" onClick={() => { setActiveQuotation(q); setShowQuotationModal(true); }}>
-                                                        <i className="ri-printer-line"></i>
-                                                    </button>
-                                                    <button className="btn btn-danger" onClick={() => handleDeleteQuotation(q.id)}>
-                                                        <i className="ri-delete-bin-line"></i>
-                                                    </button>
-                                                </div>
+                                    {quotations.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا توجد عروض أسعار مسجلة' : 'No quotations recorded'}
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        quotations.map(q => (
+                                            <tr key={q.id}>
+                                                <td>{q.id}</td>
+                                                <td>{q.date}</td>
+                                                <td>{q.customer}</td>
+                                                <td>{formatCurrency(q.total)}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setActiveQuotation(q); setShowQuotationModal(true); }}>
+                                                            <i className="ri-printer-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-secondary" onClick={() => { 
+                                                            const itemsText = (q.items || []).map(item => `${item.name} x${item.qty}`).join(', ');
+                                                            setQuotationForm({ id: q.id, customer: q.customer, itemsText: itemsText, total: (q.total - (q.vat || 0)).toFixed(2) }); 
+                                                            setShowQuotationCrudModal(true); 
+                                                        }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteQuotation(q.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -2557,6 +2639,34 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowOrderModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showQuotationCrudModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {quotationForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات عرض السعر' : 'Edit Quotation Details') : (currentLanguage === 'ar' ? 'إنشاء عرض سعر جديد' : 'Create New Quotation')}
+                        </h3>
+                        <form onSubmit={handleSaveQuotation}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceCustomer}</label>
+                                <input type="text" className="form-control" value={quotationForm.customer || ''} onChange={e => setQuotationForm({ ...quotationForm, customer: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'البنود (مثال: شاشة x1, قارئ باركود x2)' : 'Items (e.g. Monitor x1, Scanner x2)'}</label>
+                                <input type="text" className="form-control" value={quotationForm.itemsText || ''} onChange={e => setQuotationForm({ ...quotationForm, itemsText: e.target.value })} placeholder="Item Name xQty, Item Name xQty" required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'المبلغ الإجمالي (قبل الضريبة)' : 'Subtotal (Excl. VAT)'}</label>
+                                <input type="number" step="0.01" className="form-control" value={quotationForm.total || ''} onChange={e => setQuotationForm({ ...quotationForm, total: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowQuotationCrudModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">Save / حفظ</button>
                             </div>
                         </form>

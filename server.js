@@ -466,6 +466,18 @@ app.delete('/api/quotations/:id', authenticateToken, (req, res) => {
     mockDb.quotations = mockDb.quotations.filter(q => q.id !== req.params.id);
     res.sendStatus(204);
 });
+app.put('/api/quotations/:id', authenticateToken, (req, res) => {
+    const idx = mockDb.quotations.findIndex(q => q.id === req.params.id);
+    if (idx !== -1) {
+        mockDb.quotations[idx] = {
+            ...mockDb.quotations[idx],
+            ...req.body
+        };
+        res.json(mockDb.quotations[idx]);
+    } else {
+        res.sendStatus(404);
+    }
+});
 
 // ----------------------------------------------------
 // FRONTEND SERVING (Vite production assets build)
