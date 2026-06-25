@@ -44,17 +44,18 @@ const mockDb = {
         { id: '3', username: 'cashier', passwordHash: bcrypt.hashSync('cashier123', 10), role: 'Cashier' }
     ],
     products: [
-        { id: '1001', nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, stock: 12, category: 'electronics', emoji: '🖥️' },
-        { id: '1002', nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, stock: 8, category: 'electronics', emoji: '🔦' },
-        { id: '1003', nameEN: 'Direct Thermal Receipt Printer', nameAR: 'طابعة فواتير حرارية مباشرة', price: 320, stock: 15, category: 'electronics', emoji: '🖨️' },
-        { id: '1004', nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, stock: 4, category: 'office', emoji: '💺' },
-        { id: '1005', nameEN: 'Organic Coffee Beans 1kg', nameAR: 'حبوب قهوة عضوية 1 كجم', price: 75, stock: 30, category: 'groceries', emoji: '☕' },
-        { id: '1006', nameEN: 'Saudi Classic Thobe (White)', nameAR: 'ثوب سعودي كلاسيك أبيض', price: 180, stock: 45, category: 'apparel', emoji: '👔' },
-        { id: '1007', nameEN: 'Luxury Shemagh (Red)', nameAR: 'شماغ أحمر ملكي فاخر', price: 220, stock: 30, category: 'apparel', emoji: '🧣' },
-        { id: '1008', nameEN: 'Premium Black Abaya', nameAR: 'عباءة سوداء فاخرة مطرزة', price: 350, stock: 25, category: 'apparel', emoji: '👘' },
-        { id: '1009', nameEN: 'Casual Formal Suit (Blue)', nameAR: 'بدلة رسمية كلاسيكية زرقاء', price: 650, stock: 10, category: 'apparel', emoji: '🧥' }
+        { id: '1001', nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️' },
+        { id: '1002', nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, cost: 170, stock: 8, category: 'electronics', emoji: '🔦' },
+        { id: '1003', nameEN: 'Direct Thermal Receipt Printer', nameAR: 'طابعة فواتير حرارية مباشرة', price: 320, cost: 210, stock: 15, category: 'electronics', emoji: '🖨️' },
+        { id: '1004', nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺' },
+        { id: '1005', nameEN: 'Organic Coffee Beans 1kg', nameAR: 'حبوب قهوة عضوية 1 كجم', price: 75, cost: 48, stock: 30, category: 'groceries', emoji: '☕' },
+        { id: '1006', nameEN: 'Saudi Classic Thobe (White)', nameAR: 'ثوب سعودي كلاسيك أبيض', price: 180, cost: 110, stock: 45, category: 'apparel', emoji: '👔' },
+        { id: '1007', nameEN: 'Luxury Shemagh (Red)', nameAR: 'شماغ أحمر ملكي فاخر', price: 220, cost: 140, stock: 30, category: 'apparel', emoji: '🧣' },
+        { id: '1008', nameEN: 'Premium Black Abaya', nameAR: 'عباءة سوداء فاخرة مطرزة', price: 350, cost: 220, stock: 25, category: 'apparel', emoji: '👘' },
+        { id: '1009', nameEN: 'Casual Formal Suit (Blue)', nameAR: 'بدلة رسمية كلاسيكية زرقاء', price: 650, cost: 420, stock: 10, category: 'apparel', emoji: '🧥' }
     ],
     invoices: [],
+    quotations: [],
     expenses: [
         { id: 'EXP-5001', date: '2026-06-01', category: 'rent', amount: 3000, description: 'Office Rent / إيجار المكتب الرئيسي' },
         { id: 'EXP-5002', date: '2026-06-10', category: 'marketing', amount: 500, description: 'Google Ads / إعلانات جوجل' }
@@ -445,6 +446,24 @@ app.put('/api/users/:id', authenticateToken, (req, res) => {
 app.delete('/api/users/:id', authenticateToken, (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     mockDb.users = mockDb.users.filter(u => u.id !== req.params.id);
+    res.sendStatus(204);
+});
+
+// QUOTATIONS CRUD
+app.get('/api/quotations', authenticateToken, (req, res) => {
+    res.json(mockDb.quotations);
+});
+app.post('/api/quotations', authenticateToken, (req, res) => {
+    const quote = {
+        ...req.body,
+        id: `QTN-${Date.now().toString().slice(-4)}`,
+        date: new Date().toLocaleString()
+    };
+    mockDb.quotations.push(quote);
+    res.json(quote);
+});
+app.delete('/api/quotations/:id', authenticateToken, (req, res) => {
+    mockDb.quotations = mockDb.quotations.filter(q => q.id !== req.params.id);
     res.sendStatus(204);
 });
 

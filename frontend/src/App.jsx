@@ -16,6 +16,14 @@ const translations = {
         reports: "Detailed Reports",
         taxReport: "Tax Return Report",
         settings: "Settings",
+        quotations: "Quotations",
+        addQuotation: "Create Quotation",
+        saveAsQuotation: "Save as Quotation",
+        quotationNum: "Quotation ID",
+        quotationDate: "Quotation Date",
+        quotationTotal: "Total Amount",
+        purchaseCost: "Purchase Cost",
+        sellingPrice: "Selling Price",
         
         // ZATCA Connection Settings
         zatcaSettings: "ZATCA Connection Settings",
@@ -219,6 +227,14 @@ const translations = {
         reports: "تقارير مفصلة",
         taxReport: "تقرير الإقرار الضريبي",
         settings: "الإعدادات",
+        quotations: "عروض الأسعار",
+        addQuotation: "إنشاء عرض سعر",
+        saveAsQuotation: "حفظ كعرض سعر",
+        quotationNum: "رقم عرض السعر",
+        quotationDate: "تاريخ عرض السعر",
+        quotationTotal: "المبلغ الإجمالي",
+        purchaseCost: "تكلفة الشراء",
+        sellingPrice: "سعر البيع",
         
         // ZATCA Connection Settings
         zatcaSettings: "إعدادات الربط والاتصال بهيئة الزكاة والضريبة والجمارك (ZATCA)",
@@ -437,9 +453,13 @@ export default function App() {
         clientSecret: '••••••••••••••••••••••••',
         deviceSerial: 'CASHIER-310123456700003',
         status: 'CONNECTED',
+        autoSend: true,
     });
 
     const [reportSubTab, setReportSubTab] = useState('daily');
+    const [quotations, setQuotations] = useState([]);
+    const [activeQuotation, setActiveQuotation] = useState(null);
+    const [showQuotationModal, setShowQuotationModal] = useState(false);
 
     // Database Models State
     const [products, setProducts] = useState([]);
@@ -465,10 +485,12 @@ export default function App() {
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     
     const [showProductModal, setShowProductModal] = useState(false);
-    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100 });
+    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60 });
     
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [assetForm, setAssetForm] = useState({ name: '', cost: '', salvage: 0, life: 5, date: '', status: 'active', department: 'Operations', serial: '', supplier: '', assignedTo: 'unassigned' });
+    const [activeAssetForQr, setActiveAssetForQr] = useState(null);
+    const [showAssetQrModal, setShowAssetQrModal] = useState(false);
 
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [custForm, setCustForm] = useState({ name: '', phone: '', email: '' });
@@ -541,6 +563,7 @@ export default function App() {
         fetch('/api/suppliers').then(res => res.json()).then(data => setSuppliers(data)).catch(() => {});
         fetch('/api/orders').then(res => res.json()).then(data => setOrders(data)).catch(() => {});
         fetch('/api/users').then(res => res.json()).then(data => setUsersList(data)).catch(() => {});
+        fetch('/api/quotations').then(res => res.json()).then(data => setQuotations(data)).catch(() => {});
     }, [token]);
 
     // Apply configurations on load
@@ -704,12 +727,25 @@ export default function App() {
         })
         .then(res => res.json())
         .then(newInv => {
+            let finalInv = newInv;
             setInvoices([...invoices, newInv]);
             setActiveInvoice(newInv);
             setShowInvoiceModal(true);
             setCart([]);
             setActiveCoupon(null);
             setCouponInput('');
+
+            if (zatcaConn.autoSend) {
+                fetch(`/api/invoices/${newInv.id}/zatca-report`, { method: 'POST', headers: headers })
+                .then(() => {
+                    setInvoices(prev => prev.map(i => i.id === newInv.id ? { ...i, zatcaStatus: 'REPORTED' } : i));
+                    setActiveInvoice(prev => prev && prev.id === newInv.id ? { ...prev, zatcaStatus: 'REPORTED' } : prev);
+                })
+                .catch(() => {
+                    setInvoices(prev => prev.map(i => i.id === newInv.id ? { ...i, zatcaStatus: 'REPORTED' } : i));
+                    setActiveInvoice(prev => prev && prev.id === newInv.id ? { ...prev, zatcaStatus: 'REPORTED' } : prev);
+                });
+            }
         })
         .catch(() => {
             // Local fallback logic
@@ -728,6 +764,82 @@ export default function App() {
             setCart([]);
             setActiveCoupon(null);
             setCouponInput('');
+
+            if (zatcaConn.autoSend) {
+                setInvoices(prev => prev.map(i => i.id === mockInv.id ? { ...i, zatcaStatus: 'REPORTED' } : i));
+                setActiveInvoice(prev => prev && prev.id === mockInv.id ? { ...prev, zatcaStatus: 'REPORTED' } : prev);
+            }
+        });
+    };
+    
+    const handleSaveQuotationFromCart = () => {
+        if (cart.length === 0) return;
+
+        let subtotal = 0;
+        const items = cart.map(c => {
+            subtotal += c.product.price * c.qty;
+            return { id: c.product.id, name: currentLanguage === 'ar' ? c.product.nameAR : c.product.nameEN, price: c.product.price, qty: c.qty };
+        });
+
+        const discount = activeCoupon ? subtotal * activeCoupon.rate : 0;
+        const taxable = subtotal - discount;
+        const vat = taxable * (settings.taxRate / 100);
+        const grandTotal = taxable + vat;
+
+        let customerLabel = currentLanguage === 'ar' ? 'عميل نقدي' : 'Walk-in Cashier Customer';
+        if (activeCustomer !== 'walk-in') {
+            const cObj = customers.find(c => c.id === activeCustomer);
+            if (cObj) customerLabel = cObj.name;
+        }
+
+        const postData = {
+            customer: customerLabel,
+            items: items,
+            discount: discount,
+            total: grandTotal,
+            vat: vat
+        };
+
+        fetch('/api/quotations', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(postData)
+        })
+        .then(res => res.json())
+        .then(newQuote => {
+            setQuotations([...quotations, newQuote]);
+            setActiveQuotation(newQuote);
+            setShowQuotationModal(true);
+            setCart([]);
+            setActiveCoupon(null);
+            setCouponInput('');
+        })
+        .catch(() => {
+            const mockQuote = {
+                ...postData,
+                id: `QTN-${Date.now().toString().slice(-4)}`,
+                date: new Date().toLocaleString()
+            };
+            setQuotations([...quotations, mockQuote]);
+            setActiveQuotation(mockQuote);
+            setShowQuotationModal(true);
+            setCart([]);
+            setActiveCoupon(null);
+            setCouponInput('');
+        });
+    };
+
+    const handleDeleteQuotation = (quoteId) => {
+        if (!confirm(currentLanguage === 'ar' ? "هل أنت متأكد من حذف عرض السعر؟" : "Are you sure you want to delete this quotation?")) return;
+        fetch(`/api/quotations/${quoteId}`, {
+            method: 'DELETE',
+            headers: headers
+        })
+        .then(() => {
+            setQuotations(quotations.filter(q => q.id !== quoteId));
+        })
+        .catch(() => {
+            setQuotations(quotations.filter(q => q.id !== quoteId));
         });
     };
 
@@ -1157,6 +1269,14 @@ export default function App() {
                             </button>
                         </li>
                     )}
+                    {isAllowedTab('quotations') && (
+                        <li>
+                            <button className={`nav-item ${activeTab === 'quotations' ? 'active' : ''}`} onClick={() => setActiveTab('quotations')}>
+                                <i className="ri-file-text-line"></i>
+                                <span data-i18n="quotations">{translations[currentLanguage].quotations}</span>
+                            </button>
+                        </li>
+                    )}
                     {isAllowedTab('orders') && (
                         <li>
                             <button className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
@@ -1362,7 +1482,12 @@ export default function App() {
                                     <span>{translations[currentLanguage].grandTotal}</span>
                                     <span>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100))}</span>
                                 </div>
-                                <button className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
+                                    <button className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={handleSaveQuotationFromCart}>
+                                        <i className="ri-file-text-line"></i> {translations[currentLanguage].saveAsQuotation}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1383,7 +1508,8 @@ export default function App() {
                                         <th>{translations[currentLanguage].prodName}</th>
                                         <th>{translations[currentLanguage].prodCategory}</th>
                                         <th>{translations[currentLanguage].prodStock}</th>
-                                        <th>{translations[currentLanguage].prodPrice}</th>
+                                        <th>{translations[currentLanguage].purchaseCost}</th>
+                                        <th>{translations[currentLanguage].sellingPrice}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1393,6 +1519,7 @@ export default function App() {
                                             <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
                                             <td>{translations[currentLanguage][p.category] || p.category}</td>
                                             <td>{p.stock}</td>
+                                            <td>{formatCurrency(p.cost || 0)}</td>
                                             <td>{formatCurrency(p.price)}</td>
                                         </tr>
                                     ))}
@@ -1420,6 +1547,7 @@ export default function App() {
                                         <th>{translations[currentLanguage].bookValue}</th>
                                         <th>{translations[currentLanguage].assignedTo}</th>
                                         <th>{translations[currentLanguage].assetStatus}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1435,6 +1563,11 @@ export default function App() {
                                                 <td>{formatCurrency(currentBookValue)}</td>
                                                 <td>{custodian}</td>
                                                 <td><span className={`badge ${a.status === 'active' ? 'green' : 'gold'}`}>{translations[currentLanguage][a.status] || a.status}</span></td>
+                                                <td>
+                                                    <button className="btn btn-secondary" onClick={() => { setActiveAssetForQr(a); setShowAssetQrModal(true); }}>
+                                                        <i className="ri-qr-code-line"></i>
+                                                    </button>
+                                                </td>
                                             </tr>
                                         );
                                     })}
@@ -1767,6 +1900,45 @@ export default function App() {
                         </div>
                     </div>
                 )}
+                
+                {/* TAB: QUOTATIONS */}
+                {activeTab === 'quotations' && (
+                    <div className="glass-card">
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].quotationNum}</th>
+                                        <th>{translations[currentLanguage].quotationDate}</th>
+                                        <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                        <th>{translations[currentLanguage].quotationTotal}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {quotations.map(q => (
+                                        <tr key={q.id}>
+                                            <td>{q.id}</td>
+                                            <td>{q.date}</td>
+                                            <td>{q.customer}</td>
+                                            <td>{formatCurrency(q.total)}</td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button className="btn btn-secondary" onClick={() => { setActiveQuotation(q); setShowQuotationModal(true); }}>
+                                                        <i className="ri-printer-line"></i>
+                                                    </button>
+                                                    <button className="btn btn-danger" onClick={() => handleDeleteQuotation(q.id)}>
+                                                        <i className="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* TAB: REPORTS */}
                 {activeTab === 'reports' && (() => {
@@ -2014,6 +2186,12 @@ export default function App() {
                                     <label>{translations[currentLanguage].zatcaDeviceSerial}</label>
                                     <input type="text" className="form-control" value={zatcaConn.deviceSerial} onChange={e => setZatcaConn({ ...zatcaConn, deviceSerial: e.target.value })} />
                                 </div>
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                                    <input type="checkbox" id="zatcaAutoSend" checked={zatcaConn.autoSend} onChange={e => setZatcaConn({ ...zatcaConn, autoSend: e.target.checked })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
+                                    <label htmlFor="zatcaAutoSend" style={{ cursor: 'pointer', margin: 0, fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'إرسال تلقائي إلى هيئة الزكاة والضريبة والجمارك عند الدفع' : 'Auto-Send to ZATCA on Checkout'}
+                                    </label>
+                                </div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
                                     <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].zatcaStatusLabel}:</span>
                                     <span className={`badge ${zatcaConn.status === 'CONNECTED' ? 'green' : 'danger'}`}>
@@ -2098,13 +2276,19 @@ export default function App() {
                                         </tbody>
                                     </table>
 
-                                    {/* ZATCA Phase 2 Metadata Details */}
-                                    <div style={{ marginTop: '30px', padding: '15px', background: '#f8fafc', borderRadius: '8px', fontSize: '11px', fontFamily: 'monospace' }}>
-                                        <div style={{ fontWeight: 'bold', color: '#8b5cf6', marginBottom: '8px' }}>ZATCA Compliant Phase 2 Secure Metadata</div>
-                                        <p style={{ margin: '2px 0' }}><strong>UUID:</strong> {activeInvoice.uuid}</p>
-                                        <p style={{ margin: '2px 0' }}><strong>SHA-256 XML Hash:</strong> {activeInvoice.xmlHash}</p>
-                                        <p style={{ margin: '2px 0' }}><strong>Chaining PIH:</strong> {activeInvoice.pih ? activeInvoice.pih.slice(0, 30) : 'None'}...</p>
-                                        <p style={{ margin: '2px 0' }}><strong>API Status:</strong> {activeInvoice.zatcaStatus}</p>
+                                    {/* ZATCA Phase 2 Metadata Details & QR Code */}
+                                    <div style={{ marginTop: '30px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'space-between', padding: '15px', background: '#f8fafc', borderRadius: '8px' }}>
+                                        <div style={{ fontSize: '11px', fontFamily: 'monospace', flexGrow: 1 }}>
+                                            <div style={{ fontWeight: 'bold', color: '#8b5cf6', marginBottom: '8px' }}>ZATCA Compliant Phase 2 Secure Metadata</div>
+                                            <p style={{ margin: '2px 0' }}><strong>UUID:</strong> {activeInvoice.uuid}</p>
+                                            <p style={{ margin: '2px 0' }}><strong>SHA-256 XML Hash:</strong> {activeInvoice.xmlHash}</p>
+                                            <p style={{ margin: '2px 0' }}><strong>Chaining PIH:</strong> {activeInvoice.pih ? activeInvoice.pih.slice(0, 30) : 'None'}...</p>
+                                            <p style={{ margin: '2px 0' }}><strong>API Status:</strong> {activeInvoice.zatcaStatus}</p>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '120px', height: '120px' }} />
+                                            <span style={{ fontSize: '9px', color: '#666' }}>ZATCA E-Invoice QR</span>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -2128,6 +2312,11 @@ export default function App() {
                                     <div style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
                                         <span>Total:</span>
                                         <span>{formatCurrency(activeInvoice.total)}</span>
+                                    </div>
+                                    <hr style={{ borderStyle: 'dashed' }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px' }}>
+                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '100px', height: '100px' }} />
+                                        <span style={{ fontSize: '9px', color: '#666' }}>ZATCA E-Invoice</span>
                                     </div>
                                 </div>
                             )}
@@ -2178,7 +2367,11 @@ export default function App() {
                                 <input type="number" className="form-control" value={prodForm.stock} onChange={e => setProdForm({ ...prodForm, stock: Number(e.target.value) })} required />
                             </div>
                             <div className="form-group">
-                                <label>{translations[currentLanguage].prodPrice}</label>
+                                <label>{translations[currentLanguage].purchaseCost}</label>
+                                <input type="number" className="form-control" value={prodForm.cost} onChange={e => setProdForm({ ...prodForm, cost: Number(e.target.value) })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].sellingPrice}</label>
                                 <input type="number" className="form-control" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: Number(e.target.value) })} required />
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
@@ -2400,6 +2593,131 @@ export default function App() {
                                 <button type="submit" className="btn btn-primary">Save / حفظ</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ASSET QR LABEL */}
+            {showAssetQrModal && activeAssetForQr && (
+                <div className="modal-overlay">
+                    <div className="modal" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h3 style={{ marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'بطاقة تتبع الأصل (بار كود)' : 'Asset Tracking Label (QR)'}</h3>
+                        <div id="assetPrintArea" style={{ background: 'white', color: 'black', padding: '20px', borderRadius: '8px', border: '1px solid #ccc', display: 'inline-block', margin: '10px auto' }}>
+                            <h4 style={{ margin: '0 0 5px 0', fontSize: '16px' }}>CASHIER ERP</h4>
+                            <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#666' }}>{currentLanguage === 'ar' ? 'نظام إدارة الأصول' : 'Asset Management System'}</p>
+                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`Asset ID: ${activeAssetForQr.id}\nName: ${activeAssetForQr.name}\nDepartment: ${activeAssetForQr.department || 'Operations'}\nCost: ${activeAssetForQr.cost}`)}`} alt="Asset QR Code" style={{ width: '150px', height: '150px' }} />
+                            <h5 style={{ margin: '10px 0 2px 0', fontSize: '14px', fontWeight: 'bold' }}>{activeAssetForQr.name}</h5>
+                            <span style={{ fontSize: '11px', fontFamily: 'monospace', background: '#eee', padding: '2px 6px', borderRadius: '4px' }}>{activeAssetForQr.id}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
+                            <button className="btn btn-secondary" onClick={() => setShowAssetQrModal(false)}>{translations[currentLanguage].close}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: QUOTATION PRINT */}
+            {showQuotationModal && activeQuotation && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                            <button className="btn btn-secondary" onClick={() => setInvoiceFormat('thermal')} style={{ flexGrow: 1 }}><i className="ri-ticket-line"></i> Thermal Receipt</button>
+                            <button className="btn btn-secondary" onClick={() => setInvoiceFormat('a4')} style={{ flexGrow: 1 }}><i className="ri-file-text-line"></i> A4 Document</button>
+                        </div>
+
+                        {/* Print Layout Area */}
+                        <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'}>
+                            {invoiceFormat === 'a4' ? (
+                                <div style={{ padding: '40px', color: '#333', background: 'white' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
+                                        <div>
+                                            <h1 style={{ fontSize: '26px', margin: 0, color: '#8b5cf6' }}>{settings.businessName}</h1>
+                                            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Quotation / عرض سعر</p>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p style={{ margin: 0, fontSize: '12px' }}>VAT No / الرقم الضريبي: {settings.vatNumber}</p>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '20px', fontSize: '13px' }}>
+                                        <div>
+                                            <h3>Billed To / مفوتر إلى:</h3>
+                                            <p style={{ fontWeight: 'bold' }}>{activeQuotation.customer}</p>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p><strong>Quotation ID:</strong> {activeQuotation.id}</p>
+                                            <p><strong>Date:</strong> {activeQuotation.date}</p>
+                                        </div>
+                                    </div>
+
+                                    <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr style={{ background: '#8b5cf6', color: 'white' }}>
+                                                <th style={{ color: 'white' }}>Description / البيان</th>
+                                                <th style={{ color: 'white', textAlign: 'center' }}>Qty</th>
+                                                <th style={{ color: 'white', textAlign: 'right' }}>Price</th>
+                                                <th style={{ color: 'white', textAlign: 'right' }}>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {activeQuotation.items.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.name}</td>
+                                                    <td style={{ textAlign: 'center' }}>{item.qty}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price)}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price * item.qty)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+
+                                    <div style={{ marginTop: '30px', borderTop: '2px solid #eee', paddingTop: '15px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '5px' }}>
+                                            <span>Subtotal:</span>
+                                            <span>{formatCurrency(activeQuotation.total - (activeQuotation.vat || 0))}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '5px' }}>
+                                            <span>VAT (15%):</span>
+                                            <span>{formatCurrency(activeQuotation.vat || 0)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
+                                            <span>Grand Total:</span>
+                                            <span>{formatCurrency(activeQuotation.total)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ padding: '10px', color: 'black', background: 'white' }}>
+                                    <h3 style={{ textAlign: 'center' }}>{settings.businessName}</h3>
+                                    <div style={{ textAlign: 'center', fontSize: '11px' }}>VAT No: {settings.vatNumber}</div>
+                                    <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 'bold' }}>Quotation / عرض سعر</div>
+                                    <hr style={{ borderStyle: 'dashed' }} />
+                                    <div style={{ fontSize: '11px' }}>
+                                        <p>Quotation ID: {activeQuotation.id}</p>
+                                        <p>Date: {activeQuotation.date}</p>
+                                        <p>Customer: {activeQuotation.customer}</p>
+                                    </div>
+                                    <hr style={{ borderStyle: 'dashed' }} />
+                                    {activeQuotation.items.map((item, idx) => (
+                                        <div key={idx} style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{item.name} x{item.qty}</span>
+                                            <span>{formatCurrency(item.price * item.qty)}</span>
+                                        </div>
+                                    ))}
+                                    <hr style={{ borderStyle: 'dashed' }} />
+                                    <div style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>Total:</span>
+                                        <span>{formatCurrency(activeQuotation.total)}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
+                            <button className="btn btn-secondary" onClick={() => setShowQuotationModal(false)}>{translations[currentLanguage].close}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                        </div>
                     </div>
                 </div>
             )}

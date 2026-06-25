@@ -51,6 +51,15 @@
     box-sizing: border-box;
 }
 
+button {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
@@ -100,6 +109,8 @@ body[dir="rtl"] .app-container {
     flex-direction: column;
     gap: 32px;
     z-index: 10;
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 body[dir="rtl"] .sidebar {
@@ -121,6 +132,7 @@ body[dir="rtl"] .main-content {
     background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    flex-shrink: 0;
 }
 
 .nav-links {
@@ -128,6 +140,7 @@ body[dir="rtl"] .main-content {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex-grow: 1;
 }
 
 .nav-item {
@@ -137,6 +150,7 @@ body[dir="rtl"] .main-content {
     padding: 10px 18px;
     border-radius: var(--radius-md);
     color: var(--text-secondary);
+    width: 100%;
     text-decoration: none;
     font-weight: 500;
     cursor: pointer;
@@ -165,6 +179,7 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 /* Main Content Styling */
@@ -432,20 +447,20 @@ tr:hover td {
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
 }
 
 .product-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
-    padding: 16px;
+    padding: 10px;
     cursor: pointer;
     transition: border-color 0.1s ease, transform 0.1s ease;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
 }
 
 .product-card:hover {
@@ -454,13 +469,13 @@ tr:hover td {
 }
 
 .product-img {
-    height: 120px;
+    height: 70px;
     background: rgba(255,255,255,0.02);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
+    font-size: 24px;
 }
 
 .product-title {
@@ -662,7 +677,7 @@ tr:hover td {
         color: black !important;
     }
     
-    #invoicePrintArea, #invoicePrintArea * {
+    #invoicePrintArea, #invoicePrintArea *, #assetPrintArea, #assetPrintArea * {
         visibility: visible;
     }
     
@@ -676,6 +691,19 @@ tr:hover td {
         box-shadow: none !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+    
+    #assetPrintArea {
+        position: absolute !important;
+        left: 50% !important;
+        top: 30% !important;
+        transform: translate(-50%, -30%) !important;
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        border: none !important;
     }
     
     .invoice-a4-layout {
