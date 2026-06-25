@@ -12,7 +12,7 @@ const translations = {
         invoices: "Invoices Management",
         orders: "Orders Management",
         assets: "Asset Management",
-        permissions: "Permissions",
+        permissions: "Users & Permissions",
         reports: "Detailed Reports",
         taxReport: "Tax Return Report",
         settings: "Settings",
@@ -223,7 +223,7 @@ const translations = {
         invoices: "إدارة الفواتير",
         orders: "إدارة الطلبات",
         assets: "إدارة الأصول",
-        permissions: "إدارة الصلاحيات",
+        permissions: "المستخدمين والصلاحيات",
         reports: "تقارير مفصلة",
         taxReport: "تقرير الإقرار الضريبي",
         settings: "الإعدادات",
@@ -1887,54 +1887,121 @@ export default function App() {
                 )}
 
                 {/* TAB: USER MANAGEMENT (PERMISSIONS) */}
+                {/* TAB: USER MANAGEMENT (PERMISSIONS) */}
                 {activeTab === 'permissions' && (
-                    <div className="glass-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <div>
-                                <h3 data-i18n="permissions">{translations[currentLanguage].permissions}</h3>
-                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].restrictMsg}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+                        {/* Users Accounts Control Card */}
+                        <div className="glass-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <div>
+                                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-purple)' }}>{currentLanguage === 'ar' ? 'إدارة حسابات المستخدمين' : 'System Users Accounts'}</h3>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'إنشاء وتعديل بيانات وحسابات الدخول لموظفي النظام' : 'Manage system login accounts and assign access roles'}</p>
+                                </div>
+                                {user.role === 'Admin' && (
+                                    <button className="btn btn-primary" onClick={() => { setUserForm({ username: '', password: '', role: 'Cashier' }); setShowUserModal(true); }}>
+                                        <i className="ri-user-add-line"></i> {currentLanguage === 'ar' ? 'إضافة مستخدم جديد' : 'Add New User'}
+                                    </button>
+                                )}
                             </div>
-                            {user.role === 'Admin' && (
-                                <button className="btn btn-primary" onClick={() => { setUserForm({ username: '', password: '', role: 'Cashier' }); setShowUserModal(true); }}>
-                                    {currentLanguage === 'ar' ? 'إضافة مستخدم جديد' : 'Add New System User'}
-                                </button>
-                            )}
-                        </div>
-                        
-                        <div className="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>User Name / اسم المستخدم</th>
-                                        <th>System Role / دور الصلاحية</th>
-                                        <th>{translations[currentLanguage].actions}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {usersList.map(u => (
-                                        <tr key={u.id}>
-                                            <td><strong>{u.username}</strong></td>
-                                            <td>
-                                                <span className={`badge ${u.role === 'Admin' ? 'purple' : u.role === 'Manager' ? 'cyan' : 'gold'}`}>
-                                                    {u.role === 'Admin' ? translations[currentLanguage].roleAdmin : u.role === 'Manager' ? translations[currentLanguage].roleManager : translations[currentLanguage].roleCashier}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {user.role === 'Admin' && (
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <button className="btn btn-secondary" onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
-                                                            <i className="ri-edit-line"></i>
-                                                        </button>
-                                                        <button className="btn btn-danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === user.id}>
-                                                            <i className="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </td>
+                            
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>User Name / اسم المستخدم</th>
+                                            <th>System Role / دور الصلاحية</th>
+                                            <th>{translations[currentLanguage].actions}</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {usersList.map(u => (
+                                            <tr key={u.id}>
+                                                <td><strong>{u.username}</strong></td>
+                                                <td>
+                                                    <span className={`badge ${u.role === 'Admin' ? 'purple' : u.role === 'Manager' ? 'cyan' : 'gold'}`}>
+                                                        {u.role === 'Admin' ? translations[currentLanguage].roleAdmin : u.role === 'Manager' ? translations[currentLanguage].roleManager : translations[currentLanguage].roleCashier}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {user.role === 'Admin' && (
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button className="btn btn-secondary" onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
+                                                                <i className="ri-edit-line"></i>
+                                                            </button>
+                                                            <button className="btn btn-danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === user.id}>
+                                                                <i className="ri-delete-bin-line"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Visual Roles & Permissions Feature Matrix Table */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                                <i className="ri-shield-keyhole-line"></i> {currentLanguage === 'ar' ? 'جدول توزيع الصلاحيات المتاحة' : 'Feature Access Permissions Matrix'}
+                            </h3>
+                            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                {currentLanguage === 'ar' ? 'عرض توضيحي للمميزات والصفحات المسموح بالوصول إليها لكل دور وظيفي' : 'Visual breakdown of accessible workspace features by user roles'}
+                            </p>
+                            
+                            <div className="table-container">
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>Workspace Feature / ميزة النظام</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>Administrator / مدير النظام</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>Manager / مدير التشغيل</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>Cashier / صراف كاشير</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[
+                                            { en: 'POS & Cashier Interface', ar: 'شاشة كاشير المبيعات الفرعية', admin: true, manager: true, cashier: true },
+                                            { en: 'Quotation Management', ar: 'عروض الأسعار والتسعيرات', admin: true, manager: true, cashier: true },
+                                            { en: 'Invoices Tracking & Reprint', ar: 'إدارة واستعراض وطباعة الفواتير', admin: true, manager: true, cashier: true },
+                                            { en: 'Stock & Inventory Control', ar: 'إدارة المنتجات والمخزون', admin: true, manager: true, cashier: false },
+                                            { en: 'Expenses Recording', ar: 'تسجيل وإدارة المصروفات المباشرة', admin: true, manager: true, cashier: false },
+                                            { en: 'Customers CRM Database', ar: 'إدارة وسجلات العملاء', admin: true, manager: true, cashier: false },
+                                            { en: 'Suppliers CRM Directory', ar: 'إدارة وسجلات الموردين', admin: true, manager: true, cashier: false },
+                                            { en: 'Asset Capital Depreciation', ar: 'إدارة الأصول الرأسمالية وإهلاكها', admin: true, manager: true, cashier: false },
+                                            { en: 'Tax return reporting', ar: 'تقارير الإقرار الضريبي وضريبة القيمة المضافة', admin: true, manager: true, cashier: false },
+                                            { en: 'ZATCA Compliance Integration settings', ar: 'بوابة وإعدادات الربط بهيئة الزكاة', admin: true, manager: false, cashier: false },
+                                            { en: 'General System Configurations', ar: 'إعدادات النظام العامة والشعار والاسم', admin: true, manager: false, cashier: false },
+                                            { en: 'Users Management & Permissions Matrix', ar: 'إدارة الصلاحيات والمستخدمين الآخرين', admin: true, manager: false, cashier: false },
+                                        ].map((feat, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                                <td style={{ padding: '12px' }}>
+                                                    <strong>{feat.en}</strong><br/>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{feat.ar}</span>
+                                                </td>
+                                                <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)', fontSize: '20px' }}></i>
+                                                </td>
+                                                <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                    {feat.manager ? (
+                                                        <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)', fontSize: '20px' }}></i>
+                                                    ) : (
+                                                        <i className="ri-close-circle-fill" style={{ color: 'var(--accent-danger)', fontSize: '20px' }}></i>
+                                                    )}
+                                                </td>
+                                                <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                    {feat.cashier ? (
+                                                        <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)', fontSize: '20px' }}></i>
+                                                    ) : (
+                                                        <i className="ri-close-circle-fill" style={{ color: 'var(--accent-danger)', fontSize: '20px' }}></i>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
