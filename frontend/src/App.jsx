@@ -2672,25 +2672,7 @@ export default function App() {
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', textAlign: 'center', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', width: '140px', height: '140px' }}>
                                                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px', display: 'block' }} />
-                                                        {settings.logo && (
-                                                            <img 
-                                                                src={settings.logo} 
-                                                                alt="Mini Logo" 
-                                                                style={{ 
-                                                                    position: 'absolute', 
-                                                                    top: '50%', 
-                                                                    left: '50%', 
-                                                                    transform: 'translate(-50%, -50%)', 
-                                                                    width: '32px', 
-                                                                    height: '32px', 
-                                                                    background: 'white', 
-                                                                    padding: '2px', 
-                                                                    borderRadius: '4px', 
-                                                                    border: '1px solid #e2e8f0', 
-                                                                    objectFit: 'contain' 
-                                                                }} 
-                                                            />
-                                                        )}
+
                                                     </div>
                                                     <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
                                                     <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
@@ -2759,12 +2741,7 @@ export default function App() {
                                                     </table>
                                                 </div>
 
-                                                {/* Bottom Center: ZATCA Compliant QR Code */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', margin: '0 auto', textAlign: 'center' }}>
-                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px' }} />
-                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
-                                                    <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
-                                                </div>
+
                                             </div>
                                         </div>
                                     ) : (
@@ -3282,25 +3259,7 @@ export default function App() {
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', textAlign: 'center', flexShrink: 0 }}>
                                                 <div style={{ position: 'relative', width: '140px', height: '140px' }}>
                                                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '140px', height: '140px', display: 'block' }} />
-                                                    {settings.logo && (
-                                                        <img 
-                                                            src={settings.logo} 
-                                                            alt="Mini Logo" 
-                                                            style={{ 
-                                                                position: 'absolute', 
-                                                                top: '50%', 
-                                                                left: '50%', 
-                                                                transform: 'translate(-50%, -50%)', 
-                                                                width: '32px', 
-                                                                height: '32px', 
-                                                                background: 'white', 
-                                                                padding: '2px', 
-                                                                borderRadius: '4px', 
-                                                                border: '1px solid #e2e8f0', 
-                                                                objectFit: 'contain' 
-                                                            }} 
-                                                        />
-                                                    )}
+
                                                 </div>
                                                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>عرض سعر رقمي مبسط</span>
                                                 <span style={{ fontSize: '9px', color: '#666' }}>Digital Quotation QR Code</span>
@@ -3435,25 +3394,7 @@ export default function App() {
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px', textAlign: 'center' }}>
                                             <div style={{ position: 'relative', width: '110px', height: '110px' }}>
                                                 <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '110px', height: '110px', display: 'block' }} />
-                                                {settings.logo && (
-                                                    <img 
-                                                        src={settings.logo} 
-                                                        alt="Mini Logo" 
-                                                        style={{ 
-                                                            position: 'absolute', 
-                                                            top: '50%', 
-                                                            left: '50%', 
-                                                            transform: 'translate(-50%, -50%)', 
-                                                            width: '24px', 
-                                                            height: '24px', 
-                                                            background: 'white', 
-                                                            padding: '1px', 
-                                                            borderRadius: '3px', 
-                                                            border: '1px solid #e2e8f0', 
-                                                            objectFit: 'contain' 
-                                                        }} 
-                                                    />
-                                                )}
+
                                             </div>
                                             <span style={{ fontSize: '10px', fontWeight: 'bold' }}>عرض سعر مبسط</span>
                                             <span style={{ fontSize: '9px', color: '#666' }}>Digital Quotation QR Code</span>
