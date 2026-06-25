@@ -4,6 +4,16 @@ import React, { useState, useEffect } from 'react';
 const translations = {
     en: {
         dashboard: "Dashboard",
+        paymentMethod: "Payment Method",
+        paymentCash: "Cash",
+        paymentVisa: "Visa",
+        paymentMada: "Mada",
+        paymentMobile: "Mobile Pay",
+        paymentStc: "STC Pay",
+        paymentApplePay: "Apple Pay",
+        paymentTabby: "Tabby",
+        paymentTamara: "Tamara",
+        paymentSplit: "Split",
         posCashier: "POS / Cashier",
         inventory: "Inventory",
         expenses: "Expenses Management",
@@ -215,6 +225,16 @@ const translations = {
     },
     ar: {
         dashboard: "لوحة التحكم",
+        paymentMethod: "طريقة الدفع",
+        paymentCash: "نقداً",
+        paymentVisa: "فيزا",
+        paymentMada: "مدى",
+        paymentMobile: "دفع الهاتف",
+        paymentStc: "STC Pay",
+        paymentApplePay: "Apple Pay",
+        paymentTabby: "تابي",
+        paymentTamara: "تمارا",
+        paymentSplit: "دفع مجزأ",
         posCashier: "تطبيق الكاشير",
         inventory: "إدارة المخزون",
         expenses: "إدارة المصروفات",
@@ -426,6 +446,21 @@ const translations = {
     }
 };
 
+const getPaymentMethodLabel = (method) => {
+    if (!method) return 'Cash / نقداً';
+    const m = method.toLowerCase();
+    if (m.includes('cash')) return 'Cash / نقداً';
+    if (m.includes('visa')) return 'Visa / فيزا';
+    if (m.includes('mada')) return 'Mada / مدى';
+    if (m.includes('mobile')) return 'Mobile Pay / دفع الجوال';
+    if (m.includes('stc')) return 'STC Pay';
+    if (m.includes('apple')) return 'Apple Pay';
+    if (m.includes('tabby') || m.includes('tabbi')) return 'Tabby / تابي';
+    if (m.includes('tamara')) return 'Tamara / تمارا';
+    if (m.includes('split')) return method;
+    return method;
+};
+
 export default function App() {
     // Auth States
     const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -483,6 +518,9 @@ export default function App() {
     const [activeCoupon, setActiveCoupon] = useState(null);
     const [posFilter, setPosFilter] = useState('all');
     const [posSearch, setPosSearch] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [splitCash, setSplitCash] = useState('');
+    const [splitCard, setSplitCard] = useState('');
 
     // Modal Triggers
     const [activeInvoice, setActiveInvoice] = useState(null);
@@ -567,7 +605,7 @@ export default function App() {
         fetch('/api/employees').then(res => res.json()).then(data => setEmployees(data)).catch(() => {});
         fetch('/api/suppliers').then(res => res.json()).then(data => setSuppliers(data)).catch(() => {});
         fetch('/api/orders').then(res => res.json()).then(data => setOrders(data)).catch(() => {});
-        fetch('/api/users').then(res => res.json()).then(data => setUsersList(data)).catch(() => {});
+        fetch('/api/users', { headers }).then(res => res.json()).then(data => { if (Array.isArray(data)) setUsersList(data); }).catch(() => {});
         fetch('/api/quotations', { headers }).then(res => res.json()).then(data => setQuotations(data)).catch(() => {});
     }, [token]);
 
@@ -722,7 +760,8 @@ export default function App() {
             items: items,
             discount: discount,
             total: grandTotal,
-            vat: vat
+            vat: vat,
+            paymentMethod: paymentMethod === 'split' ? `Split / مجزأ (Cash: ${splitCash} SAR, Card: ${splitCard} SAR)` : paymentMethod
         };
 
         fetch('/api/invoices', {
@@ -1266,6 +1305,25 @@ export default function App() {
         <div className="app-container">
             {/* Sidebar Navigation */}
             <aside className="sidebar">
+                {/* Language & Theme Controls */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', width: '100%' }}>
+                    <button 
+                        className="btn btn-secondary" 
+                        onClick={() => setCurrentLanguage(currentLanguage === 'ar' ? 'en' : 'ar')} 
+                        style={{ flex: 1, padding: '6px 8px', fontSize: '11px', height: '32px', gap: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}
+                    >
+                        <i className="ri-translate" style={{ fontSize: '14px', color: 'var(--accent-cyan)' }}></i>
+                        <span>{currentLanguage === 'ar' ? 'English' : 'العربية'}</span>
+                    </button>
+                    <button 
+                        className="btn btn-secondary" 
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
+                        style={{ flex: 1, padding: '6px 8px', fontSize: '11px', height: '32px', gap: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}
+                    >
+                        <i className={theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'} style={{ fontSize: '14px', color: 'var(--accent-gold)' }}></i>
+                        <span>{theme === 'dark' ? (currentLanguage === 'ar' ? 'نهاري' : 'Light') : (currentLanguage === 'ar' ? 'ليلي' : 'Dark')}</span>
+                    </button>
+                </div>
                 <div className="brand">
                     <i className="ri-store-2-line"></i>
                     <span>CASHIER</span>
@@ -1384,15 +1442,7 @@ export default function App() {
                 </ul>
                 
                 <div className="sidebar-footer">
-                    <button className="btn btn-secondary" onClick={() => setCurrentLanguage(currentLanguage === 'ar' ? 'en' : 'ar')}>
-                        <i className="ri-translate-2"></i>
-                        <span>English / العربية</span>
-                    </button>
-                    <button className="btn btn-secondary" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                        <i className={theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'}></i>
-                        <span data-i18n="themeLabel">{translations[currentLanguage].themeLabel}</span>
-                    </button>
-                    <button className="btn btn-danger" onClick={handleLogout} style={{ marginTop: '10px' }}>
+                    <button className="btn btn-danger" onClick={handleLogout} style={{ marginTop: '10px', width: '100%' }}>
                         <i className="ri-logout-box-line"></i>
                         <span>Logout / خروج</span>
                     </button>
@@ -1409,7 +1459,7 @@ export default function App() {
                     <div className="header-actions">
                         <div className="glass-card" style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
                             <i className="ri-shield-check-line" style={{ color: 'var(--accent-cyan)' }}></i>
-                            <strong>{user.role}</strong>
+                            <strong>{user ? user.role : ''}</strong>
                         </div>
                         <div className="glass-card" style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '14px', fontWeight: '600' }}>
                             <span>{new Date().toLocaleDateString()}</span>
@@ -1554,6 +1604,88 @@ export default function App() {
                                     <span>{translations[currentLanguage].grandTotal}</span>
                                     <span>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100))}</span>
                                 </div>
+                                {/* Payment Method Selector */}
+                                <div style={{ borderTop: '1px dashed var(--glass-border)', marginTop: '12px', paddingTop: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                                        {translations[currentLanguage].paymentMethod}
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                                        {[
+                                            { id: 'cash', label: translations[currentLanguage].paymentCash, icon: 'ri-money-dollar-circle-line' },
+                                            { id: 'visa', label: translations[currentLanguage].paymentVisa, icon: 'ri-bank-card-line' },
+                                            { id: 'mada', label: translations[currentLanguage].paymentMada, icon: 'ri-bank-card-2-line' },
+                                            { id: 'mobile', label: translations[currentLanguage].paymentMobile, icon: 'ri-smartphone-line' },
+                                            { id: 'stc', label: translations[currentLanguage].paymentStc, icon: 'ri-wallet-3-line' },
+                                            { id: 'apple', label: translations[currentLanguage].paymentApplePay, icon: 'ri-apple-line' },
+                                            { id: 'tabby', label: translations[currentLanguage].paymentTabby, icon: 'ri-coupon-line' },
+                                            { id: 'tamara', label: translations[currentLanguage].paymentTamara, icon: 'ri-coupon-line' },
+                                            { id: 'split', label: translations[currentLanguage].paymentSplit, icon: 'ri-split-cells-vertical' }
+                                        ].map(m => (
+                                            <button
+                                                key={m.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setPaymentMethod(m.id);
+                                                    if (m.id === 'split') {
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCash((totalVal / 2).toFixed(2));
+                                                        setSplitCard((totalVal / 2).toFixed(2));
+                                                    }
+                                                }}
+                                                className={`btn ${paymentMethod === m.id ? 'btn-primary' : 'btn-secondary'}`}
+                                                style={{
+                                                    padding: '6px 4px',
+                                                    fontSize: '10px',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    height: '52px',
+                                                    border: paymentMethod === m.id ? '1px solid var(--accent-cyan)' : '1px solid var(--glass-border)',
+                                                    background: paymentMethod === m.id ? 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))' : 'var(--glass-bg)',
+                                                    opacity: paymentMethod === m.id ? 1 : 0.85
+                                                }}
+                                            >
+                                                <i className={m.icon} style={{ fontSize: '15px', color: paymentMethod === m.id ? '#fff' : 'var(--accent-cyan)' }}></i>
+                                                <span style={{ fontSize: '9px', whiteSpace: 'nowrap' }}>{m.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    {paymentMethod === 'split' && (
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', background: 'var(--bg-primary)', padding: '8px', borderRadius: '4px', border: '1px dashed var(--glass-border)' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Cash / نقداً</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    style={{ padding: '4px 6px', fontSize: '11px', height: '28px' }}
+                                                    value={splitCash}
+                                                    onChange={e => {
+                                                        const cash = parseFloat(e.target.value) || 0;
+                                                        setSplitCash(e.target.value);
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCard((Math.max(0, totalVal - cash)).toFixed(2));
+                                                    }}
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Card / شبكة</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    style={{ padding: '4px 6px', fontSize: '11px', height: '28px' }}
+                                                    value={splitCard}
+                                                    onChange={e => {
+                                                        const card = parseFloat(e.target.value) || 0;
+                                                        setSplitCard(e.target.value);
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCash((Math.max(0, totalVal - card)).toFixed(2));
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                                     <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
                                     <button className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={handleSaveQuotationFromCart}>
@@ -1897,7 +2029,7 @@ export default function App() {
                                     <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-purple)' }}>{currentLanguage === 'ar' ? 'إدارة حسابات المستخدمين' : 'System Users Accounts'}</h3>
                                     <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'إنشاء وتعديل بيانات وحسابات الدخول لموظفي النظام' : 'Manage system login accounts and assign access roles'}</p>
                                 </div>
-                                {user.role === 'Admin' && (
+                                {user && user.role === 'Admin' && (
                                     <button className="btn btn-primary" onClick={() => { setUserForm({ username: '', password: '', role: 'Cashier' }); setShowUserModal(true); }}>
                                         <i className="ri-user-add-line"></i> {currentLanguage === 'ar' ? 'إضافة مستخدم جديد' : 'Add New User'}
                                     </button>
@@ -1923,7 +2055,7 @@ export default function App() {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    {user.role === 'Admin' && (
+                                                    {user && user.role === 'Admin' && (
                                                         <div style={{ display: 'flex', gap: '8px' }}>
                                                             <button className="btn btn-secondary" onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
                                                                 <i className="ri-edit-line"></i>
@@ -2441,152 +2573,221 @@ export default function App() {
                         </div>
 
                         {/* Print Layout Area */}
-                        <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'}>
-                            {invoiceFormat === 'a4' ? (
-                                <div style={{ padding: '40px', color: '#333', background: 'white' }}>
-                                    {/* Standard A4 Header Grid: L: English Name, C: Logo, R: Arabic Details */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 1.2fr', gap: '20px', alignItems: 'center', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
-                                        {/* Left Side: English Info */}
-                                        <div style={{ textAlign: 'left', fontSize: '12px' }}>
-                                            <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                            <p style={{ margin: '2px 0', color: '#555' }}>Simplified Tax Invoice</p>
-                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Invoice ID:</strong> {activeInvoice.id}</p>
-                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Date:</strong> {activeInvoice.date}</p>
-                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Billed To:</strong> {activeInvoice.customer}</p>
-                                        </div>
+                        {(() => {
+                            const activeVat = activeInvoice.vat !== undefined && activeInvoice.vat !== null ? activeInvoice.vat : (activeInvoice.total - (activeInvoice.total / 1.15));
+                            const activeSubtotal = activeInvoice.total - activeVat;
+                            return (
+                                <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'} style={{ direction: 'ltr', background: 'white', color: 'black' }}>
+                                    {invoiceFormat === 'a4' ? (
+                                        <div style={{ padding: '40px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
+                                            {/* Standard A4 Header Grid: L: English Details, C: Logo, R: Arabic Details */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 120px 1.2fr', gap: '20px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '15px' }}>
+                                                {/* Left Side: English Info (LTR) */}
+                                                <div style={{ textAlign: 'left', fontSize: '11px', direction: 'ltr', lineHeight: '1.5' }}>
+                                                    <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>Address:</strong> {settings.businessAddress}</p>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>VAT No:</strong> {settings.vatNumber}</p>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>CR No:</strong> {settings.crNumber}</p>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>Contact:</strong> {settings.contactNumber}</p>
+                                                </div>
 
-                                        {/* Center Side: Logo */}
-                                        <div style={{ textAlign: 'center' }}>
-                                            {settings.logo ? (
-                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '110px', objectFit: 'contain' }} />
-                                            ) : (
-                                                <div style={{ width: '70px', height: '70px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94a3b8' }}>LOGO</div>
-                                            )}
-                                        </div>
+                                                {/* Center Side: Logo */}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    {settings.logo ? (
+                                                        <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '110px', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <div style={{ width: '70px', height: '70px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94a3b8' }}>LOGO</div>
+                                                    )}
+                                                </div>
 
-                                        {/* Right Side: Arabic Details */}
-                                        <div style={{ textAlign: 'right', fontSize: '12px', direction: 'rtl' }}>
-                                            <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress || 'الرياض، المملكة العربية السعودية'}</p>
-                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
-                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber || '1010123456'}</p>
-                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber || '+966 50 123 4567'}</p>
-                                        </div>
-                                    </div>
-                                    {/* Line Items Table compliant with Saudi Tax Authority standard */}
-                                    <h3 style={{ marginTop: '30px', borderBottom: '2px solid #8b5cf6', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>Line Items / تفاصيل السلع</h3>
-                                    <table className="zatca-invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '12px' }}>
-                                        <thead>
-                                            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
-                                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>Nature of goods or services<br/><span style={{ color: '#666', fontWeight: 'normal' }}>تفاصيل السلع والخدمات</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Unit price<br/><span style={{ color: '#666', fontWeight: 'normal' }}>سعر الوحدة</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Quantity<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الكمية</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Discount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>خصومات</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Taxable Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>المبلغ الخاضع للضريبة</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Tax Rate<br/><span style={{ color: '#666', fontWeight: 'normal' }}>نسبة الضريبة</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Tax Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>مبلغ الضريبة</span></th>
-                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Item Subtotal<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الاجمالي شامل الضريبة</span></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(activeInvoice.items || []).map((item, idx) => {
-                                                const itemQty = item.qty || 1;
-                                                const itemPrice = item.price || 0;
-                                                const itemDiscount = 0; // standard mock values
-                                                const rawSubtotal = itemPrice * itemQty;
-                                                const itemTaxableAmount = rawSubtotal - itemDiscount;
-                                                const itemTaxRate = settings.taxRate || 15;
-                                                const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
-                                                const itemSubtotal = itemTaxableAmount + itemTaxAmount;
-                                                return (
-                                                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                        <td style={{ padding: '8px', textAlign: 'left' }}>{item.name}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'center' }}>{itemQty}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemDiscount)}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxableAmount)}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'center' }}>{itemTaxRate}%</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxAmount)}</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemSubtotal)}</td>
+                                                {/* Right Side: Arabic Details (RTL) */}
+                                                <div style={{ textAlign: 'right', fontSize: '11px', direction: 'rtl', lineHeight: '1.5' }}>
+                                                    <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress}</p>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber}</p>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Invoice Metadata Row (Second Line) */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px 20px', marginTop: '20px', background: '#f8fafc', fontSize: '12px' }}>
+                                                <div style={{ textAlign: 'left', direction: 'ltr', lineHeight: '1.6' }}>
+                                                    <p style={{ margin: '2px 0', fontSize: '14px', fontWeight: 'bold', color: '#8b5cf6' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>Invoice ID:</strong> {activeInvoice.id}</p>
+                                                    <p style={{ margin: '2px 0', color: '#555' }}><strong>Date:</strong> {activeInvoice.date}</p>
+                                                </div>
+                                                <div style={{ textAlign: 'right', direction: 'rtl', lineHeight: '1.6' }}>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>العميل / Billed To:</strong> {activeInvoice.customer}</p>
+                                                    <p style={{ margin: '2px 0', color: '#333' }}><strong>طريقة الدفع / Payment Method:</strong> {getPaymentMethodLabel(activeInvoice.paymentMethod)}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Line Items Table compliant with Saudi Tax Authority standard */}
+                                            <h3 style={{ marginTop: '30px', borderBottom: '2px solid #8b5cf6', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                                                {currentLanguage === 'ar' ? 'تفاصيل السلع والخدمات / Line Items' : 'Line Items / تفاصيل السلع والخدمات'}
+                                            </h3>
+                                            <table className="zatca-invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '12px', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+                                                <thead>
+                                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                                                        <th style={{ padding: '8px', textAlign: currentLanguage === 'ar' ? 'right' : 'left', fontWeight: '600' }}>Nature of goods or services<br/><span style={{ color: '#666', fontWeight: 'normal' }}>تفاصيل السلع والخدمات</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Unit price<br/><span style={{ color: '#666', fontWeight: 'normal' }}>سعر الوحدة</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Quantity<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الكمية</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Discount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>خصومات</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Taxable Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>المبلغ الخاضع للضريبة</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Tax Rate<br/><span style={{ color: '#666', fontWeight: 'normal' }}>نسبة الضريبة</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Tax Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>مبلغ الضريبة</span></th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Item Subtotal<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الاجمالي شامل الضريبة</span></th>
                                                     </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-
-                                    {/* Financial Summary Totals and Bottom Center QR Code */}
-                                    <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                        {/* Financial Totals Table */}
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                            <table style={{ width: '50%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                </thead>
                                                 <tbody>
-                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
-                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
-                                                    </tr>
-                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
-                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
-                                                    </tr>
-                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
-                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
-                                                    </tr>
-                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
-                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.vat || activeInvoice.total * 0.15)}</td>
-                                                    </tr>
-                                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
-                                                        <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
-                                                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
-                                                    </tr>
+                                                    {(activeInvoice.items || []).map((item, idx) => {
+                                                        const itemQty = item.qty || 1;
+                                                        const itemPrice = item.price || 0;
+                                                        const itemDiscount = 0; 
+                                                        const rawSubtotal = itemPrice * itemQty;
+                                                        const itemTaxableAmount = rawSubtotal - itemDiscount;
+                                                        const itemTaxRate = settings.taxRate || 15;
+                                                        const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
+                                                        const itemSubtotal = itemTaxableAmount + itemTaxAmount;
+                                                        return (
+                                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '8px', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>{item.name}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'center' }}>{itemQty}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemDiscount)}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxableAmount)}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'center' }}>{itemTaxRate}%</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxAmount)}</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemSubtotal)}</td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
-                                        </div>
 
-                                        {/* Bottom Center: ZATCA Compliant QR Code */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', margin: '0 auto', textAlign: 'center' }}>
-                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px' }} />
-                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
-                                            <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
+                                            {/* Financial Summary Totals and Bottom Center QR Code */}
+                                            <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '35px' }}>
+                                                {/* Financial Totals Table */}
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+                                                    <table style={{ width: '55%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                        <tbody>
+                                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
+                                                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
+                                                            </tr>
+                                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
+                                                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
+                                                            </tr>
+                                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
+                                                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
+                                                            </tr>
+                                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
+                                                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeVat)}</td>
+                                                            </tr>
+                                                            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
+                                                                <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
+                                                                <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                {/* Bottom Center: ZATCA Compliant QR Code */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', margin: '0 auto', textAlign: 'center' }}>
+                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px' }} />
+                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
+                                                    <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ padding: '10px', color: 'black', background: 'white' }}>
-                                    {settings.logo && (
-                                        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                            <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '40px', maxWidth: '80px', objectFit: 'contain' }} />
+                                    ) : (
+                                        /* Redesigned Centered Thermal Layout */
+                                        <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
+                                            {settings.logo && (
+                                                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '48px', maxWidth: '90px', objectFit: 'contain' }} />
+                                                </div>
+                                            )}
+                                            <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{settings.businessAddress}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>الرقم الضريبي / VAT:</strong> {settings.vatNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>سجل تجاري / CR No:</strong> {settings.crNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>رقم التواصل / Contact:</strong> {settings.contactNumber}</p>
+                                            
+                                            <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                            
+                                            {/* Invoice Metadata (Centered) */}
+                                            <div style={{ fontSize: '11px', textAlign: 'center', margin: '0 auto 10px auto', lineHeight: '1.6' }}>
+                                                <p style={{ margin: '2px 0' }}><strong>رقم الفاتورة / Invoice ID:</strong> {activeInvoice.id}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>التاريخ / Date:</strong> {activeInvoice.date}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>العميل / Customer:</strong> {activeInvoice.customer}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>الدفع / Payment:</strong> {getPaymentMethodLabel(activeInvoice.paymentMethod)}</p>
+                                            </div>
+                                            
+                                            <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                            
+                                            {/* Items Table */}
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', margin: '10px 0' }}>
+                                                <thead>
+                                                    <tr style={{ borderBottom: '1px solid #000' }}>
+                                                        <th style={{ textAlign: 'left', padding: '4px 0' }}>Item / السلعة</th>
+                                                        <th style={{ textAlign: 'center', padding: '4px 0' }}>Qty / الكمية</th>
+                                                        <th style={{ textAlign: 'right', padding: '4px 0' }}>Total / الاجمالي</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {(activeInvoice.items || []).map((item, idx) => (
+                                                        <tr key={idx} style={{ borderBottom: '1px dashed #eee' }}>
+                                                            <td style={{ textAlign: 'left', padding: '6px 0' }}>{item.name}</td>
+                                                            <td style={{ textAlign: 'center', padding: '6px 0' }}>{item.qty}</td>
+                                                            <td style={{ textAlign: 'right', padding: '6px 0' }}>{formatCurrency(item.price * item.qty)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                            
+                                            <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                            
+                                            {/* Financial Summary */}
+                                            <div style={{ fontSize: '11px', lineHeight: '1.6', margin: '10px 0' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>Subtotal / المجموع غير شامل الضريبة:</span>
+                                                    <span>{formatCurrency(activeSubtotal)}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>VAT (15%) / ضريبة القيمة المضافة:</span>
+                                                    <span>{formatCurrency(activeVat)}</span>
+                                                </div>
+                                                {activeInvoice.discount > 0 && (
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span>Discount / الخصم:</span>
+                                                        <span>-{formatCurrency(activeInvoice.discount)}</span>
+                                                    </div>
+                                                )}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', marginTop: '4px' }}>
+                                                    <span>Total / المجموع شامل الضريبة:</span>
+                                                    <span>{formatCurrency(activeInvoice.total)}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                            
+                                            {/* QR Code (Centered) */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px', textAlign: 'center' }}>
+                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '110px', height: '110px' }} />
+                                                <span style={{ fontSize: '10px', fontWeight: 'bold' }}>فاتورة ضريبية مبسطة رقمية</span>
+                                                <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant QR Code</span>
+                                            </div>
                                         </div>
                                     )}
-                                    <h3 style={{ textAlign: 'center' }}>{settings.businessName}</h3>
-                                    <div style={{ textAlign: 'center', fontSize: '11px' }}>VAT No: {settings.vatNumber}</div>
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    <div style={{ fontSize: '11px' }}>
-                                        <p>Invoice: {activeInvoice.id}</p>
-                                        <p>Date: {activeInvoice.date}</p>
-                                        <p>Customer: {activeInvoice.customer}</p>
-                                    </div>
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    {(activeInvoice.items || []).map((item, idx) => (
-                                        <div key={idx} style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
-                                            <span>{item.name} x{item.qty}</span>
-                                            <span>{formatCurrency(item.price * item.qty)}</span>
-                                        </div>
-                                    ))}
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    <div style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>Total:</span>
-                                        <span>{formatCurrency(activeInvoice.total)}</span>
-                                    </div>
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px' }}>
-                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '100px', height: '100px' }} />
-                                        <span style={{ fontSize: '9px', color: '#666' }}>ZATCA E-Invoice</span>
-                                    </div>
                                 </div>
-                            )}
-                        </div>
+                            );
+                        })()}
 
                         {/* Interactive Buttons */}
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>

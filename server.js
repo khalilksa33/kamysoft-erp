@@ -159,6 +159,9 @@ const mockDb = {
         vatNumber: '310123456700003',
         taxRate: 15,
         baseCurrency: 'SAR',
+        businessAddress: 'الرياض، المملكة العربية السعودية / Riyadh, Saudi Arabia',
+        crNumber: '1010123456',
+        contactNumber: '+966 50 123 4567',
         exchangeRates: {
             SAR: 1,
             USD: 0.27,
