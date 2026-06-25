@@ -2386,40 +2386,81 @@ export default function App() {
                                         </div>
                                     </div>
 
-                                    <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
+                                    {/* Line Items Table compliant with Saudi Tax Authority standard */}
+                                    <h3 style={{ marginTop: '30px', borderBottom: '2px solid #8b5cf6', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>Line Items / تفاصيل السلع</h3>
+                                    <table className="zatca-invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '12px' }}>
                                         <thead>
-                                            <tr style={{ background: '#8b5cf6', color: 'white' }}>
-                                                <th style={{ color: 'white' }}>Description / البيان</th>
-                                                <th style={{ color: 'white', textAlign: 'center' }}>Qty</th>
-                                                <th style={{ color: 'white', textAlign: 'right' }}>Price</th>
-                                                <th style={{ color: 'white', textAlign: 'right' }}>Total</th>
+                                            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>Nature of goods or services<br/><span style={{ color: '#666', fontWeight: 'normal' }}>تفاصيل السلع والخدمات</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Unit price<br/><span style={{ color: '#666', fontWeight: 'normal' }}>سعر الوحدة</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Quantity<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الكمية</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Discount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>خصومات</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Taxable Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>المبلغ الخاضع للضريبة</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Tax Rate<br/><span style={{ color: '#666', fontWeight: 'normal' }}>نسبة الضريبة</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Tax Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>مبلغ الضريبة</span></th>
+                                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Item Subtotal<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الاجمالي شامل الضريبة</span></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(activeInvoice.items || []).map((item, idx) => (
-                                                <tr key={idx}>
-                                                    <td>{item.name}</td>
-                                                    <td style={{ textAlign: 'center' }}>{item.qty}</td>
-                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price)}</td>
-                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price * item.qty)}</td>
-                                                </tr>
-                                            ))}
+                                            {(activeInvoice.items || []).map((item, idx) => {
+                                                const itemQty = item.qty || 1;
+                                                const itemPrice = item.price || 0;
+                                                const itemDiscount = 0; // standard mock values
+                                                const rawSubtotal = itemPrice * itemQty;
+                                                const itemTaxableAmount = rawSubtotal - itemDiscount;
+                                                const itemTaxRate = settings.taxRate || 15;
+                                                const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
+                                                const itemSubtotal = itemTaxableAmount + itemTaxAmount;
+                                                return (
+                                                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '8px', textAlign: 'left' }}>{item.name}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'center' }}>{itemQty}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemDiscount)}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxableAmount)}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'center' }}>{itemTaxRate}%</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxAmount)}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemSubtotal)}</td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
 
-                                    {/* ZATCA Phase 2 Metadata Details & QR Code */}
-                                    <div style={{ marginTop: '30px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'space-between', padding: '15px', background: '#f8fafc', borderRadius: '8px' }}>
-                                        <div style={{ fontSize: '11px', fontFamily: 'monospace', flexGrow: 1 }}>
-                                            <div style={{ fontWeight: 'bold', color: '#8b5cf6', marginBottom: '8px' }}>ZATCA Compliant Phase 2 Secure Metadata</div>
-                                            <p style={{ margin: '2px 0' }}><strong>UUID:</strong> {activeInvoice.uuid}</p>
-                                            <p style={{ margin: '2px 0' }}><strong>SHA-256 XML Hash:</strong> {activeInvoice.xmlHash}</p>
-                                            <p style={{ margin: '2px 0' }}><strong>Chaining PIH:</strong> {activeInvoice.pih ? activeInvoice.pih.slice(0, 30) : 'None'}...</p>
-                                            <p style={{ margin: '2px 0' }}><strong>API Status:</strong> {activeInvoice.zatcaStatus}</p>
+                                    {/* Financial Summary and ZATCA Compliant QR Code Block */}
+                                    <div style={{ marginTop: '30px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', alignItems: 'start' }}>
+                                        {/* QR Code section (ZATCA compliance metadata hidden as requested, QR code preserved) */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px' }} />
+                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
+                                            <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '120px', height: '120px' }} />
-                                            <span style={{ fontSize: '9px', color: '#666' }}>ZATCA E-Invoice QR</span>
-                                        </div>
+
+                                        {/* Financial Totals Table */}
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                            <tbody>
+                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
+                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
+                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
+                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
+                                                </tr>
+                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
+                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.vat || activeInvoice.total * 0.15)}</td>
+                                                </tr>
+                                                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
+                                                    <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
+                                                    <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             ) : (
