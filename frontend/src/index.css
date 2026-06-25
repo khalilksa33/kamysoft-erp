@@ -671,13 +671,12 @@ tr:hover td {
 
 /* A4 Print Layout optimization - Corrected for Modal overlay print visibility */
 @media print {
-    body {
-        visibility: hidden;
-        background: white !important;
-        color: black !important;
+    /* Hide all elements on page except the designated print area container wrapper */
+    body * {
+        visibility: hidden !important;
     }
     
-    #invoicePrintArea, #invoicePrintArea *, #assetPrintArea, #assetPrintArea *, #invoicePrintArea img, #invoicePrintArea canvas {
+    #invoicePrintArea, #invoicePrintArea * {
         visibility: visible !important;
     }
     
@@ -693,36 +692,17 @@ tr:hover td {
         padding: 0 !important;
     }
     
-    #assetPrintArea {
-        position: absolute !important;
-        left: 50% !important;
-        top: 30% !important;
-        transform: translate(-50%, -30%) !important;
-        background: white !important;
-        color: black !important;
-        box-shadow: none !important;
-        margin: 0 !important;
-        padding: 20px !important;
-        border: none !important;
-    }
-    
     .invoice-a4-layout {
         width: 210mm !important;
         min-height: 297mm !important;
-        box-shadow: none !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
         background: white !important;
-        color: black !important;
+        color: #333 !important;
     }
     
     .invoice-thermal-layout {
         width: 80mm !important;
-        box-shadow: none !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
         background: white !important;
-        color: black !important;
+        color: #333 !important;
     }
 }
 

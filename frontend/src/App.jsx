@@ -443,6 +443,9 @@ export default function App() {
         vatNumber: '310123456700003',
         taxRate: 15,
         baseCurrency: 'SAR',
+        businessAddress: 'الرياض، المملكة العربية السعودية / Riyadh, Saudi Arabia',
+        crNumber: '1010123456',
+        contactNumber: '+966 50 123 4567',
         exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 }
     });
 
@@ -2246,6 +2249,18 @@ export default function App() {
                                     <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
                                 </div>
                                 <div className="form-group">
+                                    <label>Company Address / عنوان الشركة</label>
+                                    <input type="text" className="form-control" value={settings.businessAddress || ''} onChange={e => setSettings({ ...settings, businessAddress: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>CR Number / رقم السجل التجاري</label>
+                                    <input type="text" className="form-control" value={settings.crNumber || ''} onChange={e => setSettings({ ...settings, crNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Contact Number / رقم التواصل</label>
+                                    <input type="text" className="form-control" value={settings.contactNumber || ''} onChange={e => setSettings({ ...settings, contactNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
                                     <label>Company Logo / شعار الشركة</label>
                                     <input type="file" accept="image/*" className="form-control" onChange={e => {
                                         const file = e.target.files[0];
@@ -2362,30 +2377,35 @@ export default function App() {
                         <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'}>
                             {invoiceFormat === 'a4' ? (
                                 <div style={{ padding: '40px', color: '#333', background: 'white' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                            {settings.logo && <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '60px', maxWidth: '120px', objectFit: 'contain' }} />}
-                                            <div>
-                                                <h1 style={{ fontSize: '26px', margin: 0, color: '#8b5cf6' }}>{settings.businessName}</h1>
-                                                <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
-                                            </div>
+                                    {/* Standard A4 Header Grid: L: English Name, C: Logo, R: Arabic Details */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 1.2fr', gap: '20px', alignItems: 'center', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
+                                        {/* Left Side: English Info */}
+                                        <div style={{ textAlign: 'left', fontSize: '12px' }}>
+                                            <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                            <p style={{ margin: '2px 0', color: '#555' }}>Simplified Tax Invoice</p>
+                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Invoice ID:</strong> {activeInvoice.id}</p>
+                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Date:</strong> {activeInvoice.date}</p>
+                                            <p style={{ margin: '2px 0', color: '#555' }}><strong>Billed To:</strong> {activeInvoice.customer}</p>
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p style={{ margin: 0, fontSize: '12px' }}>VAT No / الرقم الضريبي: {settings.vatNumber}</p>
+
+                                        {/* Center Side: Logo */}
+                                        <div style={{ textAlign: 'center' }}>
+                                            {settings.logo ? (
+                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '110px', objectFit: 'contain' }} />
+                                            ) : (
+                                                <div style={{ width: '70px', height: '70px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94a3b8' }}>LOGO</div>
+                                            )}
+                                        </div>
+
+                                        {/* Right Side: Arabic Details */}
+                                        <div style={{ textAlign: 'right', fontSize: '12px', direction: 'rtl' }}>
+                                            <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress || 'الرياض، المملكة العربية السعودية'}</p>
+                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
+                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber || '1010123456'}</p>
+                                            <p style={{ margin: '2px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber || '+966 50 123 4567'}</p>
                                         </div>
                                     </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '20px', fontSize: '13px' }}>
-                                        <div>
-                                            <h3>Billed To / مفوتر إلى:</h3>
-                                            <p style={{ fontWeight: 'bold' }}>{activeInvoice.customer}</p>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p><strong>Invoice ID:</strong> {activeInvoice.id}</p>
-                                            <p><strong>Date:</strong> {activeInvoice.date}</p>
-                                        </div>
-                                    </div>
-
                                     {/* Line Items Table compliant with Saudi Tax Authority standard */}
                                     <h3 style={{ marginTop: '30px', borderBottom: '2px solid #8b5cf6', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>Line Items / تفاصيل السلع</h3>
                                     <table className="zatca-invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '12px' }}>
@@ -2427,40 +2447,42 @@ export default function App() {
                                         </tbody>
                                     </table>
 
-                                    {/* Financial Summary and ZATCA Compliant QR Code Block */}
-                                    <div style={{ marginTop: '30px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', alignItems: 'start' }}>
-                                        {/* QR Code section (ZATCA compliance metadata hidden as requested, QR code preserved) */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                    {/* Financial Summary Totals and Bottom Center QR Code */}
+                                    <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                                        {/* Financial Totals Table */}
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <table style={{ width: '50%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                <tbody>
+                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
+                                                    </tr>
+                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
+                                                    </tr>
+                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
+                                                    </tr>
+                                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.vat || activeInvoice.total * 0.15)}</td>
+                                                    </tr>
+                                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
+                                                        <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
+                                                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Bottom Center: ZATCA Compliant QR Code */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', margin: '0 auto', textAlign: 'center' }}>
                                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${(activeInvoice.vat || activeInvoice.total * 0.15).toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px' }} />
                                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
                                             <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
                                         </div>
-
-                                        {/* Financial Totals Table */}
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                            <tbody>
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
-                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
-                                                </tr>
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
-                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
-                                                </tr>
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
-                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.total - (activeInvoice.vat || activeInvoice.total * 0.15))}</td>
-                                                </tr>
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
-                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.vat || activeInvoice.total * 0.15)}</td>
-                                                </tr>
-                                                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
-                                                    <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
-                                                    <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
                                     </div>
                                 </div>
                             ) : (
