@@ -450,7 +450,7 @@ app.delete('/api/users/:id', authenticateToken, (req, res) => {
 });
 
 // QUOTATIONS CRUD
-app.get('/api/quotations', authenticateToken, (req, res) => {
+app.get('/api/quotations', (req, res) => {
     res.json(mockDb.quotations);
 });
 app.post('/api/quotations', authenticateToken, (req, res) => {

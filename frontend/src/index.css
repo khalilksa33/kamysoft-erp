@@ -25,9 +25,9 @@
     --font-ar: 'Cairo', sans-serif;
     
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
 }
 
 /* Light theme overrides */
@@ -92,18 +92,19 @@ body[dir="rtl"] {
 /* App Layout Grid */
 .app-container {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 1fr 260px;
     min-height: 100vh;
 }
 
 body[dir="rtl"] .app-container {
-    grid-template-columns: 1fr 260px;
+    grid-template-columns: 260px 1fr;
 }
 
 /* Sidebar Navigation */
 .sidebar {
     background: var(--bg-secondary);
-    border-right: 1px solid var(--glass-border);
+    border-left: 1px solid var(--glass-border);
+    border-right: none;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -111,16 +112,20 @@ body[dir="rtl"] .app-container {
     z-index: 10;
     overflow-y: auto;
     max-height: 100vh;
+    grid-column: 2;
+    grid-row: 1;
 }
 
 body[dir="rtl"] .sidebar {
-    border-right: none;
-    border-left: 1px solid var(--glass-border);
-    grid-column: 2;
+    border-right: 1px solid var(--glass-border);
+    border-left: none;
+    grid-column: 1;
+    grid-row: 1;
 }
 
 body[dir="rtl"] .main-content {
-    grid-column: 1;
+    grid-column: 2;
+    grid-row: 1;
 }
 
 .brand {
@@ -190,6 +195,8 @@ body[dir="rtl"] .nav-item:hover, body[dir="rtl"] .nav-item.active {
     gap: 32px;
     overflow-y: auto;
     max-height: 100vh;
+    grid-column: 1;
+    grid-row: 1;
 }
 
 /* Header Area */

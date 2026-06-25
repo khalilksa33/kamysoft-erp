@@ -563,7 +563,7 @@ export default function App() {
         fetch('/api/suppliers').then(res => res.json()).then(data => setSuppliers(data)).catch(() => {});
         fetch('/api/orders').then(res => res.json()).then(data => setOrders(data)).catch(() => {});
         fetch('/api/users').then(res => res.json()).then(data => setUsersList(data)).catch(() => {});
-        fetch('/api/quotations').then(res => res.json()).then(data => setQuotations(data)).catch(() => {});
+        fetch('/api/quotations', { headers }).then(res => res.json()).then(data => setQuotations(data)).catch(() => {});
     }, [token]);
 
     // Apply configurations on load
