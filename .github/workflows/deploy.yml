@@ -15,11 +15,11 @@ jobs:
 
       - name: Deploy Container on Host B
         run: |
-          # Clean up old containers
+          # Clean up old manual containers if they exist
           docker stop kamysoft-erp || true
           docker rm kamysoft-erp || true
           
-          # Build and run
-          docker build -t kamysoft-erp:latest .
-          docker run -d --name kamysoft-erp -p 8089:8089 --restart unless-stopped kamysoft-erp:latest
+          # Deploy database and backend app using docker compose
+          docker compose down || true
+          docker compose up -d --build
           echo "Deployment completed successfully. Access via Cloudflare Tunnel at erp.26i.uk"

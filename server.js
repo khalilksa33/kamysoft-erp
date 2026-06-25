@@ -1,5 +1,6 @@
 // KamySoft POS & ERP Express Server Backend
 // Implements full MERN API server with ZATCA Phase 2 XML generator, Employee Asset Depreciation, and multi-currency options
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -26,6 +27,7 @@ if (MONGO_URI) {
         .then(() => {
             console.log('Successfully connected to MongoDB.');
             isMongoConnected = true;
+            seedDatabase();
         })
         .catch(err => {
             console.warn('MongoDB connection failed. Starting in PORTABLE in-memory mode.', err.message);
@@ -175,9 +177,228 @@ const mockDb = {
 // ----------------------------------------------------
 // MONGOOSE SCHEMAS (If connected)
 // ----------------------------------------------------
-// (Schemas definitions left out for brevity in server.js but simulated in our controller queries)
+const userSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    username: { type: String, required: true, unique: true },
+    passwordHash: { type: String, required: true },
+    role: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
 
-// ----------------------------------------------------
+const productSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    nameEN: { type: String, required: true },
+    nameAR: { type: String, required: true },
+    price: { type: Number, required: true },
+    cost: { type: Number, required: true },
+    stock: { type: Number, required: true },
+    category: { type: String, required: true },
+    emoji: { type: String }
+});
+const Product = mongoose.model('Product', productSchema);
+
+const invoiceItemSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    qty: { type: Number, required: true }
+});
+const invoiceSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    uuid: { type: String, required: true },
+    csn: { type: Number, required: true },
+    pih: { type: String, required: true },
+    xmlHashBase64: { type: String },
+    xmlHash: { type: String },
+    xml: { type: String },
+    signature: { type: String },
+    publicKey: { type: String },
+    certSignature: { type: String },
+    customer: { type: String, required: true },
+    items: [invoiceItemSchema],
+    discount: { type: Number, default: 0 },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    date: { type: String, required: true },
+    zatcaStatus: { type: String, required: true }
+});
+const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+const quotationItemSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    qty: { type: Number, required: true }
+});
+const quotationSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    date: { type: String, required: true },
+    customer: { type: String, required: true },
+    items: [quotationItemSchema],
+    discount: { type: Number, default: 0 },
+    total: { type: Number, required: true },
+    vat: { type: Number, required: true }
+});
+const Quotation = mongoose.model('Quotation', quotationSchema);
+
+const expenseSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    date: { type: String, required: true },
+    category: { type: String, required: true },
+    amount: { type: Number, required: true },
+    description: { type: String }
+});
+const Expense = mongoose.model('Expense', expenseSchema);
+
+const assetSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    cost: { type: Number, required: true },
+    salvage: { type: Number, default: 0 },
+    life: { type: Number, required: true },
+    date: { type: String, required: true },
+    status: { type: String, required: true },
+    department: { type: String, required: true },
+    serial: { type: String },
+    supplier: { type: String },
+    assignedTo: { type: String }
+});
+const Asset = mongoose.model('Asset', assetSchema);
+
+const customerSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    phone: { type: String },
+    email: { type: String },
+    points: { type: Number, default: 0 },
+    spent: { type: Number, default: 0 }
+});
+const Customer = mongoose.model('Customer', customerSchema);
+
+const employeeSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    dept: { type: String, required: true }
+});
+const Employee = mongoose.model('Employee', employeeSchema);
+
+const supplierSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    company: { type: String, required: true },
+    contact: { type: String },
+    phone: { type: String },
+    items: { type: String }
+});
+const Supplier = mongoose.model('Supplier', supplierSchema);
+
+const orderSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    date: { type: String, required: true },
+    customer: { type: String, required: true },
+    items: { type: String, required: true },
+    total: { type: Number, required: true },
+    status: { type: String, required: true }
+});
+const Order = mongoose.model('Order', orderSchema);
+
+const settingsSchema = new mongoose.Schema({
+    businessName: { type: String, required: true },
+    vatNumber: { type: String, required: true },
+    taxRate: { type: Number, required: true },
+    baseCurrency: { type: String, required: true },
+    businessAddress: { type: String },
+    crNumber: { type: String },
+    contactNumber: { type: String },
+    exchangeRates: {
+        type: Map,
+        of: Number
+    }
+});
+const Settings = mongoose.model('Settings', settingsSchema);
+
+async function seedDatabase() {
+    try {
+        // Settings
+        const settingsCount = await Settings.countDocuments();
+        if (settingsCount === 0) {
+            await Settings.create(mockDb.settings);
+            console.log('Database seeded: Settings.');
+        }
+
+        // Users
+        const userCount = await User.countDocuments();
+        if (userCount === 0) {
+            await User.insertMany(mockDb.users);
+            console.log('Database seeded: Users.');
+        }
+
+        // Products
+        const productCount = await Product.countDocuments();
+        if (productCount === 0) {
+            await Product.insertMany(mockDb.products);
+            console.log('Database seeded: Products.');
+        }
+
+        // Invoices
+        const invoiceCount = await Invoice.countDocuments();
+        if (invoiceCount === 0) {
+            await Invoice.insertMany(mockDb.invoices);
+            console.log('Database seeded: Invoices.');
+        }
+
+        // Quotations
+        const quotationCount = await Quotation.countDocuments();
+        if (quotationCount === 0) {
+            await Quotation.insertMany(mockDb.quotations);
+            console.log('Database seeded: Quotations.');
+        }
+
+        // Expenses
+        const expenseCount = await Expense.countDocuments();
+        if (expenseCount === 0) {
+            await Expense.insertMany(mockDb.expenses);
+            console.log('Database seeded: Expenses.');
+        }
+
+        // Assets
+        const assetCount = await Asset.countDocuments();
+        if (assetCount === 0) {
+            await Asset.insertMany(mockDb.assets);
+            console.log('Database seeded: Assets.');
+        }
+
+        // Customers
+        const customerCount = await Customer.countDocuments();
+        if (customerCount === 0) {
+            await Customer.insertMany(mockDb.customers);
+            console.log('Database seeded: Customers.');
+        }
+
+        // Employees
+        const employeeCount = await Employee.countDocuments();
+        if (employeeCount === 0) {
+            await Employee.insertMany(mockDb.employees);
+            console.log('Database seeded: Employees.');
+        }
+
+        // Suppliers
+        const supplierCount = await Supplier.countDocuments();
+        if (supplierCount === 0) {
+            await Supplier.insertMany(mockDb.suppliers);
+            console.log('Database seeded: Suppliers.');
+        }
+
+        // Orders
+        const orderCount = await Order.countDocuments();
+        if (orderCount === 0) {
+            await Order.insertMany(mockDb.orders);
+            console.log('Database seeded: Orders.');
+        }
+    } catch (err) {
+        console.error('Error seeding database:', err.message);
+    }
+}
+
+
 // AUTH MIDDLEWARE
 // ----------------------------------------------------
 function authenticateToken(req, res, next) {
@@ -332,14 +553,24 @@ if (mockDb.invoices.length === 0) {
 // ----------------------------------------------------
 
 // AUTHENTICATION
-app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = mockDb.users.find(u => u.username === username);
-    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
-        return res.status(401).json({ error: 'Invalid username or password' });
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        let user;
+        if (isMongoConnected) {
+            user = await User.findOne({ username });
+        } else {
+            user = mockDb.users.find(u => u.username === username);
+        }
+        
+        if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '12h' });
+        res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '12h' });
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
 app.get('/api/auth/me', authenticateToken, (req, res) => {
@@ -347,211 +578,616 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 });
 
 // SETTINGS & MULTI-CURRENCY
-app.get('/api/settings', (req, res) => {
-    res.json(mockDb.settings);
+app.get('/api/settings', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            let settings = await Settings.findOne();
+            if (!settings) {
+                // fallback seed if db is empty
+                settings = await Settings.create(mockDb.settings);
+            }
+            res.json(settings);
+        } else {
+            res.json(mockDb.settings);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/settings', authenticateToken, (req, res) => {
+app.post('/api/settings', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
-    mockDb.settings = { ...mockDb.settings, ...req.body };
-    res.json(mockDb.settings);
+    try {
+        if (isMongoConnected) {
+            let settings = await Settings.findOne();
+            if (settings) {
+                // update
+                Object.assign(settings, req.body);
+                await settings.save();
+            } else {
+                settings = new Settings({ ...mockDb.settings, ...req.body });
+                await settings.save();
+            }
+            res.json(settings);
+        } else {
+            mockDb.settings = { ...mockDb.settings, ...req.body };
+            res.json(mockDb.settings);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // PRODUCTS / INVENTORY
-app.get('/api/products', (req, res) => {
-    res.json(mockDb.products);
+app.get('/api/products', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const products = await Product.find({});
+            res.json(products);
+        } else {
+            res.json(mockDb.products);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/products', authenticateToken, (req, res) => {
+app.post('/api/products', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
-    const product = { ...req.body, id: req.body.id || (1000 + mockDb.products.length + 1).toString() };
-    mockDb.products.push(product);
-    res.json(product);
+    try {
+        if (isMongoConnected) {
+            const count = await Product.countDocuments();
+            const product = new Product({
+                ...req.body,
+                id: req.body.id || (1000 + count + 1).toString()
+            });
+            await product.save();
+            res.json(product);
+        } else {
+            const product = { ...req.body, id: req.body.id || (1000 + mockDb.products.length + 1).toString() };
+            mockDb.products.push(product);
+            res.json(product);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/products/:id', authenticateToken, (req, res) => {
+app.put('/api/products/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
-    const idx = mockDb.products.findIndex(p => p.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
-    mockDb.products[idx] = { ...mockDb.products[idx], ...req.body };
-    res.json(mockDb.products[idx]);
+    try {
+        if (isMongoConnected) {
+            const product = await Product.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            if (!product) return res.status(404).json({ error: 'Product not found' });
+            res.json(product);
+        } else {
+            const idx = mockDb.products.findIndex(p => p.id === req.params.id);
+            if (idx === -1) return res.status(404).json({ error: 'Product not found' });
+            mockDb.products[idx] = { ...mockDb.products[idx], ...req.body };
+            res.json(mockDb.products[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+    if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        if (isMongoConnected) {
+            const result = await Product.findOneAndDelete({ id: req.params.id });
+            if (!result) return res.status(404).json({ error: 'Product not found' });
+            res.sendStatus(204);
+        } else {
+            const originalLength = mockDb.products.length;
+            mockDb.products = mockDb.products.filter(p => p.id !== req.params.id);
+            if (mockDb.products.length === originalLength) return res.status(404).json({ error: 'Product not found' });
+            res.sendStatus(204);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // INVOICES & ZATCA PORTAL
-app.get('/api/invoices', (req, res) => {
-    res.json(mockDb.invoices);
+app.get('/api/invoices', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const invoices = await Invoice.find({});
+            res.json(invoices);
+        } else {
+            res.json(mockDb.invoices);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/invoices', authenticateToken, (req, res) => {
+app.post('/api/invoices', authenticateToken, async (req, res) => {
     const invoice = req.body;
     invoice.id = `INV-${Date.now().toString().slice(-6)}`;
     invoice.uuid = crypto.randomUUID();
-    invoice.csn = mockDb.invoices.length + 1;
     
-    let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
-    if (mockDb.invoices.length > 0) {
-        const prev = mockDb.invoices[mockDb.invoices.length - 1];
-        if (prev.xmlHashBase64) pih = prev.xmlHashBase64;
+    try {
+        if (isMongoConnected) {
+            const count = await Invoice.countDocuments();
+            invoice.csn = count + 1;
+            
+            let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
+            const lastInvs = await Invoice.find().sort({ csn: -1 }).limit(1);
+            if (lastInvs.length > 0 && lastInvs[0].xmlHashBase64) {
+                pih = lastInvs[0].xmlHashBase64;
+            }
+            invoice.pih = pih;
+
+            let settings = await Settings.findOne();
+            if (!settings) settings = mockDb.settings;
+
+            invoice.xml = generateZATCAXML(invoice, settings);
+            invoice.xmlHash = sha256Node(invoice.xml);
+            invoice.xmlHashBase64 = Buffer.from(invoice.xmlHash, 'hex').toString('base64');
+            invoice.signature = signHashNode(invoice.xmlHash);
+            invoice.publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbE08C8wK7zH6r2wR3pS1a1gD4o6H4L8T1F3E2W1Q2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z==";
+            invoice.certSignature = "MEQCIDz/R+x6T/T42/yvF1w67r81m4F/X27+z36/S/23s/Y1AiAC/S/z8E8r6Q81/t23/9+x7r23/X71/+1287/r+x612w==";
+            invoice.zatcaStatus = 'PENDING';
+
+            const newInvoice = new Invoice(invoice);
+            await newInvoice.save();
+            
+            // Deduct stock
+            for (const item of invoice.items) {
+                const prod = await Product.findOne({ id: item.id });
+                if (prod) {
+                    prod.stock = Math.max(0, prod.stock - item.qty);
+                    await prod.save();
+                }
+            }
+
+            res.json(newInvoice);
+        } else {
+            invoice.csn = mockDb.invoices.length + 1;
+            
+            let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
+            if (mockDb.invoices.length > 0) {
+                const prev = mockDb.invoices[mockDb.invoices.length - 1];
+                if (prev.xmlHashBase64) pih = prev.xmlHashBase64;
+            }
+            invoice.pih = pih;
+
+            invoice.xml = generateZATCAXML(invoice, mockDb.settings);
+            invoice.xmlHash = sha256Node(invoice.xml);
+            invoice.xmlHashBase64 = Buffer.from(invoice.xmlHash, 'hex').toString('base64');
+            invoice.signature = signHashNode(invoice.xmlHash);
+            invoice.publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbE08C8wK7zH6r2wR3pS1a1gD4o6H4L8T1F3E2W1Q2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z==";
+            invoice.certSignature = "MEQCIDz/R+x6T/T42/yvF1w67r81m4F/X27+z36/S/23s/Y1AiAC/S/z8E8r6Q81/t23/9+x7r23/X71/+1287/r+x612w==";
+            invoice.zatcaStatus = 'PENDING';
+
+            mockDb.invoices.push(invoice);
+            
+            // Deduct stock
+            invoice.items.forEach(item => {
+                const prod = mockDb.products.find(p => p.id === item.id);
+                if (prod) prod.stock = Math.max(0, prod.stock - item.qty);
+            });
+
+            res.json(invoice);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    invoice.pih = pih;
-
-    invoice.xml = generateZATCAXML(invoice, mockDb.settings);
-    invoice.xmlHash = sha256Node(invoice.xml);
-    invoice.xmlHashBase64 = Buffer.from(invoice.xmlHash, 'hex').toString('base64');
-    invoice.signature = signHashNode(invoice.xmlHash);
-    invoice.publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbE08C8wK7zH6r2wR3pS1a1gD4o6H4L8T1F3E2W1Q2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z==";
-    invoice.certSignature = "MEQCIDz/R+x6T/T42/yvF1w67r81m4F/X27+z36/S/23s/Y1AiAC/S/z8E8r6Q81/t23/9+x7r23/X71/+1287/r+x612w==";
-    invoice.zatcaStatus = 'PENDING';
-
-    mockDb.invoices.push(invoice);
-    
-    // Deduct stock
-    invoice.items.forEach(item => {
-        const prod = mockDb.products.find(p => p.id === item.id);
-        if (prod) prod.stock = Math.max(0, prod.stock - item.qty);
-    });
-
-    res.json(invoice);
 });
 
-app.post('/api/invoices/:id/zatca-report', authenticateToken, (req, res) => {
-    const invoice = mockDb.invoices.find(i => i.id === req.params.id);
-    if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-    invoice.zatcaStatus = 'REPORTED';
-    res.json(invoice);
+app.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const invoice = await Invoice.findOneAndUpdate({ id: req.params.id }, { zatcaStatus: 'REPORTED' }, { new: true });
+            if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+            res.json(invoice);
+        } else {
+            const invoice = mockDb.invoices.find(i => i.id === req.params.id);
+            if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+            invoice.zatcaStatus = 'REPORTED';
+            res.json(invoice);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // EXPENSES
-app.get('/api/expenses', (req, res) => {
-    res.json(mockDb.expenses);
+app.get('/api/expenses', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const expenses = await Expense.find({});
+            res.json(expenses);
+        } else {
+            res.json(mockDb.expenses);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/expenses', authenticateToken, (req, res) => {
+app.post('/api/expenses', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
-    const expense = { ...req.body, id: `EXP-${Date.now().toString().slice(-4)}` };
-    mockDb.expenses.push(expense);
-    res.json(expense);
+    try {
+        const id = `EXP-${Date.now().toString().slice(-4)}`;
+        if (isMongoConnected) {
+            const expense = new Expense({ ...req.body, id });
+            await expense.save();
+            res.json(expense);
+        } else {
+            const expense = { ...req.body, id };
+            mockDb.expenses.push(expense);
+            res.json(expense);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ASSETS & DEPRECIATION
-app.get('/api/assets', (req, res) => {
-    res.json(mockDb.assets);
+app.get('/api/assets', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const assets = await Asset.find({});
+            res.json(assets);
+        } else {
+            res.json(mockDb.assets);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/assets', authenticateToken, (req, res) => {
+app.post('/api/assets', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
-    const asset = { ...req.body, id: `AST-${Date.now().toString().slice(-4)}` };
-    mockDb.assets.push(asset);
-    res.json(asset);
+    try {
+        const id = `AST-${Date.now().toString().slice(-4)}`;
+        if (isMongoConnected) {
+            const asset = new Asset({ ...req.body, id });
+            await asset.save();
+            res.json(asset);
+        } else {
+            const asset = { ...req.body, id };
+            mockDb.assets.push(asset);
+            res.json(asset);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // PEOPLES: CUSTOMERS & EMPLOYEES & SUPPLIERS
-app.get('/api/customers', (req, res) => res.json(mockDb.customers));
-app.get('/api/employees', (req, res) => res.json(mockDb.employees));
-app.get('/api/suppliers', (req, res) => res.json(mockDb.suppliers));
-app.get('/api/orders', (req, res) => res.json(mockDb.orders));
+app.get('/api/customers', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const customers = await Customer.find({});
+            res.json(customers);
+        } else {
+            res.json(mockDb.customers);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-app.post('/api/customers', authenticateToken, (req, res) => {
-    const cust = { ...req.body, id: `CUST-${Date.now().toString().slice(-4)}`, points: 0, spent: 0 };
-    mockDb.customers.push(cust);
-    res.json(cust);
+app.get('/api/employees', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const employees = await Employee.find({});
+            res.json(employees);
+        } else {
+            res.json(mockDb.employees);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.post('/api/suppliers', authenticateToken, (req, res) => {
-    const supp = { ...req.body, id: `SUPP-${Date.now().toString().slice(-4)}` };
-    mockDb.suppliers.push(supp);
-    res.json(supp);
+
+app.get('/api/suppliers', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const suppliers = await Supplier.find({});
+            res.json(suppliers);
+        } else {
+            res.json(mockDb.suppliers);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.put('/api/orders/:id', authenticateToken, (req, res) => {
-    const ord = mockDb.orders.find(o => o.id === req.params.id);
-    if (!ord) return res.status(404).json({ error: 'Order not found' });
-    ord.status = req.body.status;
-    res.json(ord);
+
+app.get('/api/orders', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const orders = await Order.find({});
+            res.json(orders);
+        } else {
+            res.json(mockDb.orders);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.post('/api/orders', authenticateToken, (req, res) => {
-    const ord = { ...req.body, id: `ORD-${Date.now().toString().slice(-4)}` };
-    mockDb.orders.push(ord);
-    res.json(ord);
+
+app.post('/api/customers', authenticateToken, async (req, res) => {
+    try {
+        const id = `CUST-${Date.now().toString().slice(-4)}`;
+        if (isMongoConnected) {
+            const cust = new Customer({ ...req.body, id, points: 0, spent: 0 });
+            await cust.save();
+            res.json(cust);
+        } else {
+            const cust = { ...req.body, id, points: 0, spent: 0 };
+            mockDb.customers.push(cust);
+            res.json(cust);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.delete('/api/orders/:id', authenticateToken, (req, res) => {
-    mockDb.orders = mockDb.orders.filter(o => o.id !== req.params.id);
-    res.sendStatus(204);
+
+app.post('/api/suppliers', authenticateToken, async (req, res) => {
+    try {
+        const id = `SUPP-${Date.now().toString().slice(-4)}`;
+        if (isMongoConnected) {
+            const supp = new Supplier({ ...req.body, id });
+            await supp.save();
+            res.json(supp);
+        } else {
+            const supp = { ...req.body, id };
+            mockDb.suppliers.push(supp);
+            res.json(supp);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/orders/:id', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const ord = await Order.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            if (!ord) return res.status(404).json({ error: 'Order not found' });
+            res.json(ord);
+        } else {
+            const ord = mockDb.orders.find(o => o.id === req.params.id);
+            if (!ord) return res.status(404).json({ error: 'Order not found' });
+            ord.status = req.body.status;
+            res.json(ord);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/orders', authenticateToken, async (req, res) => {
+    try {
+        const id = `ORD-${Date.now().toString().slice(-4)}`;
+        if (isMongoConnected) {
+            const ord = new Order({ ...req.body, id });
+            await ord.save();
+            res.json(ord);
+        } else {
+            const ord = { ...req.body, id };
+            mockDb.orders.push(ord);
+            res.json(ord);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const result = await Order.findOneAndDelete({ id: req.params.id });
+            if (!result) return res.status(404).json({ error: 'Order not found' });
+            res.sendStatus(204);
+        } else {
+            const originalLength = mockDb.orders.length;
+            mockDb.orders = mockDb.orders.filter(o => o.id !== req.params.id);
+            if (mockDb.orders.length === originalLength) return res.status(404).json({ error: 'Order not found' });
+            res.sendStatus(204);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // EXPENSES CRUD ADDITIONS
-app.put('/api/expenses/:id', authenticateToken, (req, res) => {
-    const idx = mockDb.expenses.findIndex(e => e.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Expense not found' });
-    mockDb.expenses[idx] = { ...mockDb.expenses[idx], ...req.body };
-    res.json(mockDb.expenses[idx]);
+app.put('/api/expenses/:id', authenticateToken, async (req, res) => {
+    if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        if (isMongoConnected) {
+            const expense = await Expense.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            if (!expense) return res.status(404).json({ error: 'Expense not found' });
+            res.json(expense);
+        } else {
+            const idx = mockDb.expenses.findIndex(e => e.id === req.params.id);
+            if (idx === -1) return res.status(404).json({ error: 'Expense not found' });
+            mockDb.expenses[idx] = { ...mockDb.expenses[idx], ...req.body };
+            res.json(mockDb.expenses[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.delete('/api/expenses/:id', authenticateToken, (req, res) => {
-    mockDb.expenses = mockDb.expenses.filter(e => e.id !== req.params.id);
-    res.sendStatus(204);
+
+app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
+    if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        if (isMongoConnected) {
+            const result = await Expense.findOneAndDelete({ id: req.params.id });
+            if (!result) return res.status(404).json({ error: 'Expense not found' });
+            res.sendStatus(204);
+        } else {
+            const originalLength = mockDb.expenses.length;
+            mockDb.expenses = mockDb.expenses.filter(e => e.id !== req.params.id);
+            if (mockDb.expenses.length === originalLength) return res.status(404).json({ error: 'Expense not found' });
+            res.sendStatus(204);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // USERS MANAGEMENT CRUD
-app.get('/api/users', authenticateToken, (req, res) => {
+app.get('/api/users', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
-    const cleanUsers = mockDb.users.map(u => ({ id: u.id, username: u.username, role: u.role }));
-    res.json(cleanUsers);
-});
-app.post('/api/users', authenticateToken, (req, res) => {
-    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
-    const { username, password, role } = req.body;
-    const user = {
-        id: Date.now().toString(),
-        username,
-        passwordHash: bcrypt.hashSync(password || '123456', 10),
-        role
-    };
-    mockDb.users.push(user);
-    res.json({ id: user.id, username: user.username, role: user.role });
-});
-app.put('/api/users/:id', authenticateToken, (req, res) => {
-    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
-    const idx = mockDb.users.findIndex(u => u.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'User not found' });
-    const { username, password, role } = req.body;
-    mockDb.users[idx].username = username || mockDb.users[idx].username;
-    mockDb.users[idx].role = role || mockDb.users[idx].role;
-    if (password) {
-        mockDb.users[idx].passwordHash = bcrypt.hashSync(password, 10);
+    try {
+        if (isMongoConnected) {
+            const users = await User.find({});
+            const cleanUsers = users.map(u => ({ id: u.id, username: u.username, role: u.role }));
+            res.json(cleanUsers);
+        } else {
+            const cleanUsers = mockDb.users.map(u => ({ id: u.id, username: u.username, role: u.role }));
+            res.json(cleanUsers);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json({ id: mockDb.users[idx].id, username: mockDb.users[idx].username, role: mockDb.users[idx].role });
 });
-app.delete('/api/users/:id', authenticateToken, (req, res) => {
+
+app.post('/api/users', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
-    mockDb.users = mockDb.users.filter(u => u.id !== req.params.id);
-    res.sendStatus(204);
+    try {
+        const { username, password, role } = req.body;
+        const passwordHash = bcrypt.hashSync(password || '123456', 10);
+        const id = Date.now().toString();
+        
+        if (isMongoConnected) {
+            const user = new User({ id, username, passwordHash, role });
+            await user.save();
+            res.json({ id: user.id, username: user.username, role: user.role });
+        } else {
+            const user = { id, username, passwordHash, role };
+            mockDb.users.push(user);
+            res.json({ id: user.id, username: user.username, role: user.role });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/users/:id', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const { username, password, role } = req.body;
+        const updates = {};
+        if (username) updates.username = username;
+        if (role) updates.role = role;
+        if (password) updates.passwordHash = bcrypt.hashSync(password, 10);
+
+        if (isMongoConnected) {
+            const user = await User.findOneAndUpdate({ id: req.params.id }, updates, { new: true });
+            if (!user) return res.status(404).json({ error: 'User not found' });
+            res.json({ id: user.id, username: user.username, role: user.role });
+        } else {
+            const idx = mockDb.users.findIndex(u => u.id === req.params.id);
+            if (idx === -1) return res.status(404).json({ error: 'User not found' });
+            mockDb.users[idx].username = username || mockDb.users[idx].username;
+            mockDb.users[idx].role = role || mockDb.users[idx].role;
+            if (password) {
+                mockDb.users[idx].passwordHash = bcrypt.hashSync(password, 10);
+            }
+            res.json({ id: mockDb.users[idx].id, username: mockDb.users[idx].username, role: mockDb.users[idx].role });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        if (isMongoConnected) {
+            const result = await User.findOneAndDelete({ id: req.params.id });
+            if (!result) return res.status(404).json({ error: 'User not found' });
+            res.sendStatus(204);
+        } else {
+            const originalLength = mockDb.users.length;
+            mockDb.users = mockDb.users.filter(u => u.id !== req.params.id);
+            if (mockDb.users.length === originalLength) return res.status(404).json({ error: 'User not found' });
+            res.sendStatus(204);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // QUOTATIONS CRUD
-app.get('/api/quotations', (req, res) => {
-    res.json(mockDb.quotations);
+app.get('/api/quotations', async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const quotations = await Quotation.find({});
+            res.json(quotations);
+        } else {
+            res.json(mockDb.quotations);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-app.post('/api/quotations', authenticateToken, (req, res) => {
-    const quote = {
-        ...req.body,
-        id: `QTN-${Date.now().toString().slice(-4)}`,
-        date: new Date().toLocaleString()
-    };
-    mockDb.quotations.push(quote);
-    res.json(quote);
-});
-app.delete('/api/quotations/:id', authenticateToken, (req, res) => {
-    mockDb.quotations = mockDb.quotations.filter(q => q.id !== req.params.id);
-    res.sendStatus(204);
-});
-app.put('/api/quotations/:id', authenticateToken, (req, res) => {
-    const idx = mockDb.quotations.findIndex(q => q.id === req.params.id);
-    if (idx !== -1) {
-        mockDb.quotations[idx] = {
-            ...mockDb.quotations[idx],
-            ...req.body
+
+app.post('/api/quotations', authenticateToken, async (req, res) => {
+    try {
+        const quote = {
+            ...req.body,
+            id: `QTN-${Date.now().toString().slice(-4)}`,
+            date: new Date().toLocaleString()
         };
-        res.json(mockDb.quotations[idx]);
-    } else {
-        res.sendStatus(404);
+        if (isMongoConnected) {
+            const newQuote = new Quotation(quote);
+            await newQuote.save();
+            res.json(newQuote);
+        } else {
+            mockDb.quotations.push(quote);
+            res.json(quote);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/quotations/:id', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const result = await Quotation.findOneAndDelete({ id: req.params.id });
+            if (!result) return res.status(404).json({ error: 'Quotation not found' });
+            res.sendStatus(204);
+        } else {
+            const originalLength = mockDb.quotations.length;
+            mockDb.quotations = mockDb.quotations.filter(q => q.id !== req.params.id);
+            if (mockDb.quotations.length === originalLength) return res.status(404).json({ error: 'Quotation not found' });
+            res.sendStatus(204);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/quotations/:id', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const quotation = await Quotation.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
+            res.json(quotation);
+        } else {
+            const idx = mockDb.quotations.findIndex(q => q.id === req.params.id);
+            if (idx !== -1) {
+                mockDb.quotations[idx] = {
+                    ...mockDb.quotations[idx],
+                    ...req.body
+                };
+                res.json(mockDb.quotations[idx]);
+            } else {
+                res.sendStatus(404);
+            }
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

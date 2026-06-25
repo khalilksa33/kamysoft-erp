@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:latest
+    container_name: kamysoft-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - kamysoft_mongo_data:/data/db
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: kamysoft-erp
+    ports:
+      - "8089:8089"
+    environment:
+      - PORT=8089
+      - MONGO_URI=mongodb://db:27017/kamysoft-erp
+      - JWT_SECRET=kamysoft_super_secret_key_2026
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  kamysoft_mongo_data:
