@@ -1338,6 +1338,14 @@ export default function App() {
                             </button>
                         </li>
                     )}
+                    {isAllowedTab('permissions') && (
+                        <li>
+                            <button className={`nav-item ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')}>
+                                <i className="ri-shield-user-line"></i>
+                                <span data-i18n="permissions">{translations[currentLanguage].permissions}</span>
+                            </button>
+                        </li>
+                    )}
                     {isAllowedTab('orders') && (
                         <li>
                             <button className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
