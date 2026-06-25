@@ -671,10 +671,8 @@ tr:hover td {
 
 /* A4 Print Layout optimization - Corrected for Modal overlay print visibility */
 @media print {
-    body {
+    body * {
         visibility: hidden;
-        background: white !important;
-        color: black !important;
     }
     
     #invoicePrintArea, #invoicePrintArea *, #assetPrintArea, #assetPrintArea * {

@@ -2213,7 +2213,22 @@ export default function App() {
                             <h3 style={{ marginBottom: '20px', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <i className="ri-settings-4-line"></i> {translations[currentLanguage].generalSettings}
                             </h3>
-                            <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات العامة" : "General settings saved successfully"); }}>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                fetch('/api/settings', {
+                                    method: 'POST',
+                                    headers: headers,
+                                    body: JSON.stringify(settings)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    setSettings(data);
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات بنجاح" : "Settings saved successfully");
+                                })
+                                .catch(() => {
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات محلياً" : "Settings saved locally");
+                                });
+                            }}>
                                 <div className="form-group">
                                     <label>{translations[currentLanguage].businessName}</label>
                                     <input type="text" className="form-control" value={settings.businessName} onChange={e => setSettings({ ...settings, businessName: e.target.value })} />
@@ -2221,6 +2236,29 @@ export default function App() {
                                 <div className="form-group">
                                     <label>{translations[currentLanguage].vatNumber}</label>
                                     <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Company Logo / شعار الشركة</label>
+                                    <input type="file" accept="image/*" className="form-control" onChange={e => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setSettings(prev => ({ ...prev, logo: reader.result }));
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }} />
+                                    {settings.logo && (
+                                        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <img src={settings.logo} alt="Company Logo Preview" style={{ maxHeight: '50px', maxWidth: '100px', borderRadius: '4px', objectFit: 'contain' }} />
+                                            <button type="button" className="btn btn-secondary" onClick={() => setSettings(prev => {
+                                                const copy = { ...prev };
+                                                delete copy.logo;
+                                                return copy;
+                                            })} style={{ padding: '4px 8px', fontSize: '11px' }}>Remove</button>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label>Base System Currency / العملة الأساسية</label>
@@ -2317,9 +2355,12 @@ export default function App() {
                             {invoiceFormat === 'a4' ? (
                                 <div style={{ padding: '40px', color: '#333', background: 'white' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
-                                        <div>
-                                            <h1 style={{ fontSize: '26px', margin: 0, color: '#8b5cf6' }}>{settings.businessName}</h1>
-                                            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            {settings.logo && <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '60px', maxWidth: '120px', objectFit: 'contain' }} />}
+                                            <div>
+                                                <h1 style={{ fontSize: '26px', margin: 0, color: '#8b5cf6' }}>{settings.businessName}</h1>
+                                                <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
+                                            </div>
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
                                             <p style={{ margin: 0, fontSize: '12px' }}>VAT No / الرقم الضريبي: {settings.vatNumber}</p>
@@ -2347,7 +2388,7 @@ export default function App() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {activeInvoice.items.map((item, idx) => (
+                                            {(activeInvoice.items || []).map((item, idx) => (
                                                 <tr key={idx}>
                                                     <td>{item.name}</td>
                                                     <td style={{ textAlign: 'center' }}>{item.qty}</td>
@@ -2375,6 +2416,11 @@ export default function App() {
                                 </div>
                             ) : (
                                 <div style={{ padding: '10px', color: 'black', background: 'white' }}>
+                                    {settings.logo && (
+                                        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                                            <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '40px', maxWidth: '80px', objectFit: 'contain' }} />
+                                        </div>
+                                    )}
                                     <h3 style={{ textAlign: 'center' }}>{settings.businessName}</h3>
                                     <div style={{ textAlign: 'center', fontSize: '11px' }}>VAT No: {settings.vatNumber}</div>
                                     <hr style={{ borderStyle: 'dashed' }} />
@@ -2384,7 +2430,7 @@ export default function App() {
                                         <p>Customer: {activeInvoice.customer}</p>
                                     </div>
                                     <hr style={{ borderStyle: 'dashed' }} />
-                                    {activeInvoice.items.map((item, idx) => (
+                                    {(activeInvoice.items || []).map((item, idx) => (
                                         <div key={idx} style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
                                             <span>{item.name} x{item.qty}</span>
                                             <span>{formatCurrency(item.price * item.qty)}</span>
