@@ -2666,11 +2666,74 @@ export default function App() {
                                                 </tbody>
                                             </table>
 
-                                            {/* Financial Summary Totals and Bottom Center QR Code */}
-                                            <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '35px' }}>
+                                            {/* Financial Summary Totals and Side-by-Side QR Code */}
+                                            <div style={{ marginTop: '30px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '30px' }}>
+                                                {/* Left Side: ZATCA Compliant QR Code and Share Button */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', textAlign: 'center', flexShrink: 0 }}>
+                                                    <div style={{ position: 'relative', width: '140px', height: '140px' }}>
+                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '140px', height: '140px', display: 'block' }} />
+                                                        {settings.logo && (
+                                                            <img 
+                                                                src={settings.logo} 
+                                                                alt="Mini Logo" 
+                                                                style={{ 
+                                                                    position: 'absolute', 
+                                                                    top: '50%', 
+                                                                    left: '50%', 
+                                                                    transform: 'translate(-50%, -50%)', 
+                                                                    width: '32px', 
+                                                                    height: '32px', 
+                                                                    background: 'white', 
+                                                                    padding: '2px', 
+                                                                    borderRadius: '4px', 
+                                                                    border: '1px solid #e2e8f0', 
+                                                                    objectFit: 'contain' 
+                                                                }} 
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
+                                                    <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
+                                                    
+                                                    {/* Share Button (hidden on print) */}
+                                                    <button 
+                                                        className="btn btn-secondary no-print" 
+                                                        style={{ 
+                                                            marginTop: '6px', 
+                                                            width: '100%', 
+                                                            fontSize: '11px', 
+                                                            padding: '6px 10px', 
+                                                            background: '#8b5cf6', 
+                                                            color: 'white', 
+                                                            border: 'none', 
+                                                            borderRadius: '5px', 
+                                                            cursor: 'pointer', 
+                                                            display: 'flex', 
+                                                            alignItems: 'center', 
+                                                            justifyContent: 'center', 
+                                                            gap: '6px' 
+                                                        }}
+                                                        onClick={() => {
+                                                            const shareText = `Invoice INV-${activeInvoice.id}\nTotal: ${activeInvoice.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeInvoice.date}`;
+                                                            if (navigator.share) {
+                                                                navigator.share({
+                                                                    title: `Invoice INV-${activeInvoice.id}`,
+                                                                    text: shareText,
+                                                                    url: window.location.href
+                                                                }).catch(() => {});
+                                                            } else {
+                                                                navigator.clipboard.writeText(shareText);
+                                                                alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل الفاتورة إلى الحافظة!' : 'Invoice details copied to clipboard!');
+                                                            }
+                                                        }}
+                                                    >
+                                                        <i className="ri-share-line"></i> {currentLanguage === 'ar' ? 'مشاركة الفاتورة' : 'Share Invoice'}
+                                                    </button>
+                                                </div>
+
                                                 {/* Financial Totals Table */}
-                                                <div style={{ display: 'flex', justifyContent: 'flex-end', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
-                                                    <table style={{ width: '55%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+                                                    <table style={{ width: '100%', maxWidth: '380px', borderCollapse: 'collapse', fontSize: '12px' }}>
                                                         <tbody>
                                                             <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                                                                 <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
@@ -3113,109 +3176,300 @@ export default function App() {
             )}
 
             {/* MODAL: QUOTATION PRINT */}
-            {showQuotationModal && activeQuotation && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
-                            <button className="btn btn-secondary" onClick={() => setInvoiceFormat('thermal')} style={{ flexGrow: 1 }}><i className="ri-ticket-line"></i> Thermal Receipt</button>
-                            <button className="btn btn-secondary" onClick={() => setInvoiceFormat('a4')} style={{ flexGrow: 1 }}><i className="ri-file-text-line"></i> A4 Document</button>
-                        </div>
+            {showQuotationModal && activeQuotation && (() => {
+                const activeVat = activeQuotation.vat !== undefined && activeQuotation.vat !== null ? activeQuotation.vat : (activeQuotation.total - (activeQuotation.total / 1.15));
+                const activeSubtotal = activeQuotation.total - activeVat;
+                return (
+                    <div className="modal-overlay">
+                        <div className="modal">
+                            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                                <button className="btn btn-secondary" onClick={() => setInvoiceFormat('thermal')} style={{ flexGrow: 1 }}><i className="ri-ticket-line"></i> Thermal Receipt</button>
+                                <button className="btn btn-secondary" onClick={() => setInvoiceFormat('a4')} style={{ flexGrow: 1 }}><i className="ri-file-text-line"></i> A4 Document</button>
+                            </div>
 
-                        {/* Print Layout Area */}
-                        <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'}>
-                            {invoiceFormat === 'a4' ? (
-                                <div style={{ padding: '40px', color: '#333', background: 'white' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #8b5cf6', paddingBottom: '20px' }}>
-                                        <div>
-                                            <h1 style={{ fontSize: '26px', margin: 0, color: '#8b5cf6' }}>{settings.businessName}</h1>
-                                            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Quotation / عرض سعر</p>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p style={{ margin: 0, fontSize: '12px' }}>VAT No / الرقم الضريبي: {settings.vatNumber}</p>
-                                        </div>
-                                    </div>
+                            {/* Print Layout Area */}
+                            <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'} style={{ direction: 'ltr', background: 'white', color: 'black' }}>
+                                {invoiceFormat === 'a4' ? (
+                                    <div style={{ padding: '40px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
+                                        {/* Standard A4 Header Grid: L: English Details, C: Logo, R: Arabic Details */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 120px 1.2fr', gap: '20px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '15px' }}>
+                                            {/* Left Side: English Info (LTR) */}
+                                            <div style={{ textAlign: 'left', fontSize: '11px', direction: 'ltr', lineHeight: '1.5' }}>
+                                                <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>Address:</strong> {settings.businessAddress}</p>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>VAT No:</strong> {settings.vatNumber}</p>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>CR No:</strong> {settings.crNumber}</p>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>Contact:</strong> {settings.contactNumber}</p>
+                                            </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '20px', fontSize: '13px' }}>
-                                        <div>
-                                            <h3>Billed To / مفوتر إلى:</h3>
-                                            <p style={{ fontWeight: 'bold' }}>{activeQuotation.customer}</p>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <p><strong>Quotation ID:</strong> {activeQuotation.id}</p>
-                                            <p><strong>Date:</strong> {activeQuotation.date}</p>
-                                        </div>
-                                    </div>
+                                            {/* Center Side: Logo */}
+                                            <div style={{ textAlign: 'center' }}>
+                                                {settings.logo ? (
+                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '110px', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <div style={{ width: '70px', height: '70px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94a3b8' }}>LOGO</div>
+                                                )}
+                                            </div>
 
-                                    <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
-                                        <thead>
-                                            <tr style={{ background: '#8b5cf6', color: 'white' }}>
-                                                <th style={{ color: 'white' }}>Description / البيان</th>
-                                                <th style={{ color: 'white', textAlign: 'center' }}>Qty</th>
-                                                <th style={{ color: 'white', textAlign: 'right' }}>Price</th>
-                                                <th style={{ color: 'white', textAlign: 'right' }}>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {activeQuotation.items.map((item, idx) => (
-                                                <tr key={idx}>
-                                                    <td>{item.name}</td>
-                                                    <td style={{ textAlign: 'center' }}>{item.qty}</td>
-                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price)}</td>
-                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price * item.qty)}</td>
+                                            {/* Right Side: Arabic Details (RTL) */}
+                                            <div style={{ textAlign: 'right', fontSize: '11px', direction: 'rtl', lineHeight: '1.5' }}>
+                                                <h2 style={{ fontSize: '18px', margin: '0 0 5px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
+                                                <p style={{ margin: '2px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress}</p>
+                                                <p style={{ margin: '2px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
+                                                <p style={{ margin: '2px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber}</p>
+                                                <p style={{ margin: '2px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Quotation Metadata Row (Second Line) */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px 20px', marginTop: '20px', background: '#f8fafc', fontSize: '12px' }}>
+                                            <div style={{ textAlign: 'left', direction: 'ltr', lineHeight: '1.6' }}>
+                                                <p style={{ margin: '2px 0', fontSize: '14px', fontWeight: 'bold', color: '#8b5cf6' }}>Quotation Document / عرض سعر</p>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>Quotation ID:</strong> {activeQuotation.id}</p>
+                                                <p style={{ margin: '2px 0', color: '#555' }}><strong>Date:</strong> {activeQuotation.date}</p>
+                                            </div>
+                                            <div style={{ textAlign: 'right', direction: 'rtl', lineHeight: '1.6' }}>
+                                                <p style={{ margin: '2px 0', color: '#333' }}><strong>العميل / Billed To:</strong> {activeQuotation.customer}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Line Items Table */}
+                                        <h3 style={{ marginTop: '30px', borderBottom: '2px solid #8b5cf6', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>
+                                            {currentLanguage === 'ar' ? 'تفاصيل السلع والخدمات / Line Items' : 'Line Items / تفاصيل السلع والخدمات'}
+                                        </h3>
+                                        <table className="zatca-invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '12px', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+                                            <thead>
+                                                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                                                    <th style={{ padding: '8px', textAlign: currentLanguage === 'ar' ? 'right' : 'left', fontWeight: '600' }}>Nature of goods or services<br/><span style={{ color: '#666', fontWeight: 'normal' }}>تفاصيل السلع والخدمات</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Unit price<br/><span style={{ color: '#666', fontWeight: 'normal' }}>سعر الوحدة</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Quantity<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الكمية</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Discount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>خصومات</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Taxable Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>المبلغ الخاضع للضريبة</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Tax Rate<br/><span style={{ color: '#666', fontWeight: 'normal' }}>نسبة الضريبة</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Tax Amount<br/><span style={{ color: '#666', fontWeight: 'normal' }}>مبلغ الضريبة</span></th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600' }}>Item Subtotal<br/><span style={{ color: '#666', fontWeight: 'normal' }}>الاجمالي شامل الضريبة</span></th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {(activeQuotation.items || []).map((item, idx) => {
+                                                    const itemQty = item.qty || 1;
+                                                    const itemPrice = item.price || 0;
+                                                    const itemDiscount = 0; 
+                                                    const rawSubtotal = itemPrice * itemQty;
+                                                    const itemTaxableAmount = rawSubtotal - itemDiscount;
+                                                    const itemTaxRate = settings.taxRate || 15;
+                                                    const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
+                                                    const itemSubtotal = itemTaxableAmount + itemTaxAmount;
+                                                    return (
+                                                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                            <td style={{ padding: '8px', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>{item.name}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'center' }}>{itemQty}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemDiscount)}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxableAmount)}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'center' }}>{itemTaxRate}%</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemTaxAmount)}</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(itemSubtotal)}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
 
-                                    <div style={{ marginTop: '30px', borderTop: '2px solid #eee', paddingTop: '15px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '5px' }}>
-                                            <span>Subtotal:</span>
-                                            <span>{formatCurrency(activeQuotation.total - (activeQuotation.vat || 0))}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '5px' }}>
-                                            <span>VAT (15%):</span>
-                                            <span>{formatCurrency(activeQuotation.vat || 0)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
-                                            <span>Grand Total:</span>
-                                            <span>{formatCurrency(activeQuotation.total)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ padding: '10px', color: 'black', background: 'white' }}>
-                                    <h3 style={{ textAlign: 'center' }}>{settings.businessName}</h3>
-                                    <div style={{ textAlign: 'center', fontSize: '11px' }}>VAT No: {settings.vatNumber}</div>
-                                    <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 'bold' }}>Quotation / عرض سعر</div>
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    <div style={{ fontSize: '11px' }}>
-                                        <p>Quotation ID: {activeQuotation.id}</p>
-                                        <p>Date: {activeQuotation.date}</p>
-                                        <p>Customer: {activeQuotation.customer}</p>
-                                    </div>
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    {activeQuotation.items.map((item, idx) => (
-                                        <div key={idx} style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
-                                            <span>{item.name} x{item.qty}</span>
-                                            <span>{formatCurrency(item.price * item.qty)}</span>
-                                        </div>
-                                    ))}
-                                    <hr style={{ borderStyle: 'dashed' }} />
-                                    <div style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>Total:</span>
-                                        <span>{formatCurrency(activeQuotation.total)}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                        {/* Financial Summary Totals and Side-by-Side QR Code */}
+                                        <div style={{ marginTop: '30px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '30px' }}>
+                                            {/* Left Side: Quotation QR Code and Share Button */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', width: '220px', textAlign: 'center', flexShrink: 0 }}>
+                                                <div style={{ position: 'relative', width: '140px', height: '140px' }}>
+                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '140px', height: '140px', display: 'block' }} />
+                                                    {settings.logo && (
+                                                        <img 
+                                                            src={settings.logo} 
+                                                            alt="Mini Logo" 
+                                                            style={{ 
+                                                                position: 'absolute', 
+                                                                top: '50%', 
+                                                                left: '50%', 
+                                                                transform: 'translate(-50%, -50%)', 
+                                                                width: '32px', 
+                                                                height: '32px', 
+                                                                background: 'white', 
+                                                                padding: '2px', 
+                                                                borderRadius: '4px', 
+                                                                border: '1px solid #e2e8f0', 
+                                                                objectFit: 'contain' 
+                                                            }} 
+                                                        />
+                                                    )}
+                                                </div>
+                                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>عرض سعر رقمي مبسط</span>
+                                                <span style={{ fontSize: '9px', color: '#666' }}>Digital Quotation QR Code</span>
+                                                
+                                                {/* Share Button (hidden on print) */}
+                                                <button 
+                                                    className="btn btn-secondary no-print" 
+                                                    style={{ 
+                                                        marginTop: '6px', 
+                                                        width: '100%', 
+                                                        fontSize: '11px', 
+                                                        padding: '6px 10px', 
+                                                        background: '#8b5cf6', 
+                                                        color: 'white', 
+                                                        border: 'none', 
+                                                        borderRadius: '5px', 
+                                                        cursor: 'pointer', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center', 
+                                                        gap: '6px' 
+                                                    }}
+                                                    onClick={() => {
+                                                        const shareText = `Quotation QT-${activeQuotation.id}\nTotal: ${activeQuotation.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeQuotation.date}`;
+                                                        if (navigator.share) {
+                                                            navigator.share({
+                                                                title: `Quotation QT-${activeQuotation.id}`,
+                                                                text: shareText,
+                                                                url: window.location.href
+                                                            }).catch(() => {});
+                                                        } else {
+                                                            navigator.clipboard.writeText(shareText);
+                                                            alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل عرض السعر إلى الحافظة!' : 'Quotation details copied to clipboard!');
+                                                        }
+                                                    }}
+                                                >
+                                                    <i className="ri-share-line"></i> {currentLanguage === 'ar' ? 'مشاركة عرض السعر' : 'Share Quotation'}
+                                                </button>
+                                            </div>
 
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
-                            <button className="btn btn-secondary" onClick={() => setShowQuotationModal(false)}>{translations[currentLanguage].close}</button>
-                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                                            {/* Financial Totals Table */}
+                                            <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+                                                <table style={{ width: '100%', maxWidth: '380px', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                                    <tbody>
+                                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                            <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
+                                                            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
+                                                        </tr>
+                                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                            <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
+                                                            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
+                                                        </tr>
+                                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                            <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
+                                                            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeVat)}</td>
+                                                        </tr>
+                                                        <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
+                                                            <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
+                                                            <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeQuotation.total)}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
+                                        {settings.logo && (
+                                            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '48px', maxWidth: '90px', objectFit: 'contain' }} />
+                                            </div>
+                                        )}
+                                        <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Quotation / عرض سعر</p>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{settings.businessAddress}</p>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>الرقم الضريبي / VAT:</strong> {settings.vatNumber}</p>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>سجل تجاري / CR No:</strong> {settings.crNumber}</p>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>رقم التواصل / Contact:</strong> {settings.contactNumber}</p>
+                                        
+                                        <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                        
+                                        {/* Quotation Metadata */}
+                                        <div style={{ fontSize: '11px', textAlign: 'center', margin: '0 auto 10px auto', lineHeight: '1.6' }}>
+                                            <p style={{ margin: '2px 0' }}><strong>رقم عرض السعر / Quotation ID:</strong> {activeQuotation.id}</p>
+                                            <p style={{ margin: '2px 0' }}><strong>التاريخ / Date:</strong> {activeQuotation.date}</p>
+                                            <p style={{ margin: '2px 0' }}><strong>العميل / Customer:</strong> {activeQuotation.customer}</p>
+                                        </div>
+                                        
+                                        <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                        
+                                        {/* Items Table */}
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', margin: '10px 0' }}>
+                                            <thead>
+                                                <tr style={{ borderBottom: '1px solid #000' }}>
+                                                    <th style={{ textAlign: 'left', padding: '4px 0' }}>Item / السلعة</th>
+                                                    <th style={{ textAlign: 'center', padding: '4px 0' }}>Qty / الكمية</th>
+                                                    <th style={{ textAlign: 'right', padding: '4px 0' }}>Total / الاجمالي</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(activeQuotation.items || []).map((item, idx) => (
+                                                    <tr key={idx} style={{ borderBottom: '1px dashed #eee' }}>
+                                                        <td style={{ textAlign: 'left', padding: '6px 0' }}>{item.name}</td>
+                                                        <td style={{ textAlign: 'center', padding: '6px 0' }}>{item.qty}</td>
+                                                        <td style={{ textAlign: 'right', padding: '6px 0' }}>{formatCurrency(item.price * item.qty)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        
+                                        <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                        
+                                        {/* Financial Summary */}
+                                        <div style={{ fontSize: '11px', lineHeight: '1.6', margin: '10px 0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>Subtotal / المجموع غير شامل الضريبة:</span>
+                                                <span>{formatCurrency(activeSubtotal)}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>VAT (15%) / ضريبة القيمة المضافة:</span>
+                                                <span>{formatCurrency(activeVat)}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', marginTop: '4px' }}>
+                                                <span>Total / المجموع شامل الضريبة:</span>
+                                                <span>{formatCurrency(activeQuotation.total)}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
+                                        
+                                        {/* QR Code (Centered with logo overlay) */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px', textAlign: 'center' }}>
+                                            <div style={{ position: 'relative', width: '110px', height: '110px' }}>
+                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '110px', height: '110px', display: 'block' }} />
+                                                {settings.logo && (
+                                                    <img 
+                                                        src={settings.logo} 
+                                                        alt="Mini Logo" 
+                                                        style={{ 
+                                                            position: 'absolute', 
+                                                            top: '50%', 
+                                                            left: '50%', 
+                                                            transform: 'translate(-50%, -50%)', 
+                                                            width: '24px', 
+                                                            height: '24px', 
+                                                            background: 'white', 
+                                                            padding: '1px', 
+                                                            borderRadius: '3px', 
+                                                            border: '1px solid #e2e8f0', 
+                                                            objectFit: 'contain' 
+                                                        }} 
+                                                    />
+                                                )}
+                                            </div>
+                                            <span style={{ fontSize: '10px', fontWeight: 'bold' }}>عرض سعر مبسط</span>
+                                            <span style={{ fontSize: '9px', color: '#666' }}>Digital Quotation QR Code</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
+                                <button className="btn btn-secondary" onClick={() => setShowQuotationModal(false)}>{translations[currentLanguage].close}</button>
+                                <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 

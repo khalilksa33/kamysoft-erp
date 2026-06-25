@@ -151,6 +151,8 @@ body[dir="rtl"] .main-content {
 .nav-item {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
+    text-align: start;
     gap: 12px;
     padding: 8px 14px;
     border-radius: var(--radius-md);
@@ -160,6 +162,7 @@ body[dir="rtl"] .main-content {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
+    line-height: 1.25;
 }
 
 .nav-item:hover, .nav-item.active {
@@ -748,6 +751,10 @@ tr:hover td {
         background: white !important;
         color: #333 !important;
         margin: 0 auto !important;
+    }
+    
+    .no-print {
+        display: none !important;
     }
 }
 
