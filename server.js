@@ -41,10 +41,11 @@ if (MONGO_URI) {
 // ----------------------------------------------------
 const mockDb = {
     users: [
-        // Admin: admin123, Manager: manager123, Cashier: cashier123
+        // Admin: admin123, Manager: manager123, Cashier: cashier123, Demo: demo123
         { id: '1', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Admin' },
         { id: '2', username: 'manager', passwordHash: bcrypt.hashSync('manager123', 10), role: 'Manager' },
-        { id: '3', username: 'cashier', passwordHash: bcrypt.hashSync('cashier123', 10), role: 'Cashier' }
+        { id: '3', username: 'cashier', passwordHash: bcrypt.hashSync('cashier123', 10), role: 'Cashier' },
+        { id: '4', username: 'demo', passwordHash: bcrypt.hashSync('demo123', 10), role: 'Cashier' }
     ],
     products: [
         { id: '1001', nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
@@ -179,7 +180,8 @@ const mockDb = {
         businessType: 'retail',
         enableTables: false,
         enableServiceDuration: false
-    }
+    },
+    inquiries: []
 };
 
 // ----------------------------------------------------
@@ -334,6 +336,18 @@ const settingsSchema = new mongoose.Schema({
     enableServiceDuration: { type: Boolean, default: false }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
+
+const inquirySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String },
+    businessName: { type: String },
+    businessType: { type: String },
+    branches: { type: Number, default: 1 },
+    message: { type: String },
+    createdAt: { type: Date, default: Date.now }
+});
+const Inquiry = mongoose.model('Inquiry', inquirySchema);
 
 async function seedDatabase() {
     try {
@@ -595,6 +609,52 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', authenticateToken, (req, res) => {
     res.json(req.user);
+});
+
+// PUBLIC INQUIRIES & DEMO REQUESTS
+app.post('/api/inquiries', async (req, res) => {
+    try {
+        const { name, email, phone, businessName, businessType, branches, message } = req.body;
+        if (!name || !email) {
+            return res.status(400).json({ error: 'Name and Email are required.' });
+        }
+        const inquiryData = {
+            name,
+            email,
+            phone: phone || '',
+            businessName: businessName || '',
+            businessType: businessType || 'retail',
+            branches: Number(branches) || 1,
+            message: message || '',
+            createdAt: new Date()
+        };
+
+        if (isMongoConnected) {
+            const inquiry = new Inquiry(inquiryData);
+            await inquiry.save();
+        } else {
+            mockDb.inquiries = mockDb.inquiries || [];
+            mockDb.inquiries.push({ id: String(mockDb.inquiries.length + 1), ...inquiryData });
+            console.log('In-memory Mock Inquiry Saved:', inquiryData);
+        }
+        res.status(201).json({ success: true, message: 'Inquiry submitted successfully!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/inquiries', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        if (isMongoConnected) {
+            const inquiries = await Inquiry.find({}).sort({ createdAt: -1 });
+            res.json(inquiries);
+        } else {
+            res.json(mockDb.inquiries || []);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // SETTINGS & MULTI-CURRENCY

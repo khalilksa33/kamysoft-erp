@@ -783,3 +783,168 @@ tr:hover td {
     }
 }
 
+/* ====================================================
+   MARKETING LANDING PAGE STYLES
+   ==================================================== */
+
+.hero-glow-1 {
+    position: absolute;
+    top: -50px;
+    left: 10%;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.16) 0%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+    animation: floatGlow1 22s ease-in-out infinite alternate;
+}
+
+.hero-glow-2 {
+    position: absolute;
+    top: 150px;
+    right: 8%;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(100px);
+    z-index: -1;
+    pointer-events: none;
+    animation: floatGlow2 28s ease-in-out infinite alternate;
+}
+
+@keyframes floatGlow1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, 60px) scale(1.1); }
+}
+
+@keyframes floatGlow2 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-50px, -40px) scale(1.05); }
+}
+
+.nav-item-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.12s ease;
+}
+
+.nav-item-link:hover {
+    color: var(--accent-purple);
+}
+
+.glow-badge {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    color: var(--accent-purple);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.08);
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-purple);
+    display: inline-block;
+    box-shadow: 0 0 8px var(--accent-purple);
+    animation: pulseDot 1.6s infinite alternate;
+    margin: 0 6px;
+}
+
+@keyframes pulseDot {
+    0% { opacity: 0.4; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1.25); }
+}
+
+.feature-card-glow {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.feature-card-glow:hover {
+    border-color: rgba(6, 182, 212, 0.25);
+    box-shadow: 0 12px 35px rgba(6, 182, 212, 0.04);
+    transform: translateY(-4px);
+}
+
+.pricing-card-featured {
+    box-shadow: 0 14px 45px rgba(139, 92, 246, 0.12);
+}
+
+/* Glow Button subtle pulse on borders */
+.glow-button {
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+    animation: buttonPulse 3s infinite alternate;
+}
+
+@keyframes buttonPulse {
+    0% { box-shadow: 0 0 8px rgba(139, 92, 246, 0.15); }
+    100% { box-shadow: 0 0 16px rgba(139, 92, 246, 0.35); }
+}
+
+/* Responsive Overrides for Landing Page */
+@media (max-width: 900px) {
+    .landing-hero-grid {
+        grid-template-columns: 1fr !important;
+        text-align: center;
+        margin-top: 40px !important;
+    }
+    
+    .hero-heading {
+        font-size: 34px !important;
+        line-height: 1.25 !important;
+    }
+    
+    .hero-ctas, .hero-trust {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    #hero-float-card {
+        position: static !important;
+        margin-top: 24px;
+        justify-content: center;
+    }
+    
+    .landing-nav-links {
+        display: none !important;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+    
+    #sector-preview-box {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .landing-hq-grid {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+    
+    .landing-footer, .stats-strip {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .landing-footer div {
+        justify-content: center;
+    }
+    
+    .form-row-2 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+

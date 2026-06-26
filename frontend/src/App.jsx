@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LandingPage from './LandingPage';
 
 // Unified Translations Dictionary
 const translations = {
@@ -469,6 +470,55 @@ const getPaymentMethodLabel = (method, lang) => {
 };
 
 export default function App() {
+    // Domain Routing & Simulated Environment State
+    const [hostname, setHostname] = useState(window.location.hostname);
+    const [simulatedDomain, setSimulatedDomain] = useState(''); // 'marketing', 'demo', 'customer'
+    const [simulatedTenant, setSimulatedTenant] = useState('cust-1');
+
+    // Hostname Routing Calculations
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    // Determine active route mode: 'marketing', 'demo', or 'customer'
+    let routeMode = 'marketing';
+    let tenantId = null;
+
+    if (isLocalhost && simulatedDomain) {
+        routeMode = simulatedDomain;
+        if (routeMode === 'customer') {
+            tenantId = simulatedTenant;
+        }
+    } else {
+        // Live hostname parsing
+        const host = hostname.toLowerCase();
+        if (host === 'demo.26i.uk' || host.startsWith('demo')) {
+            routeMode = 'demo';
+        } else {
+            const tenantMatch = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
+            if (tenantMatch) {
+                routeMode = 'customer';
+                tenantId = tenantMatch[1];
+            } else {
+                routeMode = 'marketing';
+            }
+        }
+    }
+
+    const handleLaunchApp = () => {
+        if (isLocalhost) {
+            setSimulatedDomain('demo');
+        } else {
+            window.location.href = 'https://demo.26i.uk';
+        }
+    };
+
+    const handleGoBackToHome = () => {
+        if (isLocalhost) {
+            setSimulatedDomain('marketing');
+        } else {
+            window.location.href = 'https://26i.uk';
+        }
+    };
+
     // Auth States
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
@@ -642,6 +692,17 @@ export default function App() {
     useEffect(() => {
         document.body.setAttribute('data-theme', theme);
     }, [theme]);
+
+    // Pre-populate credentials in demo mode
+    useEffect(() => {
+        if (routeMode === 'demo' && !token) {
+            setLoginUsername('demo');
+            setLoginPassword('demo123');
+        } else if (routeMode === 'customer' && !token) {
+            setLoginUsername('');
+            setLoginPassword('');
+        }
+    }, [routeMode, token]);
 
     // ----------------------------------------------------
     // LOGIN & AUTHENTICATION HANDLERS
@@ -1347,15 +1408,121 @@ export default function App() {
     // RENDER INTERACTIVE SECTIONS
     // ----------------------------------------------------
     
-    // Auth Overlay Login page
+    const renderDevToolbar = () => {
+        if (!isLocalhost) return null;
+        return (
+            <div style={{
+                position: 'fixed',
+                bottom: '10px',
+                right: currentLanguage === 'ar' ? 'auto' : '10px',
+                left: currentLanguage === 'ar' ? '10px' : 'auto',
+                background: 'rgba(10, 10, 18, 0.95)',
+                border: '2px solid var(--accent-purple)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                zIndex: 99999,
+                fontSize: '11px',
+                color: 'var(--text-primary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                fontFamily: 'sans-serif'
+            }} dir="ltr">
+                <div style={{ fontWeight: 'bold', color: 'var(--accent-cyan)', textAlign: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '4px' }}>
+                    🛠️ Localhost Domain Switcher
+                </div>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                    <button 
+                        onClick={() => { setSimulatedDomain('marketing'); }}
+                        style={{
+                            padding: '4px 6px',
+                            background: routeMode === 'marketing' ? 'var(--accent-purple)' : '#222',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        26i.uk (Web)
+                    </button>
+                    <button 
+                        onClick={() => { setSimulatedDomain('demo'); }}
+                        style={{
+                            padding: '4px 6px',
+                            background: routeMode === 'demo' ? 'var(--accent-purple)' : '#222',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        demo.26i.uk (Demo)
+                    </button>
+                    <button 
+                        onClick={() => { setSimulatedDomain('customer'); }}
+                        style={{
+                            padding: '4px 6px',
+                            background: routeMode === 'customer' ? 'var(--accent-purple)' : '#222',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        cust-x (Tenant)
+                    </button>
+                </div>
+                {routeMode === 'customer' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>Tenant:</span>
+                        <input 
+                            type="text" 
+                            value={simulatedTenant} 
+                            onChange={(e) => setSimulatedTenant(e.target.value)}
+                            style={{
+                                width: '80px',
+                                background: '#111',
+                                border: '1px solid var(--glass-border)',
+                                color: '#fff',
+                                padding: '2px 4px',
+                                borderRadius: '2px',
+                                fontSize: '10px'
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Render Marketing Landing Page
+    if (routeMode === 'marketing') {
+        return (
+            <>
+                <LandingPage 
+                    currentLanguage={currentLanguage} 
+                    setCurrentLanguage={setCurrentLanguage} 
+                    theme={theme} 
+                    setTheme={setTheme} 
+                    onLaunchApp={handleLaunchApp} 
+                />
+                {renderDevToolbar()}
+            </>
+        );
+    }
+    
+    // Auth Overlay Login page (for demo.26i.uk or cust-x.26i.uk)
     if (!token) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifySelf: 'center', width: '100%', maxWidth: '400px', padding: '20px' }}>
-                <div className="glass-card" style={{ width: '100%', padding: '30px' }}>
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '20px' }}>
+                <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '30px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <i className="ri-store-2-line"></i>
-                            <span>CASHIER</span>
+                            <span>
+                                {routeMode === 'customer' ? (tenantId ? tenantId.toUpperCase() : 'CASHIER') : 'DEMO POS'}
+                            </span>
                         </div>
                         <button 
                             className="btn btn-secondary" 
@@ -1367,6 +1534,21 @@ export default function App() {
                             <span>{currentLanguage === 'ar' ? 'English' : 'العربية'}</span>
                         </button>
                     </div>
+
+                    {routeMode === 'demo' && (
+                        <div style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid var(--accent-cyan)', padding: '10px 14px', borderRadius: '4px', marginBottom: '20px', fontSize: '12px', lineHeight: '1.4' }}>
+                            <i className="ri-information-line" style={{ marginRight: '6px', color: 'var(--accent-cyan)' }}></i>
+                            {currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي. تم ملء بيانات الدخول تلقائياً (demo / demo123).' : 'Welcome to KamySoft Demo. Credentials are pre-filled (demo / demo123).'}
+                        </div>
+                    )}
+
+                    {routeMode === 'customer' && (
+                        <div style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid var(--accent-purple)', padding: '10px 14px', borderRadius: '4px', marginBottom: '20px', fontSize: '12px', lineHeight: '1.4' }}>
+                            <i className="ri-shield-user-line" style={{ marginRight: '6px', color: 'var(--accent-purple)' }}></i>
+                            {currentLanguage === 'ar' ? `بوابة العميل الخاصة بـ: ${tenantId ? tenantId.toUpperCase() : 'خارجية'}` : `Branded Client Portal for: ${tenantId ? tenantId.toUpperCase() : 'N/A'}`}
+                        </div>
+                    )}
+
                     <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'تسجيل الدخول' : 'User Login'}</h3>
                     {authError && <div style={{ color: 'var(--accent-danger)', fontSize: '13px', marginBottom: '15px', textAlign: 'center' }}>{authError}</div>}
                     <form onSubmit={handleLogin}>
@@ -1380,7 +1562,19 @@ export default function App() {
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>{currentLanguage === 'ar' ? 'دخول' : 'Login'}</button>
                     </form>
+
+                    <div style={{ textAlign: 'center', marginTop: '24px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
+                        <button 
+                            className="btn btn-secondary" 
+                            style={{ padding: '8px 16px', fontSize: '12px', background: 'none', border: 'none', color: 'var(--accent-purple)' }}
+                            onClick={handleGoBackToHome}
+                        >
+                            <i className="ri-arrow-left-line" style={{ marginRight: '4px', verticalAlign: 'middle' }}></i>
+                            {currentLanguage === 'ar' ? 'العودة للموقع الرئيسي 26i.uk' : 'Back to 26i.uk Homepage'}
+                        </button>
+                    </div>
                 </div>
+                {renderDevToolbar()}
             </div>
         );
     }
@@ -3812,6 +4006,7 @@ export default function App() {
                     </div>
                 );
             })()}
+            {renderDevToolbar()}
         </div>
     );
 
