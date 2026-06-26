@@ -419,10 +419,12 @@ async function seedDatabase() {
         }
 
         // Users
-        const userCount = await User.countDocuments();
-        if (userCount === 0) {
-            await User.insertMany(mockDb.users);
-            console.log('Database seeded: Users.');
+        for (const u of mockDb.users) {
+            const exists = await User.findOne({ username: u.username });
+            if (!exists) {
+                await User.create(u);
+                console.log(`Database seeded user: ${u.username}`);
+            }
         }
 
         // Products

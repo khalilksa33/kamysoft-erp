@@ -824,6 +824,7 @@ export default function App() {
             let role = '';
 
             if (username === 'admin' && password === 'admin123') role = 'Admin';
+            else if (username === 'demo' && password === 'demo123') role = 'Admin';
             else if (username === 'manager' && password === 'manager123') role = 'Manager';
             else if (username === 'cashier' && password === 'cashier123') role = 'Cashier';
 
@@ -835,7 +836,7 @@ export default function App() {
                 setUser(mockUser);
                 setActiveTab('dashboard');
             } else {
-                setAuthError('Invalid credentials (admin/admin123)');
+                setAuthError(currentLanguage === 'ar' ? 'بيانات الدخول غير صحيحة (demo / demo123)' : 'Invalid credentials (demo / demo123)');
             }
         });
     };
