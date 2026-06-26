@@ -22,4 +22,4 @@ jobs:
           # Deploy database and backend app using docker compose
           docker compose down || true
           docker compose up -d --build
-          echo "Deployment completed successfully. Access via Cloudflare Tunnel at erp.26i.uk"
+          echo "Deployment completed successfully. Access via Cloudflare Tunnel at cashier.26i.uk"
