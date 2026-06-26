@@ -170,7 +170,15 @@ const mockDb = {
             EUR: 0.25,
             EGP: 12.8,
             AED: 0.99
-        }
+        },
+        branches: [
+            { name: 'Main Branch - Riyadh', address: 'Olaya District, Riyadh', phone: '+966 50 123 4567' },
+            { name: 'Jeddah Branch', address: 'Tahlia St, Jeddah', phone: '+966 50 765 4321' }
+        ],
+        currentBranch: 'Main Branch - Riyadh',
+        businessType: 'retail',
+        enableTables: false,
+        enableServiceDuration: false
     }
 };
 
@@ -311,7 +319,18 @@ const settingsSchema = new mongoose.Schema({
     exchangeRates: {
         type: Map,
         of: Number
-    }
+    },
+    branches: [
+        {
+            name: String,
+            address: String,
+            phone: String
+        }
+    ],
+    currentBranch: { type: String, default: 'Main Branch - Riyadh' },
+    businessType: { type: String, default: 'retail' },
+    enableTables: { type: Boolean, default: false },
+    enableServiceDuration: { type: Boolean, default: false }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -787,6 +806,44 @@ app.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res) =
             const invoice = mockDb.invoices.find(i => i.id === req.params.id);
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             invoice.zatcaStatus = 'REPORTED';
+            res.json(invoice);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const invoice = await Invoice.findOne({ id: req.params.id });
+            if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+            if (invoice.zatcaStatus === 'REFUNDED') return res.status(400).json({ error: 'Invoice already refunded' });
+            
+            invoice.zatcaStatus = 'REFUNDED';
+            await invoice.save();
+            
+            // Restore stock
+            for (const item of invoice.items) {
+                const prod = await Product.findOne({ id: item.id });
+                if (prod) {
+                    prod.stock = prod.stock + item.qty;
+                    await prod.save();
+                }
+            }
+            res.json(invoice);
+        } else {
+            const invoice = mockDb.invoices.find(i => i.id === req.params.id);
+            if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+            if (invoice.zatcaStatus === 'REFUNDED') return res.status(400).json({ error: 'Invoice already refunded' });
+            
+            invoice.zatcaStatus = 'REFUNDED';
+            
+            // Restore stock
+            invoice.items.forEach(item => {
+                const prod = mockDb.products.find(p => p.id === item.id);
+                if (prod) prod.stock = prod.stock + item.qty;
+            });
             res.json(invoice);
         }
     } catch (err) {

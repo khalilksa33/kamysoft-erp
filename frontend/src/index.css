@@ -632,6 +632,15 @@ tr:hover td {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+#invoicePrintArea th,
+#invoicePrintArea td,
+.invoice-thermal-layout th,
+.invoice-thermal-layout td,
+.invoice-a4-layout th,
+.invoice-a4-layout td {
+    color: #000000 !important;
+}
+
 .invoice-a4-layout {
     background: white;
     color: black;
@@ -686,6 +695,7 @@ tr:hover td {
 
     /* Hide everything that is NOT part of the print receipt/invoice modal */
     .sidebar,
+    .main-content,
     .header,
     .sidebar-footer,
     .pos-grid,
@@ -694,6 +704,15 @@ tr:hover td {
     .btn,
     footer {
         display: none !important;
+    }
+
+    #invoicePrintArea th,
+    #invoicePrintArea td,
+    .invoice-thermal-layout th,
+    .invoice-thermal-layout td,
+    .invoice-a4-layout th,
+    .invoice-a4-layout td {
+        color: #000000 !important;
     }
     
     /* Ensure the print container overlay is visible and takes up the whole page */
