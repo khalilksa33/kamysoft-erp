@@ -645,6 +645,9 @@ export default function App() {
     const [tableNum, setTableNum] = useState('1');
     const [serviceDuration, setServiceDuration] = useState('30 mins');
     
+    // Mobile menu toggle state
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    
     // Sales Management search and date filter states
     const [salesSearch, setSalesSearch] = useState('');
     const [salesStartDate, setSalesStartDate] = useState('');
@@ -700,41 +703,41 @@ export default function App() {
         
         // Fetch settings
         fetch('/api/settings')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setSettings(data))
             .catch(() => console.log("Using default fallback settings"));
 
         // Fetch products
         fetch('/api/products')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setProducts(data))
             .catch(() => console.log("Failed to fetch products"));
 
         // Fetch invoices
         fetch('/api/invoices')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setInvoices(data))
             .catch(() => console.log("Failed to fetch invoices"));
 
         // Fetch expenses
         fetch('/api/expenses')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setExpenses(data))
             .catch(() => console.log("Failed to fetch expenses"));
 
         // Fetch assets
         fetch('/api/assets')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setAssets(data))
             .catch(() => console.log("Failed to fetch assets"));
 
         // Fetch CRM lists
-        fetch('/api/customers').then(res => res.json()).then(data => setCustomers(data)).catch(() => {});
-        fetch('/api/employees').then(res => res.json()).then(data => setEmployees(data)).catch(() => {});
-        fetch('/api/suppliers').then(res => res.json()).then(data => setSuppliers(data)).catch(() => {});
-        fetch('/api/orders').then(res => res.json()).then(data => setOrders(data)).catch(() => {});
-        fetch('/api/users', { headers }).then(res => res.json()).then(data => { if (Array.isArray(data)) setUsersList(data); }).catch(() => {});
-        fetch('/api/quotations', { headers }).then(res => res.json()).then(data => setQuotations(data)).catch(() => {});
+        fetch('/api/customers').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setCustomers(data)).catch(() => {});
+        fetch('/api/employees').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setEmployees(data)).catch(() => {});
+        fetch('/api/suppliers').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setSuppliers(data)).catch(() => {});
+        fetch('/api/orders').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setOrders(data)).catch(() => {});
+        fetch('/api/users', { headers }).then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => { if (Array.isArray(data)) setUsersList(data); }).catch(() => {});
+        fetch('/api/quotations', { headers }).then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setQuotations(data)).catch(() => {});
     }, [token]);
 
     // Apply configurations on load
@@ -944,7 +947,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(postData)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Checkout API failed');
+            return res.json();
+        })
         .then(newInv => {
             let finalInv = newInv;
             setInvoices([...invoices, newInv]);
@@ -1024,7 +1030,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(postData)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Quotation API failed');
+            return res.json();
+        })
         .then(newQuote => {
             setQuotations([...quotations, newQuote]);
             setActiveQuotation(newQuote);
@@ -1088,7 +1097,10 @@ export default function App() {
                 headers: headers,
                 body: JSON.stringify(postData)
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Quotation update failed');
+                return res.json();
+            })
             .then(updatedQuote => {
                 setQuotations(quotations.map(q => q.id === quotationForm.id ? { ...q, ...updatedQuote } : q));
                 setShowQuotationCrudModal(false);
@@ -1104,7 +1116,10 @@ export default function App() {
                 headers: headers,
                 body: JSON.stringify(postData)
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Quotation create failed');
+                return res.json();
+            })
             .then(newQuote => {
                 setQuotations([...quotations, newQuote]);
                 setShowQuotationCrudModal(false);
@@ -1232,7 +1247,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(prodForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             setProducts([...products, data]);
             setShowProductModal(false);
@@ -1252,7 +1270,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(assetForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             setAssets([...assets, data]);
             setShowAssetModal(false);
@@ -1273,7 +1294,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(expForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             if (expForm.id) {
                 setExpenses(expenses.map(e => e.id === expForm.id ? data : e));
@@ -1315,7 +1339,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(orderForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             if (orderForm.id) {
                 setOrders(orders.map(o => o.id === orderForm.id ? data : o));
@@ -1357,7 +1384,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(userForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             if (userForm.id) {
                 setUsersList(usersList.map(u => u.id === userForm.id ? data : u));
@@ -1404,7 +1434,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(custForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             if (custForm.id) {
                 setCustomers(customers.map(c => c.id === custForm.id ? data : c));
@@ -1447,7 +1480,10 @@ export default function App() {
             headers: headers,
             body: JSON.stringify(suppForm)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
         .then(data => {
             if (suppForm.id) {
                 setSuppliers(suppliers.map(s => s.id === suppForm.id ? data : s));
@@ -1670,7 +1706,8 @@ export default function App() {
     return (
         <div className="app-container">
             {/* Sidebar Navigation */}
-            <aside className="sidebar">
+            {mobileMenuOpen && <div className="sidebar-backdrop" onClick={() => setMobileMenuOpen(false)} />}
+            <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} onClickCapture={() => setMobileMenuOpen(false)}>
                 {/* Language & Theme Controls */}
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', width: '100%' }}>
                     <button 
@@ -1832,6 +1869,13 @@ export default function App() {
             {/* Main Application Area */}
             <main className="main-content">
                 <header className="header">
+                    <button 
+                        className="mobile-menu-toggle" 
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Toggle Menu"
+                    >
+                        <i className="ri-menu-line"></i>
+                    </button>
                     <div className="header-title">
                         <h1>{translations[currentLanguage][activeTab]}</h1>
                         <p>{translations[currentLanguage].salesReport}</p>
