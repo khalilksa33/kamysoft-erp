@@ -428,6 +428,22 @@ body[dir="rtl"] .main-content {
         align-items: center;
         gap: 16px;
     }
+    
+    /* POS Mobile Responsiveness */
+    .pos-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        gap: 20px;
+    }
+    .pos-products {
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+    }
+    .pos-cart {
+        height: auto;
+        padding: 16px;
+    }
 }
 
 /* Tables styling */
