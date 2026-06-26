@@ -400,6 +400,17 @@ const Inquiry = mongoose.model('Inquiry', inquirySchema);
 
 async function seedDatabase() {
     try {
+        // Dynamic Migration: Ensure all pre-existing documents without tenantId get tenantId: 'default'
+        const models = [User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings];
+        for (const model of models) {
+            await model.updateMany(
+                { tenantId: { $exists: false } },
+                { $set: { tenantId: 'default' } }
+                // Note: using { strict: false } if needed, but since we updated schemas Mongoose allows it natively.
+            );
+        }
+        console.log('Database migration complete: Added tenantId to pre-existing documents.');
+
         // Settings
         const settingsCount = await Settings.countDocuments();
         if (settingsCount === 0) {
