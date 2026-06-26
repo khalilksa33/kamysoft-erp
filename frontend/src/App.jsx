@@ -704,6 +704,39 @@ export default function App() {
         }
     }, [routeMode, token]);
 
+    // Auto-configure POS Business Type based on Subdomain or URL ?sector=X parameter
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const querySector = params.get('sector');
+        let activeSector = '';
+
+        if (querySector) {
+            activeSector = querySector.toLowerCase();
+        } else if (routeMode === 'customer' && tenantId) {
+            const cleanTenant = tenantId.toLowerCase();
+            if (cleanTenant.includes('restaurant')) activeSector = 'restaurant';
+            else if (cleanTenant.includes('furniture')) activeSector = 'furniture';
+            else if (cleanTenant.includes('spareparts') || cleanTenant.includes('parts')) activeSector = 'spareparts';
+            else if (cleanTenant.includes('grocery') || cleanTenant.includes('supermarket')) activeSector = 'grocery';
+            else if (cleanTenant.includes('appliances') || cleanTenant.includes('electrical') || cleanTenant.includes('hvac')) activeSector = 'appliances';
+            else if (cleanTenant.includes('apparel') || cleanTenant.includes('garments')) activeSector = 'apparel';
+            else if (cleanTenant.includes('services')) activeSector = 'services';
+        }
+
+        if (activeSector) {
+            const supportedSectors = ['retail', 'restaurant', 'services', 'appliances', 'furniture', 'spareparts', 'apparel', 'grocery'];
+            if (supportedSectors.includes(activeSector)) {
+                setSettings(prev => ({
+                    ...prev,
+                    businessType: activeSector,
+                    businessName: routeMode === 'customer' && tenantId ? `${tenantId.toUpperCase()} ERP` : `KAMYSOFT ${activeSector.toUpperCase()} POS`,
+                    enableTables: activeSector === 'restaurant',
+                    enableServiceDuration: activeSector === 'services'
+                }));
+            }
+        }
+    }, [routeMode, tenantId]);
+
     // ----------------------------------------------------
     // LOGIN & AUTHENTICATION HANDLERS
     // ----------------------------------------------------
@@ -1852,7 +1885,17 @@ export default function App() {
                             
                             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px', marginBottom: '8px' }}>
                                 <span>{currentLanguage === 'ar' ? 'الفرع:' : 'Branch:'} {settings.currentBranch || (currentLanguage === 'ar' ? 'الرئيسي' : 'Main Branch')}</span>
-                                <span>{currentLanguage === 'ar' ? 'النشاط:' : 'Type:'} {settings.businessType === 'restaurant' ? (currentLanguage === 'ar' ? 'مطعم' : 'Restaurant') : settings.businessType === 'services' ? (currentLanguage === 'ar' ? 'خدمات' : 'Services') : (currentLanguage === 'ar' ? 'تجزئة' : 'Retail')}</span>
+                                <span>
+                                    {currentLanguage === 'ar' ? 'النشاط:' : 'Type:'}{' '}
+                                    {settings.businessType === 'restaurant' ? (currentLanguage === 'ar' ? 'مطعم' : 'Restaurant') :
+                                     settings.businessType === 'services' ? (currentLanguage === 'ar' ? 'خدمات' : 'Services') :
+                                     settings.businessType === 'appliances' ? (currentLanguage === 'ar' ? 'أجهزة منزلية' : 'Appliances') :
+                                     settings.businessType === 'furniture' ? (currentLanguage === 'ar' ? 'أثاث' : 'Furniture') :
+                                     settings.businessType === 'spareparts' ? (currentLanguage === 'ar' ? 'قطع غيار' : 'Spare Parts') :
+                                     settings.businessType === 'grocery' ? (currentLanguage === 'ar' ? 'مواد غذائية' : 'Grocery') :
+                                     settings.businessType === 'apparel' ? (currentLanguage === 'ar' ? 'ملابس وأزياء' : 'Apparel') :
+                                     (currentLanguage === 'ar' ? 'تجزئة' : 'Retail')}
+                                </span>
                             </div>
 
                             <div style={{ marginTop: '10px' }}>
@@ -1892,6 +1935,21 @@ export default function App() {
                                         <div className="cart-item" key={item.product.id}>
                                             <div className="cart-item-info">
                                                 <div className="product-title">{currentLanguage === 'ar' ? item.product.nameAR : item.product.nameEN}</div>
+                                                {item.product.barcode && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                                                        {currentLanguage === 'ar' ? 'الرمز:' : 'Code:'} {item.product.barcode}
+                                                    </div>
+                                                )}
+                                                {settings.businessType === 'appliances' && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--accent-purple)' }}>
+                                                        {currentLanguage === 'ar' ? 'سجل الضمان مفعل (٢ سنة)' : 'Warranty Logs Enabled (2 Yrs)'}
+                                                    </div>
+                                                )}
+                                                {settings.businessType === 'spareparts' && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--accent-cyan)' }}>
+                                                        {currentLanguage === 'ar' ? 'توافق OEM: معتمد' : 'OEM Compatibility: Certified'}
+                                                    </div>
+                                                )}
                                                 <div style={{ color: 'var(--accent-cyan)' }}>{formatCurrency(item.product.price)}</div>
                                             </div>
                                             <div className="cart-item-qty">
@@ -1926,6 +1984,18 @@ export default function App() {
                                     <span>{translations[currentLanguage].grandTotal}</span>
                                     <span>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100))}</span>
                                 </div>
+                                {settings.businessType === 'furniture' && cart.length > 0 && (
+                                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed var(--glass-border)', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{currentLanguage === 'ar' ? 'العربون المطلوب (30%)' : 'Required Deposit (30%)'}</span>
+                                            <span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100) * 0.3)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{currentLanguage === 'ar' ? 'المبلغ المتبقي للتحصيل' : 'Remaining Balance Due'}</span>
+                                            <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100) * 0.7)}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 {/* Payment Method Selector */}
                                 <div style={{ borderTop: '1px dashed var(--glass-border)', marginTop: '12px', paddingTop: '12px' }}>
                                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-secondary)' }}>
@@ -3028,6 +3098,11 @@ export default function App() {
                                         <option value="retail">{currentLanguage === 'ar' ? 'بيع بالتجزئة ومحلات' : 'Retail & Shop'}</option>
                                         <option value="restaurant">{currentLanguage === 'ar' ? 'مطاعم ومقاهي' : 'Restaurant & Cafe'}</option>
                                         <option value="services">{currentLanguage === 'ar' ? 'خدمات واستشارات وطبية' : 'Services & Medical'}</option>
+                                        <option value="appliances">{currentLanguage === 'ar' ? 'أجهزة منزلية وإلكترونيات' : 'Home Appliances & Electronics'}</option>
+                                        <option value="furniture">{currentLanguage === 'ar' ? 'معارض ومحلات أثاث' : 'Furniture & Home Decor'}</option>
+                                        <option value="spareparts">{currentLanguage === 'ar' ? 'قطع غيار (سيارات/تكييف/سباكة)' : 'Auto, HVAC & Spare Parts'}</option>
+                                        <option value="grocery">{currentLanguage === 'ar' ? 'سوبرماركت ومواد غذائية' : 'Supermarket & Grocery'}</option>
+                                        <option value="apparel">{currentLanguage === 'ar' ? 'ملابس وأزياء وأحذية' : 'Garments & Apparel'}</option>
                                     </select>
                                 </div>
 
