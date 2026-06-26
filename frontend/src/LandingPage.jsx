@@ -28,6 +28,9 @@ const landingTranslations = {
         sectorSupermarket: "Supermarket & Grocery",
         sectorRestaurant: "Restaurant & Cafe",
         sectorApparel: "Garments & Apparel",
+        sectorAppliances: "Home Appliances & Electronics",
+        sectorFurniture: "Furniture Store",
+        sectorSpareParts: "Spare Parts (Auto/HVAC/Plumbing/Electric)",
         
         simBarcodes: "Automated Barcode Scans",
         simTables: "Table & Guest Mapping",
@@ -147,6 +150,9 @@ const landingTranslations = {
         sectorSupermarket: "سوبرماركت وبقالة",
         sectorRestaurant: "مطعم ومقهى",
         sectorApparel: "ملابس وأزياء",
+        sectorAppliances: "الأجهزة المنزلية والإلكترونيات",
+        sectorFurniture: "معارض الأثاث",
+        sectorSpareParts: "قطع الغيار (سيارات/تكييف/سباكة/كهرباء)",
         
         simBarcodes: "قراءة الباركود التلقائية",
         simTables: "تخطيط الطاولات والضيوف",
@@ -579,6 +585,30 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                         <i className="ri-shirt-line"></i>
                         <span>{t.sectorApparel}</span>
                     </button>
+                    <button 
+                        className={`btn ${activeSector === 'appliances' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setActiveSector('appliances')}
+                        style={activeSector !== 'appliances' ? { background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } : {}}
+                    >
+                        <i className="ri-tv-2-line"></i>
+                        <span>{t.sectorAppliances}</span>
+                    </button>
+                    <button 
+                        className={`btn ${activeSector === 'furniture' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setActiveSector('furniture')}
+                        style={activeSector !== 'furniture' ? { background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } : {}}
+                    >
+                        <i className="ri-home-office-line"></i>
+                        <span>{t.sectorFurniture}</span>
+                    </button>
+                    <button 
+                        className={`btn ${activeSector === 'spareparts' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setActiveSector('spareparts')}
+                        style={activeSector !== 'spareparts' ? { background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } : {}}
+                    >
+                        <i className="ri-settings-5-line"></i>
+                        <span>{t.sectorSpareParts}</span>
+                    </button>
                 </div>
                 
                 {/* Simulation Features Panel */}
@@ -589,12 +619,18 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'grocery' && (currentLanguage === 'ar' ? 'السوبرماركت ومحلات البقالة' : 'Supermarket & Grocery POS')}
                             {activeSector === 'restaurant' && (currentLanguage === 'ar' ? 'إدارة المطاعم والمقاهي الذكية' : 'Smart Restaurant & Cafe Management')}
                             {activeSector === 'apparel' && (currentLanguage === 'ar' ? 'محلات الملابس والأحذية والأزياء' : 'Garments, Shoes & Apparel POS')}
+                            {activeSector === 'appliances' && (currentLanguage === 'ar' ? 'الأجهزة المنزلية والتكييف والإلكترونيات' : 'Electrical, HVAC & Home Appliances')}
+                            {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'معارض ومحلات الأثاث والمفروشات' : 'Furniture & Home Decor Store')}
+                            {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'قطع غيار السيارات والسباكة والتكييف والإلكترونيات' : 'Auto, Plumbing, HVAC & Electric Spare Parts')}
                         </h3>
                         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px', fontSize: '14px' }}>
                             {activeSector === 'retail' && (currentLanguage === 'ar' ? 'يمنحك كامي سوفت السيطرة الكاملة على مخازنك، ومشترياتك، وإهلاك أصولك، ومتابعة مصروفاتك اليومية بطريقة سهلة ومبسطة.' : 'KamySoft provides complete control over your multi-category stocks, supplier purchase orders, capital asset depreciation, and daily cash expenses.')}
                             {activeSector === 'grocery' && (currentLanguage === 'ar' ? 'مصمم للتعامل مع آلاف الأصناف والباركودات بسرعة متناهية مع دعم موازين الباركود الذكية وتنبيهات قرب انتهاء صلاحيات المنتجات والطلب التلقائي.' : 'Built to handle thousands of items with ultra-fast barcode scanning, weight-scale barcode integration, stock level alerts, and batch expiry tracking.')}
                             {activeSector === 'restaurant' && (currentLanguage === 'ar' ? 'نظام متكامل لتخطيط الطاولات وصالات الجلوس، ومتابعة طلبات المطبخ، وتأجيل الفواتير، وتقسيم الفواتير بين الضيوف بكل سهولة.' : 'Complete visual floor layout mapping, kitchen order ticket (KOT) workflows, hold receipts capability, and seamless bill splitting between customers.')}
                             {activeSector === 'apparel' && (currentLanguage === 'ar' ? 'يسمح لك النظام بتهيئة شبكة المنتجات ذات القياسات والألوان المختلفة، وتوليد باركودات مخصصة لكل حجم، وطباعة ملصقات الأسعار.' : 'Allows configuring matrix products with custom size/color variables, generating unique barcodes per SKU, and printing localized price labels.')}
+                            {activeSector === 'appliances' && (currentLanguage === 'ar' ? 'مخصص لمبيعات الأجهزة الكهربائية والتكييف، يدعم تتبع الأرقام التسلسلية الفريدة لكل جهاز لمنع تداخل الضمانات، مع جدولة مواعيد التركيب المنزلي للـ HVAC.' : 'Designed for appliances and HVAC sales. Tracks unique serial numbers per unit to prevent warranty overlap, with built-in scheduling for home installations.')}
+                            {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'يسهل إدارة الطلبات المخصصة وعربون الحجز، وتتبع حالة تجميع غرف النوم والمطابخ بالمستودعات، وجدولة مسارات شاحنات التوصيل والتركيب.' : 'Eases custom orders and deposit collections, tracks assembly progress of items inside the warehouse, and schedules delivery routing and technicians.')}
+                            {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'ابحث فوراً بترميز OEM أو الكود الأصلي، وتتبع توافقية قطع الغيار مع موديلات السيارات وماركات التكييف والسباكة، مع ترميز باركود رفوف المستودع.' : 'Instantly search by OEM parts or interchangeably coded items. Track compatibility across models/brands (Auto or HVAC) and scan shelf bins.')}
                         </p>
                         
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -606,6 +642,24 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
                                     <span>{t.simTables}</span>
+                                </li>
+                            )}
+                            {activeSector === 'appliances' && (
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                    <span>{currentLanguage === 'ar' ? 'تتبع الأرقام التسلسلية والضمان والعهود' : 'Unique Serial, Warranty & Asset Logs'}</span>
+                                </li>
+                            )}
+                            {activeSector === 'furniture' && (
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                    <span>{currentLanguage === 'ar' ? 'إدارة عربون الحجز والتركيب واللوجستيات' : 'Deposit Control & Installation Routing'}</span>
+                                </li>
+                            )}
+                            {activeSector === 'spareparts' && (
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                    <span>{currentLanguage === 'ar' ? 'البحث بأكواد OEM وتوافق الأجهزة والموديلات' : 'OEM Interchangeable Code & Model Mapping'}</span>
                                 </li>
                             )}
                             <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -694,6 +748,57 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.01)', padding: '4px 8px', borderRadius: '2px' }}>
                                     <span>Size L - Red Shemagh</span>
                                     <span style={{ fontWeight: 'bold' }}>12 {currentLanguage === 'ar' ? 'حبة' : 'pcs'}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeSector === 'appliances' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                    <span>SERIAL NO / ITEM</span>
+                                    <span>WARRANTY STATUS</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.01)', padding: '6px 8px', borderRadius: '2px' }}>
+                                    <span>SN-HVAC-90812 / 18k Split AC</span>
+                                    <span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>2 YRS ACTIVE</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.01)', padding: '6px 8px', borderRadius: '2px' }}>
+                                    <span>SN-APP-20932 / Smart Fridge</span>
+                                    <span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>5 YRS ACTIVE</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeSector === 'furniture' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>{currentLanguage === 'ar' ? 'عربون الحجز المدفوع' : 'Order Deposit Paid'}</span>
+                                    <span style={{ color: 'var(--accent-cyan)' }}>1,500.00 {t.currency}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>{currentLanguage === 'ar' ? 'المبلغ المتبقي للتحصيل' : 'Remaining Balance Due'}</span>
+                                    <span style={{ color: 'var(--accent-gold)' }}>3,500.00 {t.currency}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>{currentLanguage === 'ar' ? 'حالة التجميع والتوصيل' : 'Assembly & Delivery Routing'}</span>
+                                    <span style={{ color: 'var(--accent-success)' }}>SCHEDULED</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeSector === 'spareparts' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>OEM Code Lookup</span>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>OEM-90321-A</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>{currentLanguage === 'ar' ? 'توافقية القطعة' : 'Compatibility'}</span>
+                                    <span>Toyota Camry / Carrier AC</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>{currentLanguage === 'ar' ? 'موقع الرف والمستودع' : 'Warehouse Shelf Bin'}</span>
+                                    <span style={{ color: 'var(--accent-cyan)' }}>Shelf B - Row 4 - Box 12</span>
                                 </div>
                             </div>
                         )}
