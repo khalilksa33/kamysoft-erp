@@ -12,6 +12,20 @@ const app = express();
 const PORT = process.env.PORT || 8089;
 const JWT_SECRET = process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026';
 
+const getTenantId = (req) => {
+    const host = req.headers.host || '';
+    let match = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
+    if (match) return match[1].toLowerCase();
+    
+    match = host.match(/^cust-([a-zA-Z0-9-]+)\.localhost/);
+    if (match) return match[1].toLowerCase();
+    
+    const tenantHeader = req.headers['x-tenant-id'];
+    if (tenantHeader) return tenantHeader.trim().toLowerCase();
+    
+    return 'default'; // fallback
+};
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -184,19 +198,35 @@ const mockDb = {
     inquiries: []
 };
 
+// Pre-populate mockDb items with tenantId: 'default'
+Object.keys(mockDb).forEach(key => {
+    if (Array.isArray(mockDb[key])) {
+        mockDb[key].forEach(item => {
+            if (item && typeof item === 'object' && !item.tenantId) {
+                item.tenantId = 'default';
+            }
+        });
+    } else if (mockDb[key] && typeof mockDb[key] === 'object') {
+        if (!mockDb[key].tenantId) mockDb[key].tenantId = 'default';
+    }
+});
+
 // ----------------------------------------------------
 // MONGOOSE SCHEMAS (If connected)
 // ----------------------------------------------------
 const userSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
-    username: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
+    username: { type: String, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, required: true }
+    role: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
 });
+userSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+userSchema.index({ username: 1, tenantId: 1 }, { unique: true });
 const User = mongoose.model('User', userSchema);
 
 const productSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     nameEN: { type: String, required: true },
     nameAR: { type: String, required: true },
     price: { type: Number, required: true },
@@ -204,8 +234,10 @@ const productSchema = new mongoose.Schema({
     stock: { type: Number, required: true },
     category: { type: String, required: true },
     emoji: { type: String },
-    barcode: { type: String }
+    barcode: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
 });
+productSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Product = mongoose.model('Product', productSchema);
 
 const invoiceItemSchema = new mongoose.Schema({
@@ -215,7 +247,7 @@ const invoiceItemSchema = new mongoose.Schema({
     qty: { type: Number, required: true }
 });
 const invoiceSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     uuid: { type: String, required: true },
     csn: { type: Number, required: true },
     pih: { type: String, required: true },
@@ -231,8 +263,10 @@ const invoiceSchema = new mongoose.Schema({
     vat: { type: Number, required: true },
     total: { type: Number, required: true },
     date: { type: String, required: true },
-    zatcaStatus: { type: String, required: true }
+    zatcaStatus: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
 });
+invoiceSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 
 const quotationItemSchema = new mongoose.Schema({
@@ -241,27 +275,31 @@ const quotationItemSchema = new mongoose.Schema({
     qty: { type: Number, required: true }
 });
 const quotationSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     date: { type: String, required: true },
     customer: { type: String, required: true },
     items: [quotationItemSchema],
     discount: { type: Number, default: 0 },
     total: { type: Number, required: true },
-    vat: { type: Number, required: true }
+    vat: { type: Number, required: true },
+    tenantId: { type: String, default: 'default', index: true }
 });
+quotationSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Quotation = mongoose.model('Quotation', quotationSchema);
 
 const expenseSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     date: { type: String, required: true },
     category: { type: String, required: true },
     amount: { type: Number, required: true },
-    description: { type: String }
+    description: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
 });
+expenseSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Expense = mongoose.model('Expense', expenseSchema);
 
 const assetSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     name: { type: String, required: true },
     cost: { type: Number, required: true },
     salvage: { type: Number, default: 0 },
@@ -271,47 +309,58 @@ const assetSchema = new mongoose.Schema({
     department: { type: String, required: true },
     serial: { type: String },
     supplier: { type: String },
-    assignedTo: { type: String }
+    assignedTo: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
 });
+assetSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Asset = mongoose.model('Asset', assetSchema);
 
 const customerSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     name: { type: String, required: true },
     phone: { type: String },
     email: { type: String },
     points: { type: Number, default: 0 },
-    spent: { type: Number, default: 0 }
+    spent: { type: Number, default: 0 },
+    tenantId: { type: String, default: 'default', index: true }
 });
+customerSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Customer = mongoose.model('Customer', customerSchema);
 
 const employeeSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     name: { type: String, required: true },
-    dept: { type: String, required: true }
+    dept: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
 });
+employeeSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Employee = mongoose.model('Employee', employeeSchema);
 
 const supplierSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     company: { type: String, required: true },
     contact: { type: String },
     phone: { type: String },
-    items: { type: String }
+    items: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
 });
+supplierSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Supplier = mongoose.model('Supplier', supplierSchema);
 
 const orderSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     date: { type: String, required: true },
     customer: { type: String, required: true },
     items: { type: String, required: true },
     total: { type: Number, required: true },
-    status: { type: String, required: true }
+    status: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
 });
+orderSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const Order = mongoose.model('Order', orderSchema);
 
 const settingsSchema = new mongoose.Schema({
+    tenantId: { type: String, default: 'default', index: true, unique: true },
     businessName: { type: String, required: true },
     vatNumber: { type: String, required: true },
     taxRate: { type: Number, required: true },
@@ -443,6 +492,12 @@ function authenticateToken(req, res, next) {
     
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ error: 'Token expired or invalid' });
+        
+        const tenantId = getTenantId(req);
+        if (user.tenantId !== tenantId) {
+            return res.status(403).json({ error: 'Tenant access mismatch' });
+        }
+        
         req.user = user;
         next();
     });
@@ -587,22 +642,147 @@ if (mockDb.invoices.length === 0) {
 // ----------------------------------------------------
 
 // AUTHENTICATION
+const defaultProductsBySector = {
+    appliances: [
+        { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },
+        { nameEN: 'Double Door Refrigerator 450L', nameAR: 'ثلاجة دولابي 450 لتر', price: 3500, cost: 2600, stock: 5, category: 'appliances', emoji: '🎛️', barcode: '728100100011' },
+        { nameEN: 'Fully Automatic Washing Machine', nameAR: 'غسالة ملابس أوتوماتيكية بالكامل', price: 1800, cost: 1300, stock: 8, category: 'appliances', emoji: '🧺', barcode: '728100100012' },
+        { nameEN: 'Digital Microwave Oven 30L', nameAR: 'ميكروويف رقمي 30 لتر', price: 450, cost: 310, stock: 15, category: 'appliances', emoji: '🍳', barcode: '728100100013' }
+    ],
+    furniture: [
+        { nameEN: 'Luxury L-Shape Sofa Set', nameAR: 'طقم كنب فاخر على شكل حرف L', price: 4500, cost: 3200, stock: 4, category: 'furniture', emoji: '🛋️', barcode: '728200100020' },
+        { nameEN: 'King Size Bed Frame with Headboard', nameAR: 'سرير مقاس كينج خشبي فخم', price: 2800, cost: 1900, stock: 6, category: 'furniture', emoji: '🛏️', barcode: '728200100021' },
+        { nameEN: 'Solid Oak Dining Table (6 Chairs)', nameAR: 'طاولة طعام خشب بلوط مع 6 كراسي', price: 3200, cost: 2200, stock: 3, category: 'furniture', emoji: '🪑', barcode: '728200100022' },
+        { nameEN: 'Modern Wooden Coffee Table', nameAR: 'طاولة قهوة خشبية مودرن', price: 650, cost: 420, stock: 12, category: 'furniture', emoji: '☕', barcode: '728200100023' }
+    ],
+    spareparts: [
+        { nameEN: 'Brake Pad Set (Front)', nameAR: 'قماش فرامل أمامي', price: 180, cost: 120, stock: 25, category: 'spareparts', emoji: '🚗', barcode: '728300100030' },
+        { nameEN: 'Engine Oil Filter (Synthetic)', nameAR: 'فلتر زيت محرك تخليقي', price: 35, cost: 20, stock: 60, category: 'spareparts', emoji: '🛢️', barcode: '728300100031' },
+        { nameEN: 'Copper Plumbing Elbow 1/2"', nameAR: 'كوع نحاس للسباكة 1/2 بوصة', price: 12, cost: 7, stock: 150, category: 'spareparts', emoji: '🔧', barcode: '728300100032' },
+        { nameEN: 'Heavy Duty HVAC Capacitor 45uF', nameAR: 'كابستور مكيف شديد التحمل 45 ميكرو', price: 45, cost: 25, stock: 40, category: 'spareparts', emoji: '⚡', barcode: '728300100033' },
+        { nameEN: 'LED Circuit Board Panel', nameAR: 'لوحة دارة إلكترونية LED', price: 95, cost: 60, stock: 20, category: 'spareparts', emoji: '🔌', barcode: '728300100034' }
+    ],
+    retail: [
+        { nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
+        { nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, cost: 170, stock: 8, category: 'electronics', emoji: '🔦', barcode: '628100200020' },
+        { nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺', barcode: '628100400040' }
+    ]
+};
+
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        const tenantId = getTenantId(req);
         let user;
         if (isMongoConnected) {
-            user = await User.findOne({ username });
+            user = await User.findOne({ username, tenantId });
         } else {
-            user = mockDb.users.find(u => u.username === username);
+            user = mockDb.users.find(u => u.username === username && u.tenantId === tenantId);
         }
         
         if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
             return res.status(401).json({ error: 'Invalid username or password' });
         }
-        const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '12h' });
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, JWT_SECRET, { expiresIn: '12h' });
         res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/auth/register-tenant', async (req, res) => {
+    try {
+        const { tenantId, businessName, businessType, adminUsername, adminPassword } = req.body;
+        
+        if (!tenantId || !businessName || !businessType || !adminUsername || !adminPassword) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+        
+        // Normalize tenantId (lowercase alphanumeric and dash only)
+        const normalizedTenantId = tenantId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (!normalizedTenantId) {
+            return res.status(400).json({ error: 'Invalid subdomain format' });
+        }
+        
+        // Check uniqueness of tenantId
+        if (isMongoConnected) {
+            const existingSettings = await Settings.findOne({ tenantId: normalizedTenantId });
+            if (existingSettings) {
+                return res.status(400).json({ error: 'Store subdomain is already registered' });
+            }
+        } else {
+            if (mockDb.settingsTenant && mockDb.settingsTenant[normalizedTenantId]) {
+                return res.status(400).json({ error: 'Store subdomain is already registered' });
+            }
+        }
+        
+        // 1. Create Tenant-Specific Settings
+        const settingsData = {
+            tenantId: normalizedTenantId,
+            businessName: businessName,
+            businessType: businessType,
+            vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
+            taxRate: 15,
+            baseCurrency: 'SAR',
+            businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
+            crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
+            contactNumber: '+966 50 000 0000',
+            exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
+            branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
+            currentBranch: 'Main Branch',
+            enableTables: businessType === 'restaurant',
+            enableServiceDuration: businessType === 'salon'
+        };
+        
+        if (isMongoConnected) {
+            await Settings.create(settingsData);
+        } else {
+            if (!mockDb.settingsTenant) {
+                mockDb.settingsTenant = { 'default': { ...mockDb.settings, tenantId: 'default' } };
+            }
+            mockDb.settingsTenant[normalizedTenantId] = settingsData;
+        }
+        
+        // 2. Create Tenant-Specific Admin User
+        const passwordHash = bcrypt.hashSync(adminPassword, 10);
+        const adminUser = {
+            id: 'u-' + Date.now().toString(),
+            username: adminUsername,
+            passwordHash,
+            role: 'Admin',
+            tenantId: normalizedTenantId
+        };
+        
+        if (isMongoConnected) {
+            await User.create(adminUser);
+        } else {
+            mockDb.users.push(adminUser);
+        }
+        
+        // 3. Seed initial products based on businessType
+        const productsToSeed = defaultProductsBySector[businessType] || defaultProductsBySector.retail;
+        const seedProducts = productsToSeed.map((p, idx) => ({
+            id: (2001 + idx).toString(),
+            nameEN: p.nameEN,
+            nameAR: p.nameAR,
+            price: p.price,
+            cost: p.cost,
+            stock: p.stock,
+            category: p.category,
+            emoji: p.emoji,
+            barcode: p.barcode,
+            tenantId: normalizedTenantId
+        }));
+        
+        if (isMongoConnected) {
+            await Product.insertMany(seedProducts);
+        } else {
+            mockDb.products.push(...seedProducts);
+        }
+        
+        res.status(201).json({ success: true, tenantId: normalizedTenantId });
+    } catch (err) {
+        console.error('Error registering tenant:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -658,17 +838,54 @@ app.get('/api/inquiries', authenticateToken, async (req, res) => {
 });
 
 // SETTINGS & MULTI-CURRENCY
+// SETTINGS & MULTI-CURRENCY
 app.get('/api/settings', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            let settings = await Settings.findOne();
+            let settings = await Settings.findOne({ tenantId });
             if (!settings) {
-                // fallback seed if db is empty
-                settings = await Settings.create(mockDb.settings);
+                if (tenantId === 'default') {
+                    settings = await Settings.create({ ...mockDb.settings, tenantId: 'default' });
+                } else {
+                    settings = await Settings.create({
+                        tenantId,
+                        businessName: `${tenantId.toUpperCase()} Store`,
+                        vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
+                        taxRate: 15,
+                        baseCurrency: 'SAR',
+                        businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
+                        crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
+                        contactNumber: '+966 50 000 0000',
+                        exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
+                        branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
+                        currentBranch: 'Main Branch',
+                        businessType: 'retail'
+                    });
+                }
             }
             res.json(settings);
         } else {
-            res.json(mockDb.settings);
+            if (!mockDb.settingsTenant) {
+                mockDb.settingsTenant = { 'default': { ...mockDb.settings, tenantId: 'default' } };
+            }
+            if (!mockDb.settingsTenant[tenantId]) {
+                mockDb.settingsTenant[tenantId] = {
+                    tenantId,
+                    businessName: `${tenantId.toUpperCase()} Store`,
+                    vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
+                    taxRate: 15,
+                    baseCurrency: 'SAR',
+                    businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
+                    crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
+                    contactNumber: '+966 50 000 0000',
+                    exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
+                    branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
+                    currentBranch: 'Main Branch',
+                    businessType: 'retail'
+                };
+            }
+            res.json(mockDb.settingsTenant[tenantId]);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -678,20 +895,23 @@ app.get('/api/settings', async (req, res) => {
 app.post('/api/settings', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            let settings = await Settings.findOne();
+            let settings = await Settings.findOne({ tenantId });
             if (settings) {
-                // update
                 Object.assign(settings, req.body);
                 await settings.save();
             } else {
-                settings = new Settings({ ...mockDb.settings, ...req.body });
+                settings = new Settings({ ...req.body, tenantId });
                 await settings.save();
             }
             res.json(settings);
         } else {
-            mockDb.settings = { ...mockDb.settings, ...req.body };
-            res.json(mockDb.settings);
+            if (!mockDb.settingsTenant) {
+                mockDb.settingsTenant = { 'default': { ...mockDb.settings, tenantId: 'default' } };
+            }
+            mockDb.settingsTenant[tenantId] = { ...mockDb.settingsTenant[tenantId], ...req.body, tenantId };
+            res.json(mockDb.settingsTenant[tenantId]);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -701,11 +921,13 @@ app.post('/api/settings', authenticateToken, async (req, res) => {
 // PRODUCTS / INVENTORY
 app.get('/api/products', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const products = await Product.find({});
+            const products = await Product.find({ tenantId });
             res.json(products);
         } else {
-            res.json(mockDb.products);
+            const products = mockDb.products.filter(p => p.tenantId === tenantId);
+            res.json(products);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -715,16 +937,18 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const count = await Product.countDocuments();
+            const count = await Product.countDocuments({ tenantId });
             const product = new Product({
                 ...req.body,
-                id: req.body.id || (1000 + count + 1).toString()
+                id: req.body.id || (1000 + count + 1).toString(),
+                tenantId
             });
             await product.save();
             res.json(product);
         } else {
-            const product = { ...req.body, id: req.body.id || (1000 + mockDb.products.length + 1).toString() };
+            const product = { ...req.body, id: req.body.id || (1000 + mockDb.products.length + 1).toString(), tenantId };
             mockDb.products.push(product);
             res.json(product);
         }
@@ -736,14 +960,15 @@ app.post('/api/products', authenticateToken, async (req, res) => {
 app.put('/api/products/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const product = await Product.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            const product = await Product.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!product) return res.status(404).json({ error: 'Product not found' });
             res.json(product);
         } else {
-            const idx = mockDb.products.findIndex(p => p.id === req.params.id);
+            const idx = mockDb.products.findIndex(p => p.id === req.params.id && p.tenantId === tenantId);
             if (idx === -1) return res.status(404).json({ error: 'Product not found' });
-            mockDb.products[idx] = { ...mockDb.products[idx], ...req.body };
+            mockDb.products[idx] = { ...mockDb.products[idx], ...req.body, tenantId };
             res.json(mockDb.products[idx]);
         }
     } catch (err) {
@@ -754,13 +979,14 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
 app.delete('/api/products/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const result = await Product.findOneAndDelete({ id: req.params.id });
+            const result = await Product.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Product not found' });
             res.sendStatus(204);
         } else {
             const originalLength = mockDb.products.length;
-            mockDb.products = mockDb.products.filter(p => p.id !== req.params.id);
+            mockDb.products = mockDb.products.filter(p => !(p.id === req.params.id && p.tenantId === tenantId));
             if (mockDb.products.length === originalLength) return res.status(404).json({ error: 'Product not found' });
             res.sendStatus(204);
         }
@@ -772,11 +998,13 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
 // INVOICES & ZATCA PORTAL
 app.get('/api/invoices', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const invoices = await Invoice.find({});
+            const invoices = await Invoice.find({ tenantId });
             res.json(invoices);
         } else {
-            res.json(mockDb.invoices);
+            const invoices = mockDb.invoices.filter(i => i.tenantId === tenantId);
+            res.json(invoices);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -787,20 +1015,22 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
     const invoice = req.body;
     invoice.id = `INV-${Date.now().toString().slice(-6)}`;
     invoice.uuid = crypto.randomUUID();
+    const tenantId = getTenantId(req);
+    invoice.tenantId = tenantId;
     
     try {
         if (isMongoConnected) {
-            const count = await Invoice.countDocuments();
+            const count = await Invoice.countDocuments({ tenantId });
             invoice.csn = count + 1;
             
             let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
-            const lastInvs = await Invoice.find().sort({ csn: -1 }).limit(1);
+            const lastInvs = await Invoice.find({ tenantId }).sort({ csn: -1 }).limit(1);
             if (lastInvs.length > 0 && lastInvs[0].xmlHashBase64) {
                 pih = lastInvs[0].xmlHashBase64;
             }
             invoice.pih = pih;
 
-            let settings = await Settings.findOne();
+            let settings = await Settings.findOne({ tenantId });
             if (!settings) settings = mockDb.settings;
 
             invoice.xml = generateZATCAXML(invoice, settings);
@@ -816,7 +1046,7 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
             
             // Deduct stock
             for (const item of invoice.items) {
-                const prod = await Product.findOne({ id: item.id });
+                const prod = await Product.findOne({ id: item.id, tenantId });
                 if (prod) {
                     prod.stock = Math.max(0, prod.stock - item.qty);
                     await prod.save();
@@ -825,16 +1055,18 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
 
             res.json(newInvoice);
         } else {
-            invoice.csn = mockDb.invoices.length + 1;
+            const tenantInvs = mockDb.invoices.filter(i => i.tenantId === tenantId);
+            invoice.csn = tenantInvs.length + 1;
             
             let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
-            if (mockDb.invoices.length > 0) {
-                const prev = mockDb.invoices[mockDb.invoices.length - 1];
+            if (tenantInvs.length > 0) {
+                const prev = tenantInvs[tenantInvs.length - 1];
                 if (prev.xmlHashBase64) pih = prev.xmlHashBase64;
             }
             invoice.pih = pih;
 
-            invoice.xml = generateZATCAXML(invoice, mockDb.settings);
+            const settings = (mockDb.settingsTenant && mockDb.settingsTenant[tenantId]) || mockDb.settings;
+            invoice.xml = generateZATCAXML(invoice, settings);
             invoice.xmlHash = sha256Node(invoice.xml);
             invoice.xmlHashBase64 = Buffer.from(invoice.xmlHash, 'hex').toString('base64');
             invoice.signature = signHashNode(invoice.xmlHash);
@@ -846,7 +1078,7 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
             
             // Deduct stock
             invoice.items.forEach(item => {
-                const prod = mockDb.products.find(p => p.id === item.id);
+                const prod = mockDb.products.find(p => p.id === item.id && p.tenantId === tenantId);
                 if (prod) prod.stock = Math.max(0, prod.stock - item.qty);
             });
 
@@ -859,12 +1091,13 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
 
 app.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const invoice = await Invoice.findOneAndUpdate({ id: req.params.id }, { zatcaStatus: 'REPORTED' }, { new: true });
+            const invoice = await Invoice.findOneAndUpdate({ id: req.params.id, tenantId }, { zatcaStatus: 'REPORTED' }, { new: true });
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             res.json(invoice);
         } else {
-            const invoice = mockDb.invoices.find(i => i.id === req.params.id);
+            const invoice = mockDb.invoices.find(i => i.id === req.params.id && i.tenantId === tenantId);
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             invoice.zatcaStatus = 'REPORTED';
             res.json(invoice);
@@ -876,8 +1109,9 @@ app.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res) =
 
 app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const invoice = await Invoice.findOne({ id: req.params.id });
+            const invoice = await Invoice.findOne({ id: req.params.id, tenantId });
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             if (invoice.zatcaStatus === 'REFUNDED') return res.status(400).json({ error: 'Invoice already refunded' });
             
@@ -886,7 +1120,7 @@ app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
             
             // Restore stock
             for (const item of invoice.items) {
-                const prod = await Product.findOne({ id: item.id });
+                const prod = await Product.findOne({ id: item.id, tenantId });
                 if (prod) {
                     prod.stock = prod.stock + item.qty;
                     await prod.save();
@@ -894,7 +1128,7 @@ app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
             }
             res.json(invoice);
         } else {
-            const invoice = mockDb.invoices.find(i => i.id === req.params.id);
+            const invoice = mockDb.invoices.find(i => i.id === req.params.id && i.tenantId === tenantId);
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             if (invoice.zatcaStatus === 'REFUNDED') return res.status(400).json({ error: 'Invoice already refunded' });
             
@@ -902,7 +1136,7 @@ app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
             
             // Restore stock
             invoice.items.forEach(item => {
-                const prod = mockDb.products.find(p => p.id === item.id);
+                const prod = mockDb.products.find(p => p.id === item.id && p.tenantId === tenantId);
                 if (prod) prod.stock = prod.stock + item.qty;
             });
             res.json(invoice);
@@ -915,11 +1149,13 @@ app.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
 // EXPENSES
 app.get('/api/expenses', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const expenses = await Expense.find({});
+            const expenses = await Expense.find({ tenantId });
             res.json(expenses);
         } else {
-            res.json(mockDb.expenses);
+            const expenses = mockDb.expenses.filter(e => e.tenantId === tenantId);
+            res.json(expenses);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -929,13 +1165,14 @@ app.get('/api/expenses', async (req, res) => {
 app.post('/api/expenses', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         const id = `EXP-${Date.now().toString().slice(-4)}`;
         if (isMongoConnected) {
-            const expense = new Expense({ ...req.body, id });
+            const expense = new Expense({ ...req.body, id, tenantId });
             await expense.save();
             res.json(expense);
         } else {
-            const expense = { ...req.body, id };
+            const expense = { ...req.body, id, tenantId };
             mockDb.expenses.push(expense);
             res.json(expense);
         }
@@ -947,11 +1184,13 @@ app.post('/api/expenses', authenticateToken, async (req, res) => {
 // ASSETS & DEPRECIATION
 app.get('/api/assets', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const assets = await Asset.find({});
+            const assets = await Asset.find({ tenantId });
             res.json(assets);
         } else {
-            res.json(mockDb.assets);
+            const assets = mockDb.assets.filter(a => a.tenantId === tenantId);
+            res.json(assets);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -961,13 +1200,14 @@ app.get('/api/assets', async (req, res) => {
 app.post('/api/assets', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         const id = `AST-${Date.now().toString().slice(-4)}`;
         if (isMongoConnected) {
-            const asset = new Asset({ ...req.body, id });
+            const asset = new Asset({ ...req.body, id, tenantId });
             await asset.save();
             res.json(asset);
         } else {
-            const asset = { ...req.body, id };
+            const asset = { ...req.body, id, tenantId };
             mockDb.assets.push(asset);
             res.json(asset);
         }
@@ -979,11 +1219,13 @@ app.post('/api/assets', authenticateToken, async (req, res) => {
 // PEOPLES: CUSTOMERS & EMPLOYEES & SUPPLIERS
 app.get('/api/customers', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const customers = await Customer.find({});
+            const customers = await Customer.find({ tenantId });
             res.json(customers);
         } else {
-            res.json(mockDb.customers);
+            const customers = mockDb.customers.filter(c => c.tenantId === tenantId);
+            res.json(customers);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -992,11 +1234,13 @@ app.get('/api/customers', async (req, res) => {
 
 app.get('/api/employees', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const employees = await Employee.find({});
+            const employees = await Employee.find({ tenantId });
             res.json(employees);
         } else {
-            res.json(mockDb.employees);
+            const employees = mockDb.employees.filter(e => e.tenantId === tenantId);
+            res.json(employees);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1005,11 +1249,13 @@ app.get('/api/employees', async (req, res) => {
 
 app.get('/api/suppliers', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const suppliers = await Supplier.find({});
+            const suppliers = await Supplier.find({ tenantId });
             res.json(suppliers);
         } else {
-            res.json(mockDb.suppliers);
+            const suppliers = mockDb.suppliers.filter(s => s.tenantId === tenantId);
+            res.json(suppliers);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1018,11 +1264,13 @@ app.get('/api/suppliers', async (req, res) => {
 
 app.get('/api/orders', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const orders = await Order.find({});
+            const orders = await Order.find({ tenantId });
             res.json(orders);
         } else {
-            res.json(mockDb.orders);
+            const orders = mockDb.orders.filter(o => o.tenantId === tenantId);
+            res.json(orders);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1031,13 +1279,14 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/customers', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         const id = `CUST-${Date.now().toString().slice(-4)}`;
         if (isMongoConnected) {
-            const cust = new Customer({ ...req.body, id, points: 0, spent: 0 });
+            const cust = new Customer({ ...req.body, id, points: 0, spent: 0, tenantId });
             await cust.save();
             res.json(cust);
         } else {
-            const cust = { ...req.body, id, points: 0, spent: 0 };
+            const cust = { ...req.body, id, points: 0, spent: 0, tenantId };
             mockDb.customers.push(cust);
             res.json(cust);
         }
@@ -1048,13 +1297,14 @@ app.post('/api/customers', authenticateToken, async (req, res) => {
 
 app.post('/api/suppliers', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         const id = `SUPP-${Date.now().toString().slice(-4)}`;
         if (isMongoConnected) {
-            const supp = new Supplier({ ...req.body, id });
+            const supp = new Supplier({ ...req.body, id, tenantId });
             await supp.save();
             res.json(supp);
         } else {
-            const supp = { ...req.body, id };
+            const supp = { ...req.body, id, tenantId };
             mockDb.suppliers.push(supp);
             res.json(supp);
         }
@@ -1065,12 +1315,13 @@ app.post('/api/suppliers', authenticateToken, async (req, res) => {
 
 app.put('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const ord = await Order.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            const ord = await Order.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!ord) return res.status(404).json({ error: 'Order not found' });
             res.json(ord);
         } else {
-            const ord = mockDb.orders.find(o => o.id === req.params.id);
+            const ord = mockDb.orders.find(o => o.id === req.params.id && o.tenantId === tenantId);
             if (!ord) return res.status(404).json({ error: 'Order not found' });
             ord.status = req.body.status;
             res.json(ord);
@@ -1082,13 +1333,14 @@ app.put('/api/orders/:id', authenticateToken, async (req, res) => {
 
 app.post('/api/orders', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         const id = `ORD-${Date.now().toString().slice(-4)}`;
         if (isMongoConnected) {
-            const ord = new Order({ ...req.body, id });
+            const ord = new Order({ ...req.body, id, tenantId });
             await ord.save();
             res.json(ord);
         } else {
-            const ord = { ...req.body, id };
+            const ord = { ...req.body, id, tenantId };
             mockDb.orders.push(ord);
             res.json(ord);
         }
@@ -1099,13 +1351,14 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
 app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const result = await Order.findOneAndDelete({ id: req.params.id });
+            const result = await Order.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Order not found' });
             res.sendStatus(204);
         } else {
             const originalLength = mockDb.orders.length;
-            mockDb.orders = mockDb.orders.filter(o => o.id !== req.params.id);
+            mockDb.orders = mockDb.orders.filter(o => !(o.id === req.params.id && o.tenantId === tenantId));
             if (mockDb.orders.length === originalLength) return res.status(404).json({ error: 'Order not found' });
             res.sendStatus(204);
         }
@@ -1118,14 +1371,15 @@ app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
 app.put('/api/expenses/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const expense = await Expense.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            const expense = await Expense.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!expense) return res.status(404).json({ error: 'Expense not found' });
             res.json(expense);
         } else {
-            const idx = mockDb.expenses.findIndex(e => e.id === req.params.id);
+            const idx = mockDb.expenses.findIndex(e => e.id === req.params.id && e.tenantId === tenantId);
             if (idx === -1) return res.status(404).json({ error: 'Expense not found' });
-            mockDb.expenses[idx] = { ...mockDb.expenses[idx], ...req.body };
+            mockDb.expenses[idx] = { ...mockDb.expenses[idx], ...req.body, tenantId };
             res.json(mockDb.expenses[idx]);
         }
     } catch (err) {
@@ -1136,13 +1390,14 @@ app.put('/api/expenses/:id', authenticateToken, async (req, res) => {
 app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const result = await Expense.findOneAndDelete({ id: req.params.id });
+            const result = await Expense.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Expense not found' });
             res.sendStatus(204);
         } else {
             const originalLength = mockDb.expenses.length;
-            mockDb.expenses = mockDb.expenses.filter(e => e.id !== req.params.id);
+            mockDb.expenses = mockDb.expenses.filter(e => !(e.id === req.params.id && e.tenantId === tenantId));
             if (mockDb.expenses.length === originalLength) return res.status(404).json({ error: 'Expense not found' });
             res.sendStatus(204);
         }
@@ -1155,12 +1410,13 @@ app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
 app.get('/api/users', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const users = await User.find({});
+            const users = await User.find({ tenantId });
             const cleanUsers = users.map(u => ({ id: u.id, username: u.username, role: u.role }));
             res.json(cleanUsers);
         } else {
-            const cleanUsers = mockDb.users.map(u => ({ id: u.id, username: u.username, role: u.role }));
+            const cleanUsers = mockDb.users.filter(u => u.tenantId === tenantId).map(u => ({ id: u.id, username: u.username, role: u.role }));
             res.json(cleanUsers);
         }
     } catch (err) {
@@ -1171,16 +1427,17 @@ app.get('/api/users', authenticateToken, async (req, res) => {
 app.post('/api/users', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         const { username, password, role } = req.body;
         const passwordHash = bcrypt.hashSync(password || '123456', 10);
         const id = Date.now().toString();
         
         if (isMongoConnected) {
-            const user = new User({ id, username, passwordHash, role });
+            const user = new User({ id, username, passwordHash, role, tenantId });
             await user.save();
             res.json({ id: user.id, username: user.username, role: user.role });
         } else {
-            const user = { id, username, passwordHash, role };
+            const user = { id, username, passwordHash, role, tenantId };
             mockDb.users.push(user);
             res.json({ id: user.id, username: user.username, role: user.role });
         }
@@ -1192,6 +1449,7 @@ app.post('/api/users', authenticateToken, async (req, res) => {
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         const { username, password, role } = req.body;
         const updates = {};
         if (username) updates.username = username;
@@ -1199,11 +1457,11 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
         if (password) updates.passwordHash = bcrypt.hashSync(password, 10);
 
         if (isMongoConnected) {
-            const user = await User.findOneAndUpdate({ id: req.params.id }, updates, { new: true });
+            const user = await User.findOneAndUpdate({ id: req.params.id, tenantId }, updates, { new: true });
             if (!user) return res.status(404).json({ error: 'User not found' });
             res.json({ id: user.id, username: user.username, role: user.role });
         } else {
-            const idx = mockDb.users.findIndex(u => u.id === req.params.id);
+            const idx = mockDb.users.findIndex(u => u.id === req.params.id && u.tenantId === tenantId);
             if (idx === -1) return res.status(404).json({ error: 'User not found' });
             mockDb.users[idx].username = username || mockDb.users[idx].username;
             mockDb.users[idx].role = role || mockDb.users[idx].role;
@@ -1220,13 +1478,14 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 app.delete('/api/users/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const result = await User.findOneAndDelete({ id: req.params.id });
+            const result = await User.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'User not found' });
             res.sendStatus(204);
         } else {
             const originalLength = mockDb.users.length;
-            mockDb.users = mockDb.users.filter(u => u.id !== req.params.id);
+            mockDb.users = mockDb.users.filter(u => !(u.id === req.params.id && u.tenantId === tenantId));
             if (mockDb.users.length === originalLength) return res.status(404).json({ error: 'User not found' });
             res.sendStatus(204);
         }
@@ -1238,11 +1497,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
 // QUOTATIONS CRUD
 app.get('/api/quotations', async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const quotations = await Quotation.find({});
+            const quotations = await Quotation.find({ tenantId });
             res.json(quotations);
         } else {
-            res.json(mockDb.quotations);
+            const quotations = mockDb.quotations.filter(q => q.tenantId === tenantId);
+            res.json(quotations);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1251,10 +1512,12 @@ app.get('/api/quotations', async (req, res) => {
 
 app.post('/api/quotations', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         const quote = {
             ...req.body,
             id: `QTN-${Date.now().toString().slice(-4)}`,
-            date: new Date().toLocaleString()
+            date: new Date().toLocaleString(),
+            tenantId
         };
         if (isMongoConnected) {
             const newQuote = new Quotation(quote);
@@ -1271,13 +1534,14 @@ app.post('/api/quotations', authenticateToken, async (req, res) => {
 
 app.delete('/api/quotations/:id', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const result = await Quotation.findOneAndDelete({ id: req.params.id });
+            const result = await Quotation.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Quotation not found' });
             res.sendStatus(204);
         } else {
             const originalLength = mockDb.quotations.length;
-            mockDb.quotations = mockDb.quotations.filter(q => q.id !== req.params.id);
+            mockDb.quotations = mockDb.quotations.filter(q => !(q.id === req.params.id && q.tenantId === tenantId));
             if (mockDb.quotations.length === originalLength) return res.status(404).json({ error: 'Quotation not found' });
             res.sendStatus(204);
         }
@@ -1288,16 +1552,18 @@ app.delete('/api/quotations/:id', authenticateToken, async (req, res) => {
 
 app.put('/api/quotations/:id', authenticateToken, async (req, res) => {
     try {
+        const tenantId = getTenantId(req);
         if (isMongoConnected) {
-            const quotation = await Quotation.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+            const quotation = await Quotation.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
             res.json(quotation);
         } else {
-            const idx = mockDb.quotations.findIndex(q => q.id === req.params.id);
+            const idx = mockDb.quotations.findIndex(q => q.id === req.params.id && q.tenantId === tenantId);
             if (idx !== -1) {
                 mockDb.quotations[idx] = {
                     ...mockDb.quotations[idx],
-                    ...req.body
+                    ...req.body,
+                    tenantId
                 };
                 res.json(mockDb.quotations[idx]);
             } else {

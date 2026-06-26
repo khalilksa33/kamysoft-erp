@@ -1,6 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './LandingPage';
 
+// Automatically add x-tenant-id header to relative API calls
+const originalFetch = window.fetch;
+window.fetch = function (url, options = {}) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+        options.headers = options.headers || {};
+        
+        // Resolve tenant
+        const host = window.location.hostname.toLowerCase();
+        let tenant = 'default';
+        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        if (isLocal) {
+            tenant = localStorage.getItem('simulatedTenant') || 'default';
+            const simDomain = localStorage.getItem('simulatedDomain') || 'marketing';
+            if (simDomain === 'demo') tenant = 'default';
+            else if (simDomain === 'marketing') tenant = 'default';
+        } else {
+            if (host === 'demo.26i.uk' || host.startsWith('demo')) {
+                tenant = 'default';
+            } else {
+                const tenantMatch = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
+                if (tenantMatch) {
+                    tenant = tenantMatch[1];
+                }
+            }
+        }
+        
+        if (options.headers instanceof Headers) {
+            options.headers.set('x-tenant-id', tenant);
+        } else {
+            options.headers['x-tenant-id'] = tenant;
+        }
+    }
+    return originalFetch(url, options);
+};
+
 // Unified Translations Dictionary
 const translations = {
     en: {
@@ -472,8 +507,27 @@ const getPaymentMethodLabel = (method, lang) => {
 export default function App() {
     // Domain Routing & Simulated Environment State
     const [hostname, setHostname] = useState(window.location.hostname);
-    const [simulatedDomain, setSimulatedDomain] = useState(''); // 'marketing', 'demo', 'customer'
-    const [simulatedTenant, setSimulatedTenant] = useState('cust-1');
+    const [simulatedDomain, setSimulatedDomain] = useState(() => localStorage.getItem('simulatedDomain') || ''); // 'marketing', 'demo', 'customer'
+    const [simulatedTenant, setSimulatedTenant] = useState(() => localStorage.getItem('simulatedTenant') || 'cust-1');
+
+    useEffect(() => {
+        localStorage.setItem('simulatedDomain', simulatedDomain);
+    }, [simulatedDomain]);
+
+    useEffect(() => {
+        localStorage.setItem('simulatedTenant', simulatedTenant);
+    }, [simulatedTenant]);
+
+    const handleRegisterSuccess = (newTenantId) => {
+        if (isLocalhost) {
+            localStorage.setItem('simulatedTenant', newTenantId);
+            localStorage.setItem('simulatedDomain', 'customer');
+            setSimulatedTenant(newTenantId);
+            setSimulatedDomain('customer');
+        } else {
+            window.location.href = `https://cust-${newTenantId}.26i.uk`;
+        }
+    };
 
     // Hostname Routing Calculations
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
@@ -1539,6 +1593,7 @@ export default function App() {
                     theme={theme} 
                     setTheme={setTheme} 
                     onLaunchApp={handleLaunchApp} 
+                    onRegisterSuccess={handleRegisterSuccess}
                 />
                 {renderDevToolbar()}
             </>
