@@ -43,10 +43,10 @@ const translations = {
         zatcaClientSecret: "Client Secret",
         zatcaDeviceSerial: "Device Serial Number",
         csrGenerate: "Generate Private Key & CSR",
-        registerDevice: "Register Device / CCSID",
+        registerDevice: "Register Device",
         zatcaStatusLabel: "Connection Status",
         zatcaStatusConnected: "CONNECTED & REGISTERED",
-        zatcaStatusDisconnected: "NOT REGISTERED / OFFLINE",
+        zatcaStatusDisconnected: "NOT REGISTERED",
 
         // Reports View
         dailyReports: "Daily Report",
@@ -80,7 +80,7 @@ const translations = {
         subtotal: "Subtotal",
         vat: "VAT (15%)",
         discount: "Discount",
-        couponLabel: "Apply Coupon / Bonat",
+        couponLabel: "Apply Coupon",
         grandTotal: "Grand Total",
         payCheckout: "Pay & Print Invoice",
         holdCart: "Hold Cart",
@@ -264,10 +264,10 @@ const translations = {
         zatcaClientSecret: "الرمز السري للعميل (Client Secret)",
         zatcaDeviceSerial: "الرقم التسلسلي للجهاز المرتبط",
         csrGenerate: "توليد المفتاح الخاص وطلب التوقيع (CSR)",
-        registerDevice: "تسجيل الجهاز وتفعيل الـ CCSID",
+        registerDevice: "تسجيل الجهاز",
         zatcaStatusLabel: "حالة اتصال خادم الهيئة",
         zatcaStatusConnected: "متصل ومسجل بنجاح (نشط)",
-        zatcaStatusDisconnected: "غير مسجل / دون اتصال",
+        zatcaStatusDisconnected: "غير مسجل",
 
         // Reports View
         dailyReports: "التقرير اليومي",
@@ -301,7 +301,7 @@ const translations = {
         subtotal: "المجموع الفرعي",
         vat: "ضريبة القيمة المضافة (15%)",
         discount: "الخصم",
-        couponLabel: "تطبيق كوبون / بونات",
+        couponLabel: "تطبيق الكوبون",
         grandTotal: "المجموع الكلي",
         payCheckout: "دفع وإصدار الفاتورة",
         holdCart: "تعليق السلة",
@@ -315,7 +315,7 @@ const translations = {
         statusPending: "قيد الانتظار",
         statusPreparing: "جاري التحضير",
         statusReady: "جاهز للتسليم",
-        statusDelivered: "تم الشحن / التوصيل",
+        statusDelivered: "تم التوصيل",
         statusCompleted: "مكتمل",
         statusCancelled: "ملغي",
         updateStatus: "تحديث الحالة",
@@ -324,7 +324,7 @@ const translations = {
         addExpense: "تسجيل مصروف جديد",
         expenseCat: "الفئة",
         expenseAmount: "المبلغ الإجمالي",
-        expenseDesc: "البيان / الوصف",
+        expenseDesc: "الوصف",
         expenseDate: "التاريخ",
         rent: "الإيجارات والخدمات",
         shipping: "الشحن والخدمات اللوجستية",
@@ -336,7 +336,7 @@ const translations = {
         addCustomer: "إضافة عميل جديد",
         addSupplier: "إضافة مورد جديد",
         custName: "اسم العميل",
-        suppName: "اسم المورد / الشركة",
+        suppName: "اسم المورد",
         phone: "رقم الجوال",
         email: "البريد الإلكتروني",
         loyaltyPoints: "نقاط الولاء",
@@ -446,18 +446,25 @@ const translations = {
     }
 };
 
-const getPaymentMethodLabel = (method) => {
-    if (!method) return 'Cash / نقداً';
+const getPaymentMethodLabel = (method, lang) => {
+    const isAr = lang === 'ar';
+    if (!method) return isAr ? 'نقداً' : 'Cash';
     const m = method.toLowerCase();
-    if (m.includes('cash')) return 'Cash / نقداً';
-    if (m.includes('visa')) return 'Visa / فيزا';
-    if (m.includes('mada')) return 'Mada / مدى';
-    if (m.includes('mobile')) return 'Mobile Pay / دفع الجوال';
+    if (m.includes('cash')) return isAr ? 'نقداً' : 'Cash';
+    if (m.includes('visa')) return isAr ? 'فيزا' : 'Visa';
+    if (m.includes('mada')) return isAr ? 'مدى' : 'Mada';
+    if (m.includes('mobile')) return isAr ? 'دفع الجوال' : 'Mobile Pay';
     if (m.includes('stc')) return 'STC Pay';
     if (m.includes('apple')) return 'Apple Pay';
-    if (m.includes('tabby') || m.includes('tabbi')) return 'Tabby / تابي';
-    if (m.includes('tamara')) return 'Tamara / تمارا';
-    if (m.includes('split')) return method;
+    if (m.includes('tabby') || m.includes('tabbi')) return isAr ? 'تابي' : 'Tabby';
+    if (m.includes('tamara')) return isAr ? 'تمارا' : 'Tamara';
+    if (m.includes('split')) {
+        if (isAr) {
+            return method.replace('Split / مجزأ', 'دفع مجزأ').replace('Cash:', 'نقداً:').replace('Card:', 'بطاقة:');
+        } else {
+            return method.replace('Split / مجزأ', 'Split').replace('Cash:', 'Cash:').replace('Card:', 'Card:');
+        }
+    }
     return method;
 };
 
@@ -545,7 +552,7 @@ export default function App() {
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     
     const [showProductModal, setShowProductModal] = useState(false);
-    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60 });
+    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
     
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [assetForm, setAssetForm] = useState({ name: '', cost: '', salvage: 0, life: 5, date: '', status: 'active', department: 'Operations', serial: '', supplier: '', assignedTo: 'unassigned' });
@@ -1345,22 +1352,33 @@ export default function App() {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifySelf: 'center', width: '100%', maxWidth: '400px', padding: '20px' }}>
                 <div className="glass-card" style={{ width: '100%', padding: '30px' }}>
-                    <div className="brand" style={{ marginBottom: '24px', justifyContent: 'center' }}>
-                        <i className="ri-store-2-line"></i>
-                        <span>CASHIER</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ri-store-2-line"></i>
+                            <span>CASHIER</span>
+                        </div>
+                        <button 
+                            className="btn btn-secondary" 
+                            onClick={() => setCurrentLanguage(currentLanguage === 'ar' ? 'en' : 'ar')} 
+                            style={{ padding: '4px 8px', fontSize: '11px', height: '28px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}
+                            type="button"
+                        >
+                            <i className="ri-translate" style={{ fontSize: '12px' }}></i>
+                            <span>{currentLanguage === 'ar' ? 'English' : 'العربية'}</span>
+                        </button>
                     </div>
-                    <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>User login / تسجيل الدخول</h3>
+                    <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'تسجيل الدخول' : 'User Login'}</h3>
                     {authError && <div style={{ color: 'var(--accent-danger)', fontSize: '13px', marginBottom: '15px', textAlign: 'center' }}>{authError}</div>}
                     <form onSubmit={handleLogin}>
                         <div className="form-group">
-                            <label>Username / اسم المستخدم</label>
+                            <label>{currentLanguage === 'ar' ? 'اسم المستخدم' : 'Username'}</label>
                             <input type="text" className="form-control" placeholder="admin / manager / cashier" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} required />
                         </div>
                         <div className="form-group">
-                            <label>Password / كلمة المرور</label>
+                            <label>{currentLanguage === 'ar' ? 'كلمة المرور' : 'Password'}</label>
                             <input type="password" className="form-control" placeholder="admin123" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                         </div>
-                        <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>Login / دخول</button>
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>{currentLanguage === 'ar' ? 'دخول' : 'Login'}</button>
                     </form>
                 </div>
             </div>
@@ -1465,14 +1483,6 @@ export default function App() {
                             </button>
                         </li>
                     )}
-                    {isAllowedTab('permissions') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')}>
-                                <i className="ri-shield-user-line"></i>
-                                <span data-i18n="permissions">{translations[currentLanguage].permissions}</span>
-                            </button>
-                        </li>
-                    )}
                     {isAllowedTab('orders') && (
                         <li>
                             <button className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
@@ -1489,20 +1499,42 @@ export default function App() {
                             </button>
                         </li>
                     )}
-                    {isAllowedTab('zatca') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'zatca' ? 'active' : ''}`} onClick={() => setActiveTab('zatca')}>
-                                <i className="ri-cloud-line"></i>
-                                <span data-i18n="zatcaPortal">{translations[currentLanguage].zatcaPortal}</span>
-                            </button>
-                        </li>
-                    )}
                     {isAllowedTab('settings') && (
                         <li>
                             <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
                                 <i className="ri-settings-4-line"></i>
                                 <span data-i18n="settings">{translations[currentLanguage].settings}</span>
                             </button>
+                            <ul className="sidebar-submenu" style={{ 
+                                paddingLeft: currentLanguage === 'ar' ? '0' : '15px', 
+                                paddingRight: currentLanguage === 'ar' ? '15px' : '0', 
+                                listStyle: 'none', 
+                                marginTop: '6px', 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                gap: '4px',
+                                borderLeft: currentLanguage === 'ar' ? 'none' : '1px solid var(--glass-border)',
+                                borderRight: currentLanguage === 'ar' ? '1px solid var(--glass-border)' : 'none',
+                                marginLeft: currentLanguage === 'ar' ? '0' : '10px',
+                                marginRight: currentLanguage === 'ar' ? '10px' : '0'
+                            }}>
+                                {isAllowedTab('permissions') && (
+                                    <li>
+                                        <button className={`nav-item ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')} style={{ fontSize: '13px', padding: '6px 12px' }}>
+                                            <i className="ri-shield-user-line" style={{ fontSize: '16px', width: '20px' }}></i>
+                                            <span data-i18n="permissions">{translations[currentLanguage].permissions}</span>
+                                        </button>
+                                    </li>
+                                )}
+                                {isAllowedTab('zatca') && (
+                                    <li>
+                                        <button className={`nav-item ${activeTab === 'zatca' ? 'active' : ''}`} onClick={() => setActiveTab('zatca')} style={{ fontSize: '13px', padding: '6px 12px' }}>
+                                            <i className="ri-cloud-line" style={{ fontSize: '16px', width: '20px' }}></i>
+                                            <span data-i18n="zatcaPortal">{translations[currentLanguage].zatcaPortal}</span>
+                                        </button>
+                                    </li>
+                                )}
+                            </ul>
                         </li>
                     )}
                 </ul>
@@ -1510,7 +1542,7 @@ export default function App() {
                 <div className="sidebar-footer">
                     <button className="btn btn-danger" onClick={handleLogout} style={{ marginTop: '10px', width: '100%' }}>
                         <i className="ri-logout-box-line"></i>
-                        <span>Logout / خروج</span>
+                        <span>{currentLanguage === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
                     </button>
                 </div>
             </aside>
@@ -1650,12 +1682,12 @@ export default function App() {
 
                             {settings.businessType === 'services' && settings.enableServiceDuration && (
                                 <div style={{ marginTop: '10px' }}>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'مدة الجلسة / الخدمة' : 'Session Duration'}</label>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'مدة الجلسة' : 'Session Duration'}</label>
                                     <select className="form-control" value={serviceDuration} onChange={e => setServiceDuration(e.target.value)}>
-                                        <option value="30 mins">30 mins / ٣٠ دقيقة</option>
-                                        <option value="60 mins">60 mins / ساعة واحدة</option>
-                                        <option value="90 mins">90 mins / ساعة ونصف</option>
-                                        <option value="120 mins">120 mins / ساعتين</option>
+                                        <option value="30 mins">{currentLanguage === 'ar' ? '٣٠ دقيقة' : '30 mins'}</option>
+                                        <option value="60 mins">{currentLanguage === 'ar' ? 'ساعة واحدة' : '60 mins'}</option>
+                                        <option value="90 mins">{currentLanguage === 'ar' ? 'ساعة ونصف' : '90 mins'}</option>
+                                        <option value="120 mins">{currentLanguage === 'ar' ? 'ساعتين' : '120 mins'}</option>
                                     </select>
                                 </div>
                             )}
@@ -1805,6 +1837,7 @@ export default function App() {
                                 <thead>
                                     <tr>
                                         <th>{translations[currentLanguage].prodId}</th>
+                                        <th>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</th>
                                         <th>{translations[currentLanguage].prodName}</th>
                                         <th>{translations[currentLanguage].prodCategory}</th>
                                         <th>{translations[currentLanguage].prodStock}</th>
@@ -1816,6 +1849,7 @@ export default function App() {
                                     {products.map(p => (
                                         <tr key={p.id}>
                                             <td>{p.id}</td>
+                                            <td>{p.barcode || '-'}</td>
                                             <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
                                             <td>{translations[currentLanguage][p.category] || p.category}</td>
                                             <td>{p.stock}</td>
@@ -2787,7 +2821,7 @@ export default function App() {
                                 });
                             }}>
                                 <div className="form-group">
-                                    <label>{currentLanguage === 'ar' ? 'نوع النشاط التجاري / العمل الرئيسي' : 'Business Category / Type'}</label>
+                                    <label>{currentLanguage === 'ar' ? 'نوع النشاط التجاري' : 'Business Type'}</label>
                                     <select className="form-control" value={settings.businessType || 'retail'} onChange={e => {
                                         const type = e.target.value;
                                         setSettings({ 
@@ -2797,9 +2831,9 @@ export default function App() {
                                             enableServiceDuration: type === 'services'
                                         });
                                     }}>
-                                        <option value="retail">Retail & Shop / بيع بالتجزئة ومحلات</option>
-                                        <option value="restaurant">Restaurant & Cafe / مطاعم ومقاهي</option>
-                                        <option value="services">Services & Medical / خدمات واستشارات وطبية</option>
+                                        <option value="retail">{currentLanguage === 'ar' ? 'بيع بالتجزئة ومحلات' : 'Retail & Shop'}</option>
+                                        <option value="restaurant">{currentLanguage === 'ar' ? 'مطاعم ومقاهي' : 'Restaurant & Cafe'}</option>
+                                        <option value="services">{currentLanguage === 'ar' ? 'خدمات واستشارات وطبية' : 'Services & Medical'}</option>
                                     </select>
                                 </div>
 
@@ -3082,23 +3116,23 @@ export default function App() {
                                                     <table style={{ width: '100%', maxWidth: '380px', borderCollapse: 'collapse', fontSize: '12px' }}>
                                                         <tbody>
                                                             <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total (Excluding VAT) / الاجمالي (غير شامل ضريبة القيمة المضافة)</td>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'الإجمالي (غير شامل ضريبة القيمة المضافة)' : 'Total (Excluding VAT)'}</td>
                                                                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
                                                             </tr>
                                                             <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Discount / مجموع الخصومات</td>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'مجموع الخصومات' : 'Discount'}</td>
                                                                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeInvoice.discount || 0)}</td>
                                                             </tr>
                                                             <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total Taxable Amount / الاجمالي الخاضع للضريبة</td>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'الإجمالي الخاضع للضريبة' : 'Total Taxable Amount'}</td>
                                                                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeSubtotal)}</td>
                                                             </tr>
                                                             <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Total VAT / مجموع ضريبة القيمة المضافة</td>
+                                                                <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'مجموع ضريبة القيمة المضافة' : 'Total VAT'}</td>
                                                                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(activeVat)}</td>
                                                             </tr>
                                                             <tr style={{ background: '#f8fafc', borderBottom: '2px solid #8b5cf6' }}>
-                                                                <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>Total Amount Due / اجمالي المبلغ المستحق</td>
+                                                                <td style={{ padding: '8px', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{currentLanguage === 'ar' ? 'إجمالي المبلغ المستحق' : 'Total Amount Due'}</td>
                                                                 <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px', color: '#8b5cf6' }}>{formatCurrency(activeInvoice.total)}</td>
                                                             </tr>
                                                         </tbody>
@@ -3117,20 +3151,20 @@ export default function App() {
                                                 </div>
                                             )}
                                             <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{settings.businessAddress}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>الرقم الضريبي / VAT:</strong> {settings.vatNumber}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>سجل تجاري / CR No:</strong> {settings.crNumber}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>رقم التواصل / Contact:</strong> {settings.contactNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'الرقم الضريبي:' : 'VAT:'}</strong> {settings.vatNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'سجل تجاري:' : 'CR No:'}</strong> {settings.crNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'رقم التواصل:' : 'Contact:'}</strong> {settings.contactNumber}</p>
                                             
                                             <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
                                             
                                             {/* Invoice Metadata (Centered) */}
                                             <div style={{ fontSize: '11px', textAlign: 'center', margin: '0 auto 10px auto', lineHeight: '1.6' }}>
-                                                <p style={{ margin: '2px 0' }}><strong>رقم الفاتورة / Invoice ID:</strong> {activeInvoice.id}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>التاريخ / Date:</strong> {activeInvoice.date}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>العميل / Customer:</strong> {activeInvoice.customer}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>الدفع / Payment:</strong> {getPaymentMethodLabel(activeInvoice.paymentMethod)}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'رقم الفاتورة:' : 'Invoice ID:'}</strong> {activeInvoice.id}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'التاريخ:' : 'Date:'}</strong> {activeInvoice.date}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'العميل:' : 'Customer:'}</strong> {activeInvoice.customer}</p>
+                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'الدفع:' : 'Payment:'}</strong> {getPaymentMethodLabel(activeInvoice.paymentMethod, currentLanguage)}</p>
                                             </div>
                                             
                                             <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
@@ -3139,9 +3173,9 @@ export default function App() {
                                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', margin: '10px 0' }}>
                                                 <thead>
                                                     <tr style={{ borderBottom: '1px solid #000' }}>
-                                                        <th style={{ textAlign: 'left', padding: '4px 0' }}>Item / السلعة</th>
-                                                        <th style={{ textAlign: 'center', padding: '4px 0' }}>Qty / الكمية</th>
-                                                        <th style={{ textAlign: 'right', padding: '4px 0' }}>Total / الاجمالي</th>
+                                                        <th style={{ textAlign: 'left', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'السلعة' : 'Item'}</th>
+                                                        <th style={{ textAlign: 'center', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'الكمية' : 'Qty'}</th>
+                                                        <th style={{ textAlign: 'right', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'الاجمالي' : 'Total'}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -3160,21 +3194,21 @@ export default function App() {
                                             {/* Financial Summary */}
                                             <div style={{ fontSize: '11px', lineHeight: '1.6', margin: '10px 0' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>Subtotal / المجموع غير شامل الضريبة:</span>
+                                                    <span>{currentLanguage === 'ar' ? 'المجموع (غير شامل الضريبة):' : 'Subtotal (Excl. VAT):'}</span>
                                                     <span>{formatCurrency(activeSubtotal)}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>VAT (15%) / ضريبة القيمة المضافة:</span>
+                                                    <span>{currentLanguage === 'ar' ? 'ضريبة القيمة المضافة (15%):' : 'VAT (15%):'}</span>
                                                     <span>{formatCurrency(activeVat)}</span>
                                                 </div>
                                                 {activeInvoice.discount > 0 && (
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span>Discount / الخصم:</span>
+                                                        <span>{currentLanguage === 'ar' ? 'الخصم:' : 'Discount:'}</span>
                                                         <span>-{formatCurrency(activeInvoice.discount)}</span>
                                                     </div>
                                                 )}
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', marginTop: '4px' }}>
-                                                    <span>Total / المجموع شامل الضريبة:</span>
+                                                    <span>{currentLanguage === 'ar' ? 'المجموع (شامل الضريبة):' : 'Total (Incl. VAT):'}</span>
                                                     <span>{formatCurrency(activeInvoice.total)}</span>
                                                 </div>
                                             </div>
@@ -3232,6 +3266,10 @@ export default function App() {
                                     <option value="apparel">{translations[currentLanguage].apparel}</option>
                                     <option value="groceries">{translations[currentLanguage].groceries}</option>
                                 </select>
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</label>
+                                <input type="text" className="form-control" value={prodForm.barcode || ''} onChange={e => setProdForm({ ...prodForm, barcode: e.target.value })} />
                             </div>
                             <div className="form-group">
                                 <label>{translations[currentLanguage].prodStock}</label>
