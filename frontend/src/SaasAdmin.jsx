@@ -117,7 +117,7 @@ export default function SaasAdmin() {
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
                 <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '48px 40px', width: '400px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛡️</div>
-                    <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>KamySoft SaaS Admin</h1>
+                    <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>SME Solutions Admin</h1>
                     <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '13px', marginBottom: '32px' }}>Enter your provider admin key to access the control panel.</p>
                     <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <input
@@ -148,7 +148,7 @@ export default function SaasAdmin() {
             <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '22px' }}>🛡️</span>
-                    <span style={{ fontWeight: '700', fontSize: '16px', color: '#fff' }}>KamySoft</span>
+                    <span style={{ fontWeight: '700', fontSize: '16px', color: '#fff' }}>SME Solutions</span>
                     <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}>/ SaaS Provider Panel</span>
                 </div>
                 <button onClick={() => { localStorage.removeItem(ADMIN_KEY_STORAGE); setAdminKey(''); setAuthenticated(false); setKeyInput(''); }}

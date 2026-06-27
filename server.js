@@ -406,87 +406,86 @@ async function seedDatabase() {
             await model.updateMany(
                 { tenantId: { $exists: false } },
                 { $set: { tenantId: 'default' } }
-                // Note: using { strict: false } if needed, but since we updated schemas Mongoose allows it natively.
             );
         }
         console.log('Database migration complete: Added tenantId to pre-existing documents.');
 
-        // Settings
-        const settingsCount = await Settings.countDocuments();
+        // Settings — scoped to default tenant
+        const settingsCount = await Settings.countDocuments({ tenantId: 'default' });
         if (settingsCount === 0) {
-            await Settings.create(mockDb.settings);
+            await Settings.create({ ...mockDb.settings, tenantId: 'default' });
             console.log('Database seeded: Settings.');
         }
 
-        // Users
-        for (const u of mockDb.users) {
-            const exists = await User.findOne({ username: u.username });
+        // Users — scoped to default tenant
+        for (const u of mockDb.users.filter(u => u.tenantId === 'default')) {
+            const exists = await User.findOne({ username: u.username, tenantId: 'default' });
             if (!exists) {
                 await User.create(u);
                 console.log(`Database seeded user: ${u.username}`);
             }
         }
 
-        // Products
-        const productCount = await Product.countDocuments();
+        // Products — scoped to default tenant
+        const productCount = await Product.countDocuments({ tenantId: 'default' });
         if (productCount === 0) {
-            await Product.insertMany(mockDb.products);
+            await Product.insertMany(mockDb.products.filter(p => p.tenantId === 'default'));
             console.log('Database seeded: Products.');
         }
 
-        // Invoices
-        const invoiceCount = await Invoice.countDocuments();
+        // Invoices — scoped to default tenant
+        const invoiceCount = await Invoice.countDocuments({ tenantId: 'default' });
         if (invoiceCount === 0) {
-            await Invoice.insertMany(mockDb.invoices);
+            await Invoice.insertMany(mockDb.invoices.filter(i => i.tenantId === 'default'));
             console.log('Database seeded: Invoices.');
         }
 
-        // Quotations
-        const quotationCount = await Quotation.countDocuments();
+        // Quotations — scoped to default tenant
+        const quotationCount = await Quotation.countDocuments({ tenantId: 'default' });
         if (quotationCount === 0) {
-            await Quotation.insertMany(mockDb.quotations);
+            await Quotation.insertMany(mockDb.quotations.filter(q => q.tenantId === 'default'));
             console.log('Database seeded: Quotations.');
         }
 
-        // Expenses
-        const expenseCount = await Expense.countDocuments();
+        // Expenses — scoped to default tenant
+        const expenseCount = await Expense.countDocuments({ tenantId: 'default' });
         if (expenseCount === 0) {
-            await Expense.insertMany(mockDb.expenses);
+            await Expense.insertMany(mockDb.expenses.filter(e => e.tenantId === 'default'));
             console.log('Database seeded: Expenses.');
         }
 
-        // Assets
-        const assetCount = await Asset.countDocuments();
+        // Assets — scoped to default tenant
+        const assetCount = await Asset.countDocuments({ tenantId: 'default' });
         if (assetCount === 0) {
-            await Asset.insertMany(mockDb.assets);
+            await Asset.insertMany(mockDb.assets.filter(a => a.tenantId === 'default'));
             console.log('Database seeded: Assets.');
         }
 
-        // Customers
-        const customerCount = await Customer.countDocuments();
+        // Customers — scoped to default tenant
+        const customerCount = await Customer.countDocuments({ tenantId: 'default' });
         if (customerCount === 0) {
-            await Customer.insertMany(mockDb.customers);
+            await Customer.insertMany(mockDb.customers.filter(c => c.tenantId === 'default'));
             console.log('Database seeded: Customers.');
         }
 
-        // Employees
-        const employeeCount = await Employee.countDocuments();
+        // Employees — scoped to default tenant
+        const employeeCount = await Employee.countDocuments({ tenantId: 'default' });
         if (employeeCount === 0) {
-            await Employee.insertMany(mockDb.employees);
+            await Employee.insertMany(mockDb.employees.filter(e => e.tenantId === 'default'));
             console.log('Database seeded: Employees.');
         }
 
-        // Suppliers
-        const supplierCount = await Supplier.countDocuments();
+        // Suppliers — scoped to default tenant
+        const supplierCount = await Supplier.countDocuments({ tenantId: 'default' });
         if (supplierCount === 0) {
-            await Supplier.insertMany(mockDb.suppliers);
+            await Supplier.insertMany(mockDb.suppliers.filter(s => s.tenantId === 'default'));
             console.log('Database seeded: Suppliers.');
         }
 
-        // Orders
-        const orderCount = await Order.countDocuments();
+        // Orders — scoped to default tenant
+        const orderCount = await Order.countDocuments({ tenantId: 'default' });
         if (orderCount === 0) {
-            await Order.insertMany(mockDb.orders);
+            await Order.insertMany(mockDb.orders.filter(o => o.tenantId === 'default'));
             console.log('Database seeded: Orders.');
         }
     } catch (err) {
