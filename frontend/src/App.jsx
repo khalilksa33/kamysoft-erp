@@ -20,7 +20,7 @@ window.fetch = function (url, options = {}) {
             if (host === 'demo.26i.uk' || host.startsWith('demo')) {
                 tenant = 'default';
             } else {
-                const tenantMatch = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
+                const tenantMatch = host.match(/^(?!www\b|demo\b)([a-zA-Z0-9-]+)\.26i\.uk$/);
                 if (tenantMatch) {
                     tenant = tenantMatch[1];
                 }
@@ -525,7 +525,7 @@ export default function App() {
             setSimulatedTenant(newTenantId);
             setSimulatedDomain('customer');
         } else {
-            window.location.href = `https://cust-${newTenantId}.26i.uk`;
+            window.location.href = `https://${newTenantId}.26i.uk`;
         }
     };
 
@@ -547,7 +547,7 @@ export default function App() {
         if (host === 'demo.26i.uk' || host.startsWith('demo')) {
             routeMode = 'demo';
         } else {
-            const tenantMatch = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
+            const tenantMatch = host.match(/^(?!www\b|demo\b)([a-zA-Z0-9-]+)\.26i\.uk$/);
             if (tenantMatch) {
                 routeMode = 'customer';
                 tenantId = tenantMatch[1];

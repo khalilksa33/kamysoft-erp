@@ -91,7 +91,7 @@ const landingTranslations = {
             "Sandbox Device CSR Generation",
             "Dedicated Account Manager",
             "24/7 Priority Support SLAs",
-            "Custom Domain (cust-x.26i.uk)"
+            "Custom Domain (x.26i.uk)"
         ],
         buyNow: "Get Started Now",
         
@@ -213,7 +213,7 @@ const landingTranslations = {
             "توليد ملفات CSR للأجهزة وتسجيلها",
             "مدير حساب مخصص للمنشأة",
             "دعم فني وتوافر على مدار الساعة 24/7",
-            "نطاق مخصص للعميل (cust-x.26i.uk)"
+            "نطاق مخصص للعميل (x.26i.uk)"
         ],
         buyNow: "ابدأ الآن",
         
@@ -1211,8 +1211,8 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 </h4>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
                                     {isRtl 
-                                        ? `تم إنشاء قاعدة بيانات معزولة لمتجرك بالرابط الفرعي: cust-${registerForm.tenantId.toLowerCase()}.26i.uk وتعبئته بالمنتجات التجريبية.`
-                                        : `Your isolated database workspace is ready at cust-${registerForm.tenantId.toLowerCase()}.26i.uk loaded with initial demo items.`}
+                                        ? `تم إنشاء قاعدة بيانات معزولة لمتجرك بالرابط الفرعي: ${registerForm.tenantId.toLowerCase()}.26i.uk وتعبئته بالمنتجات التجريبية.`
+                                        : `Your isolated database workspace is ready at ${registerForm.tenantId.toLowerCase()}.26i.uk loaded with initial demo items.`}
                                 </p>
                                 
                                 <button 
@@ -1243,7 +1243,6 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         {isRtl ? 'رابط المتجر الفرعي (الأحرف اللاتينية والأرقام والشرطة فقط)' : 'Store Subdomain (Alphanumeric/hyphen only)'}
                                     </label>
                                     <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', overflow: 'hidden' }}>
-                                        <span style={{ padding: '0 12px', fontSize: '13px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRight: isRtl ? 'none' : '1px solid var(--glass-border)', borderLeft: isRtl ? '1px solid var(--glass-border)' : 'none' }}>cust-</span>
                                         <input 
                                             type="text" 
                                             name="tenantId"
