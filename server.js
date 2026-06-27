@@ -13,12 +13,12 @@ const PORT = process.env.PORT || 8089;
 const JWT_SECRET = process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026';
 
 const getTenantId = (req) => {
-    const host = req.headers.host || '';
-    let match = host.match(/^cust-([a-zA-Z0-9-]+)\.26i\.uk$/);
-    if (match) return match[1].toLowerCase();
+    const host = (req.headers.host || '').split(':')[0].toLowerCase();
+    let match = host.match(/^([a-zA-Z0-9-]+)\.26i\.uk$/);
+    if (match && match[1] !== 'www' && match[1] !== 'demo') return match[1];
     
-    match = host.match(/^cust-([a-zA-Z0-9-]+)\.localhost/);
-    if (match) return match[1].toLowerCase();
+    match = host.match(/^([a-zA-Z0-9-]+)\.localhost$/);
+    if (match && match[1] !== 'www' && match[1] !== 'demo') return match[1];
     
     const tenantHeader = req.headers['x-tenant-id'];
     if (tenantHeader) return tenantHeader.trim().toLowerCase();
@@ -774,8 +774,9 @@ app.post('/api/auth/register-tenant', async (req, res) => {
         
         // 3. Seed initial products based on businessType
         const productsToSeed = defaultProductsBySector[businessType] || defaultProductsBySector.retail;
+        const seedBase = Date.now();
         const seedProducts = productsToSeed.map((p, idx) => ({
-            id: (2001 + idx).toString(),
+            id: `${normalizedTenantId}-p${seedBase + idx}`,
             nameEN: p.nameEN,
             nameAR: p.nameAR,
             price: p.price,
