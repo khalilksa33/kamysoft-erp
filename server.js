@@ -1589,6 +1589,117 @@ app.put('/api/quotations/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// ====================================================
+// SAAS PROVIDER ADMIN ROUTES  (protected by SAAS_ADMIN_KEY)
+// ====================================================
+const SAAS_ADMIN_KEY = process.env.SAAS_ADMIN_KEY || 'kamysoft-saas-admin-2026';
+
+const requireSaasAdmin = (req, res, next) => {
+    const key = req.headers['x-saas-admin-key'] || req.query.key;
+    if (!key || key !== SAAS_ADMIN_KEY) {
+        return res.status(403).json({ error: 'Forbidden: invalid admin key' });
+    }
+    next();
+};
+
+// GET all tenants with stats
+app.get('/api/saas/stores', requireSaasAdmin, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const stores = await Settings.find({}).lean();
+            const enriched = await Promise.all(stores.map(async (s) => {
+                const [invoiceCount, productCount, userCount] = await Promise.all([
+                    Invoice.countDocuments({ tenantId: s.tenantId }),
+                    Product.countDocuments({ tenantId: s.tenantId }),
+                    User.countDocuments({ tenantId: s.tenantId })
+                ]);
+                return { ...s, invoiceCount, productCount, userCount };
+            }));
+            res.json(enriched);
+        } else {
+            const stores = Object.values(mockDb.settingsTenant || { default: mockDb.settings });
+            res.json(stores.map(s => ({ ...s, invoiceCount: 0, productCount: 0, userCount: 0 })));
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE a tenant store and all its data
+app.delete('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        if (tenantId === 'default') return res.status(400).json({ error: 'Cannot delete the default demo store' });
+        if (isMongoConnected) {
+            await Promise.all([
+                Settings.deleteOne({ tenantId }),
+                User.deleteMany({ tenantId }),
+                Product.deleteMany({ tenantId }),
+                Invoice.deleteMany({ tenantId }),
+                Quotation.deleteMany({ tenantId }),
+                Expense.deleteMany({ tenantId }),
+                Asset.deleteMany({ tenantId }),
+                Customer.deleteMany({ tenantId }),
+                Employee.deleteMany({ tenantId }),
+                Supplier.deleteMany({ tenantId }),
+                Order.deleteMany({ tenantId })
+            ]);
+        } else {
+            if (mockDb.settingsTenant) delete mockDb.settingsTenant[tenantId];
+        }
+        res.json({ success: true, message: `Store ${tenantId} deleted.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PATCH suspend or activate a tenant
+app.patch('/api/saas/stores/:tenantId/status', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        const { suspended } = req.body;
+        if (isMongoConnected) {
+            await Settings.updateOne({ tenantId }, { $set: { suspended: !!suspended } });
+        }
+        res.json({ success: true, tenantId, suspended: !!suspended });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET inquiries list
+app.get('/api/saas/inquiries', requireSaasAdmin, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const inquiries = await Inquiry.find({}).sort({ createdAt: -1 }).lean();
+            res.json(inquiries);
+        } else {
+            res.json(mockDb.inquiries || []);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET platform-wide stats
+app.get('/api/saas/stats', requireSaasAdmin, async (req, res) => {
+    try {
+        if (isMongoConnected) {
+            const [storeCount, invoiceCount, userCount, inquiryCount] = await Promise.all([
+                Settings.countDocuments({}),
+                Invoice.countDocuments({}),
+                User.countDocuments({}),
+                Inquiry.countDocuments({})
+            ]);
+            res.json({ storeCount, invoiceCount, userCount, inquiryCount });
+        } else {
+            res.json({ storeCount: 1, invoiceCount: 0, userCount: 1, inquiryCount: 0 });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ----------------------------------------------------
 // FRONTEND SERVING (Vite production assets build)
 // ----------------------------------------------------

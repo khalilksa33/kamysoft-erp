@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './LandingPage';
+import SaasAdmin from './SaasAdmin';
 
 // Automatically add x-tenant-id header to relative API calls
 const originalFetch = window.fetch;
@@ -1622,6 +1623,10 @@ export default function App() {
 
     // Render Marketing Landing Page
     if (routeMode === 'marketing') {
+        // Check if admin panel is requested via URL path
+        if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
+            return <SaasAdmin />;
+        }
         return (
             <>
                 <LandingPage 

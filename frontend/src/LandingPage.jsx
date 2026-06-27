@@ -1209,26 +1209,32 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '12px' }}>
                                     {isRtl ? 'تم إنشاء متجرك وتخصيصه!' : 'Your Store is Ready!'}
                                 </h4>
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>
                                     {isRtl 
-                                        ? `تم إنشاء قاعدة بيانات معزولة لمتجرك بالرابط الفرعي: ${registerForm.tenantId.toLowerCase()}.26i.uk وتعبئته بالمنتجات التجريبية.`
-                                        : `Your isolated database workspace is ready at ${registerForm.tenantId.toLowerCase()}.26i.uk loaded with initial demo items.`}
+                                        ? `تم إنشاء قاعدة بيانات معزولة لمتجرك وتعبئته بالمنتجات التجريبية.`
+                                        : `Your isolated database workspace is ready and loaded with demo products.`}
                                 </p>
-                                
-                                <button 
-                                    className="btn btn-primary glow-button" 
-                                    onClick={() => {
-                                        setShowRegisterModal(false);
-                                        if (onRegisterSuccess) {
-                                            onRegisterSuccess(registerForm.tenantId.toLowerCase());
-                                        }
-                                    }}
-                                    style={{ width: '100%', padding: '12px', fontSize: '15px' }}
-                                >
-                                    <i className="ri-external-link-line"></i>
-                                    <span>{isRtl ? 'الدخول إلى متجري الآن' : 'Launch My Store Now'}</span>
-                                </button>
+                                <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '20px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
+                                    https://{registerForm.tenantId.toLowerCase()}.26i.uk
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button 
+                                        className="btn btn-primary glow-button" 
+                                        onClick={() => window.open(`https://${registerForm.tenantId.toLowerCase()}.26i.uk`, '_blank')}
+                                        style={{ flex: 1, padding: '12px', fontSize: '15px' }}
+                                    >
+                                        <i className="ri-external-link-line"></i>
+                                        <span>{isRtl ? 'الدخول إلى متجري (نافذة جديدة)' : 'Open My Store'}</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowRegisterModal(false)}
+                                        style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px' }}
+                                    >
+                                        {isRtl ? 'إغلاق' : 'Close'}
+                                    </button>
+                                </div>
                             </div>
+
                         ) : (
                             <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {registerStatus === 'error' && (
