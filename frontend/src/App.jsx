@@ -559,7 +559,10 @@ export default function App() {
     }
 
     const handleLaunchApp = (targetTenantId) => {
-        if (targetTenantId && targetTenantId !== 'demo' && targetTenantId !== 'default') {
+        // Guard: if called directly as an onClick handler, targetTenantId will be a MouseEvent object, not a string.
+        // Only treat it as a real tenant ID when it is actually a non-empty string.
+        const isRealTenantId = typeof targetTenantId === 'string' && targetTenantId.trim() !== '' && targetTenantId !== 'demo' && targetTenantId !== 'default';
+        if (isRealTenantId) {
             // Launch a specific tenant's store
             if (isLocalhost) {
                 setSimulatedDomain('customer');
