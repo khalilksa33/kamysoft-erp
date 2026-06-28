@@ -299,6 +299,9 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             const data = await response.json();
             if (response.ok) {
                 setRegisterStatus('success');
+                // Store cleanTenantId so the "Launch My Store" button can use it
+                // (onRegisterSuccess is called from the button, not here, so the success screen stays visible)
+
             } else {
                 setRegisterStatus('error');
                 setRegisterError(data.error || (isRtl ? 'حدث خطأ أثناء الإنشاء' : 'Error creating store'));
@@ -1220,11 +1223,14 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button 
                                         className="btn btn-primary glow-button" 
-                                        onClick={() => window.open(`https://${registerForm.tenantId.toLowerCase()}.26i.uk`, '_blank')}
+                                        onClick={() => {
+                                            setShowRegisterModal(false);
+                                            if (onRegisterSuccess) onRegisterSuccess(registerForm.tenantId.toLowerCase());
+                                        }}
                                         style={{ flex: 1, padding: '12px', fontSize: '15px' }}
                                     >
-                                        <i className="ri-external-link-line"></i>
-                                        <span>{isRtl ? 'الدخول إلى متجري (نافذة جديدة)' : 'Open My Store'}</span>
+                                        <i className="ri-rocket-2-line"></i>
+                                        <span>{isRtl ? 'الدخول إلى متجري الآن' : 'Launch My Store'}</span>
                                     </button>
                                     <button 
                                         onClick={() => setShowRegisterModal(false)}
