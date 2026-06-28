@@ -707,6 +707,15 @@ export default function App() {
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [orderForm, setOrderForm] = useState({ customer: '', items: '', total: '', status: 'Pending', date: new Date().toLocaleString() });
 
+    // B2B Sales Panel State
+    const [b2bForm, setB2bForm] = useState({
+        customer: '',
+        date: new Date().toISOString().split('T')[0],
+        items: [{ id: Date.now().toString(), productId: '', name: '', qty: 1, price: 0, vatRate: 15, total: 0 }],
+        notes: '',
+        saveAs: 'Invoice' // 'Invoice', 'Draft', 'Quotation'
+    });
+
     // ZATCA Sandbox Output Log Console state
     const [zatcaConsole, setZatcaConsole] = useState([
         { type: "SYSTEM", text: "ZATCA Phase 2 Sandbox clearance engine active. Ready." }
@@ -1023,6 +1032,91 @@ export default function App() {
         });
     };
     
+    const handleB2BSubmit = () => {
+        if (b2bForm.items.length === 0 || !b2bForm.items[0].productId) return;
+        
+        const validItems = b2bForm.items.filter(i => i.productId);
+        const subtotal = validItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+        const vat = validItems.reduce((acc, item) => acc + (item.price * item.qty * (item.vatRate / 100)), 0);
+        const grandTotal = subtotal + vat;
+
+        const customerLabel = b2bForm.customer || (currentLanguage === 'ar' ? 'عميل نقدي' : 'Walk-in Customer');
+
+        const postData = {
+            date: b2bForm.date,
+            customer: customerLabel,
+            items: validItems.map(i => ({ id: i.productId, name: i.name, price: i.price, qty: i.qty })),
+            discount: 0,
+            total: grandTotal,
+            vat: vat,
+            paymentMethod: 'Credit',
+            branch: settings.currentBranch || 'Main Branch - Riyadh',
+            notes: b2bForm.notes
+        };
+
+        if (b2bForm.saveAs === 'Quotation') {
+            const newQuote = { ...postData, id: `QT-${Date.now().toString().slice(-6)}`, status: 'Valid' };
+            setQuotations([...quotations, newQuote]);
+            setActiveTab('quotations');
+        } else {
+            const newInv = {
+                ...postData,
+                id: `INV-${Date.now().toString().slice(-6)}`,
+                zatcaStatus: b2bForm.saveAs === 'Draft' ? 'DRAFT' : 'PENDING'
+            };
+            setInvoices([...invoices, newInv]);
+            
+            if (b2bForm.saveAs === 'Invoice') {
+                setActiveInvoice(newInv);
+                setInvoiceFormat('a4');
+                setInvoiceSource('sales');
+                setShowInvoiceModal(true);
+            }
+            setActiveTab('invoices');
+        }
+        
+        // Reset Form
+        setB2bForm({
+            customer: '', date: new Date().toISOString().split('T')[0],
+            items: [{ id: Date.now().toString(), productId: '', name: '', qty: 1, price: 0, vatRate: 15, total: 0 }],
+            notes: '', saveAs: 'Invoice'
+        });
+    };
+
+    const handleB2BItemChange = (index, field, value) => {
+        const newItems = [...b2bForm.items];
+        const item = newItems[index];
+        if (field === 'productId') {
+            const prod = products.find(p => p.id === value);
+            if (prod) {
+                item.productId = prod.id;
+                item.name = currentLanguage === 'ar' ? prod.nameAR : prod.nameEN;
+                item.price = prod.price;
+            }
+        } else if (field === 'qty') {
+            item.qty = Number(value) || 1;
+        } else if (field === 'price') {
+            item.price = Number(value) || 0;
+        } else if (field === 'vatRate') {
+            item.vatRate = Number(value) || 0;
+        }
+        item.total = item.qty * item.price;
+        setB2bForm({ ...b2bForm, items: newItems });
+    };
+
+    const handleB2BAddItem = () => {
+        setB2bForm({
+            ...b2bForm,
+            items: [...b2bForm.items, { id: Date.now().toString(), productId: '', name: '', qty: 1, price: 0, vatRate: 15, total: 0 }]
+        });
+    };
+
+    const handleB2BRemoveItem = (index) => {
+        const newItems = [...b2bForm.items];
+        newItems.splice(index, 1);
+        setB2bForm({ ...b2bForm, items: newItems });
+    };
+
     const handleSaveQuotationFromCart = () => {
         if (cart.length === 0) return;
 
@@ -1985,7 +2079,7 @@ export default function App() {
                 )}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
-                {(activeTab === 'pos' || activeTab === 'b2bsale') && (
+                {activeTab === 'pos' && (
                     <div className="pos-layout">
                         <div className="pos-products">
                             <div className="products-filter">
@@ -2212,6 +2306,125 @@ export default function App() {
                                     <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
                                     <button className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={handleSaveQuotationFromCart}>
                                         <i className="ri-file-text-line"></i> {translations[currentLanguage].saveAsQuotation}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: B2B SALES PANEL */}
+                {activeTab === 'b2bsale' && (
+                    <div className="glass-card" style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <div>
+                                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <i className="ri-building-line"></i> {currentLanguage === 'ar' ? 'فاتورة مبيعات B2B جديدة' : 'New B2B Sales Invoice'}
+                                </h3>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                                    {currentLanguage === 'ar' ? 'إنشاء فاتورة ضريبية رسمية (A4) لقطاع الأعمال' : 'Create standard A4 Tax Invoice for B2B customers'}
+                                </p>
+                            </div>
+                            <button className="btn btn-secondary" onClick={() => setActiveTab('invoices')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="ri-arrow-left-line"></i> {currentLanguage === 'ar' ? 'عودة للمبيعات' : 'Back to Sales'}
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                            <div style={{ flex: '1 1 300px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'العميل' : 'Customer'}</label>
+                                <select className="form-control" value={b2bForm.customer} onChange={(e) => setB2bForm({ ...b2bForm, customer: e.target.value })}>
+                                    <option value="">{currentLanguage === 'ar' ? 'عميل نقدي' : 'Walk-in Customer'}</option>
+                                    {customers.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ flex: '1 1 200px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'تاريخ الإصدار' : 'Issue Date'}</label>
+                                <input type="date" className="form-control" value={b2bForm.date} onChange={(e) => setB2bForm({ ...b2bForm, date: e.target.value })} />
+                            </div>
+                            <div style={{ flex: '1 1 200px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'طريقة الحفظ' : 'Save As'}</label>
+                                <select className="form-control" value={b2bForm.saveAs} onChange={(e) => setB2bForm({ ...b2bForm, saveAs: e.target.value })}>
+                                    <option value="Invoice">{currentLanguage === 'ar' ? 'فاتورة ضريبية معتمدة' : 'Final Invoice (A4)'}</option>
+                                    <option value="Draft">{currentLanguage === 'ar' ? 'مسودة' : 'Draft'}</option>
+                                    <option value="Quotation">{currentLanguage === 'ar' ? 'عرض سعر' : 'Quotation'}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                            <table>
+                                <thead>
+                                    <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
+                                        <th style={{ width: '40%' }}>{currentLanguage === 'ar' ? 'المنتج / الخدمة' : 'Product / Service'}</th>
+                                        <th style={{ width: '15%' }}>{currentLanguage === 'ar' ? 'الكمية' : 'Quantity'}</th>
+                                        <th style={{ width: '20%' }}>{currentLanguage === 'ar' ? 'السعر (بدون ضريبة)' : 'Unit Price (Ex. VAT)'}</th>
+                                        <th style={{ width: '15%' }}>{currentLanguage === 'ar' ? 'الإجمالي (بدون ضريبة)' : 'Line Total'}</th>
+                                        <th style={{ width: '10%' }}></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {b2bForm.items.map((item, index) => (
+                                        <tr key={item.id}>
+                                            <td>
+                                                <select className="form-control" value={item.productId} onChange={(e) => handleB2BItemChange(index, 'productId', e.target.value)} style={{ background: 'rgba(0,0,0,0.4)', border: 'none' }}>
+                                                    <option value="">{currentLanguage === 'ar' ? 'اختر المنتج...' : 'Select Product...'}</option>
+                                                    {products.map(p => (
+                                                        <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" min="1" className="form-control" value={item.qty} onChange={(e) => handleB2BItemChange(index, 'qty', e.target.value)} style={{ background: 'rgba(0,0,0,0.4)', border: 'none', textAlign: 'center' }} />
+                                            </td>
+                                            <td>
+                                                <input type="number" min="0" step="0.01" className="form-control" value={item.price} onChange={(e) => handleB2BItemChange(index, 'price', e.target.value)} style={{ background: 'rgba(0,0,0,0.4)', border: 'none' }} />
+                                            </td>
+                                            <td style={{ fontWeight: 'bold' }}>
+                                                {formatCurrency(item.qty * item.price)}
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-danger" onClick={() => handleB2BRemoveItem(index)} style={{ padding: '6px' }} disabled={b2bForm.items.length === 1}>
+                                                    <i className="ri-delete-bin-line"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <div style={{ padding: '12px' }}>
+                                <button className="btn btn-secondary" onClick={handleB2BAddItem} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                                    <i className="ri-add-line"></i> {currentLanguage === 'ar' ? 'إضافة سطر' : 'Add Item'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                            <div style={{ flex: '1 1 50%' }}>
+                                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'ملاحظات إضافية' : 'Additional Notes / Terms'}</label>
+                                <textarea className="form-control" rows="4" value={b2bForm.notes} onChange={(e) => setB2bForm({ ...b2bForm, notes: e.target.value })} placeholder={currentLanguage === 'ar' ? 'اكتب شروط الدفع أو أي تفاصيل أخرى هنا...' : 'Enter payment terms or additional info...'}></textarea>
+                            </div>
+                            <div style={{ flex: '1 1 50%' }}>
+                                <div className="glass-card" style={{ padding: '20px', background: 'rgba(0,0,0,0.2)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: 'var(--text-secondary)' }}>
+                                        <span>{currentLanguage === 'ar' ? 'المجموع الفرعي' : 'Subtotal'}:</span>
+                                        <span>{formatCurrency(b2bForm.items.filter(i => i.productId).reduce((acc, i) => acc + (i.price * i.qty), 0))}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: 'var(--text-secondary)' }}>
+                                        <span>{currentLanguage === 'ar' ? 'ضريبة القيمة المضافة (15%)' : 'VAT (15%)'}:</span>
+                                        <span>{formatCurrency(b2bForm.items.filter(i => i.productId).reduce((acc, i) => acc + (i.price * i.qty * 0.15), 0))}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--glass-border)', fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-success)' }}>
+                                        <span>{currentLanguage === 'ar' ? 'الإجمالي' : 'Total'}:</span>
+                                        <span>{formatCurrency(b2bForm.items.filter(i => i.productId).reduce((acc, i) => acc + (i.price * i.qty * 1.15), 0))}</span>
+                                    </div>
+                                    <button 
+                                        className="btn btn-primary glow-button" 
+                                        style={{ width: '100%', marginTop: '20px', padding: '14px', fontSize: '15px' }} 
+                                        onClick={handleB2BSubmit}
+                                        disabled={b2bForm.items.length === 0 || !b2bForm.items[0].productId}
+                                    >
+                                        <i className="ri-check-double-line"></i> {currentLanguage === 'ar' ? 'تأكيد وحفظ' : 'Confirm & Save'}
                                     </button>
                                 </div>
                             </div>
@@ -2711,7 +2924,7 @@ export default function App() {
                                 onClick={() => setActiveTab('b2bsale')}
                             >
                                 <i className="ri-building-line"></i>
-                                {currentLanguage === 'ar' ? 'بيع جديد B2B (فاتورة A4)' : 'New B2B Sale (A4)'}
+                                {currentLanguage === 'ar' ? 'بيع جديد B2B' : 'New B2B Sale'}
                             </button>
                             <button
                                 className="btn btn-secondary"
