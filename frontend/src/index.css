@@ -732,7 +732,6 @@ tr:hover td {
     font-family: 'Outfit', sans-serif;
     margin-bottom: 20px;
     width: 210mm;
-    min-height: 297mm;
     margin-left: auto;
     margin-right: auto;
     box-shadow: 0 0 15px rgba(0,0,0,0.15);
@@ -850,7 +849,6 @@ tr:hover td {
     
     .invoice-a4-layout {
         width: 210mm !important;
-        min-height: 297mm !important;
         background: white !important;
         color: #333 !important;
     }
