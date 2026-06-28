@@ -523,16 +523,13 @@ export default function App() {
         // Clear token so the user is forced to log in to their newly created store
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        setToken('');
-        setUser(null);
 
         if (isLocalhost) {
             localStorage.setItem('simulatedTenant', newTenantId);
             localStorage.setItem('simulatedDomain', 'customer');
-            setSimulatedTenant(newTenantId);
-            setSimulatedDomain('customer');
+            window.open(window.location.origin, '_blank');
         } else {
-            window.location.href = `https://${newTenantId}.26i.uk`;
+            window.open(`https://${newTenantId}.26i.uk`, '_blank');
         }
     };
 
@@ -571,17 +568,19 @@ export default function App() {
         if (isRealTenantId) {
             // Launch a specific tenant's store
             if (isLocalhost) {
-                setSimulatedDomain('customer');
-                setSimulatedTenant(targetTenantId);
+                localStorage.setItem('simulatedDomain', 'customer');
+                localStorage.setItem('simulatedTenant', targetTenantId);
+                window.open(window.location.origin, '_blank');
             } else {
                 window.open(`https://${targetTenantId}.26i.uk`, '_blank');
             }
         } else {
             // Launch the generic demo store
             if (isLocalhost) {
-                setSimulatedDomain('demo');
+                localStorage.setItem('simulatedDomain', 'demo');
+                window.open(window.location.origin, '_blank');
             } else {
-                window.location.href = 'https://demo.26i.uk';
+                window.open('https://demo.26i.uk', '_blank');
             }
         }
     };

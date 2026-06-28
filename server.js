@@ -7,10 +7,50 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 8089;
 const JWT_SECRET = process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026';
+
+// ----------------------------------------------------
+// EMAIL SERVICE CONFIGURATION (SendGrid)
+// ----------------------------------------------------
+const transporter = nodemailer.createTransport({
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY || 'SG.mock-key-for-development' // Replace with real key in production .env
+    }
+});
+
+const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt) => {
+    if (!process.env.SENDGRID_API_KEY) {
+        console.log(`[Mock Email] License key for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${licenseKey}`);
+        return;
+    }
+    try {
+        await transporter.sendMail({
+            from: '"SME Solutions" <no-reply@kamysofterp.com>',
+            to: tenantEmail,
+            subject: 'Welcome to SME Solutions! Your License Key',
+            html: `
+                <h3>Welcome to SME Solutions, ${businessName}!</h3>
+                <p>Your store has been successfully created. You can access it at: <b>https://${tenantId}.26i.uk</b></p>
+                <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;">
+                    <p style="margin:0;font-size:14px;color:#6b7280;">Your License Key:</p>
+                    <p style="margin:8px 0 0 0;font-size:24px;font-weight:bold;color:#111827;letter-spacing:2px;">${licenseKey}</p>
+                </div>
+                <p>This license is valid until: <b>${new Date(expiresAt).toLocaleDateString()}</b>.</p>
+                <p>This key is automatically validated when you log in.</p>
+            `
+        });
+        console.log(`License email sent to ${tenantEmail}`);
+    } catch (err) {
+        console.error('Failed to send license email:', err.message);
+    }
+};
 
 const getTenantId = (req) => {
     const host = (req.headers.host || '').split(':')[0].toLowerCase();
@@ -382,7 +422,17 @@ const settingsSchema = new mongoose.Schema({
     currentBranch: { type: String, default: 'Main Branch - Riyadh' },
     businessType: { type: String, default: 'retail' },
     enableTables: { type: Boolean, default: false },
-    enableServiceDuration: { type: Boolean, default: false }
+    enableServiceDuration: { type: Boolean, default: false },
+    
+    // SaaS Registration Details
+    email: { type: String },
+    mobile: { type: String },
+    nationalAddress: { type: String },
+    
+    // License Tracking
+    licenseKey: { type: String },
+    licenseStatus: { type: String, default: 'active' }, // 'active', 'expired'
+    licenseExpiresAt: { type: Date }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -502,13 +552,30 @@ function authenticateToken(req, res, next) {
     
     if (!token) return res.status(401).json({ error: 'Access token required' });
     
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, async (err, user) => {
         if (err) return res.status(403).json({ error: 'Token expired or invalid' });
         
         const tenantId = getTenantId(req);
         if (user.tenantId !== tenantId) {
             return res.status(403).json({ error: 'Tenant access mismatch' });
         }
+        
+        // --- License Validation Check ---
+        if (tenantId !== 'default' && tenantId !== 'demo') {
+            let tenantSettings;
+            if (isMongoConnected) {
+                tenantSettings = await Settings.findOne({ tenantId });
+            } else {
+                tenantSettings = mockDb.settingsTenant[tenantId];
+            }
+            
+            if (tenantSettings && tenantSettings.licenseExpiresAt) {
+                if (new Date() > new Date(tenantSettings.licenseExpiresAt)) {
+                    return res.status(403).json({ error: 'LICENSE_EXPIRED', message: 'Your store license has expired. Please renew your subscription.' });
+                }
+            }
+        }
+        // --------------------------------
         
         req.user = user;
         next();
@@ -704,7 +771,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/register-tenant', async (req, res) => {
     try {
-        const { tenantId, businessName, businessType, adminUsername, adminPassword } = req.body;
+        const { tenantId, businessName, businessType, adminUsername, adminPassword, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle } = req.body;
         
         if (!tenantId || !businessName || !businessType || !adminUsername || !adminPassword) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -728,22 +795,40 @@ app.post('/api/auth/register-tenant', async (req, res) => {
             }
         }
         
+        // Generate License Key & Expiration
+        const crypto = require('crypto');
+        const licenseKey = 'SME-' + crypto.randomUUID().toUpperCase().split('-').slice(1, 4).join('-');
+        
+        // Expiration Logic (Monthly vs Yearly)
+        const expirationDate = new Date();
+        if (billingCycle === 'yearly') {
+            expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        } else {
+            expirationDate.setMonth(expirationDate.getMonth() + 1);
+        }
+
         // 1. Create Tenant-Specific Settings
         const settingsData = {
             tenantId: normalizedTenantId,
             businessName: businessName,
             businessType: businessType,
-            vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
+            vatNumber: vatNumber || '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
             taxRate: 15,
             baseCurrency: 'SAR',
-            businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
-            crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
-            contactNumber: '+966 50 000 0000',
+            businessAddress: nationalAddress || 'Saudi Arabia / المملكة العربية السعودية',
+            crNumber: crNumber || Math.floor(1010000000 + Math.random() * 900000000).toString(),
+            contactNumber: mobile || '+966 50 000 0000',
             exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
-            branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
+            branches: [{ name: 'Main Branch', address: 'Main St', phone: mobile || '+966 50 000 0000' }],
             currentBranch: 'Main Branch',
             enableTables: businessType === 'restaurant',
-            enableServiceDuration: businessType === 'salon'
+            enableServiceDuration: businessType === 'salon',
+            email: email,
+            mobile: mobile,
+            nationalAddress: nationalAddress,
+            licenseKey: licenseKey,
+            licenseStatus: 'active',
+            licenseExpiresAt: expirationDate
         };
         
         if (isMongoConnected) {
@@ -793,7 +878,16 @@ app.post('/api/auth/register-tenant', async (req, res) => {
             mockDb.products.push(...seedProducts);
         }
         
-        res.status(201).json({ success: true, tenantId: normalizedTenantId });
+        // Send email asynchronously (don't block the response)
+        if (email) {
+            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate);
+        }
+        
+        res.status(201).json({ 
+            success: true, 
+            tenantId: normalizedTenantId,
+            licenseKey: licenseKey 
+        });
     } catch (err) {
         console.error('Error registering tenant:', err);
         res.status(500).json({ error: err.message });

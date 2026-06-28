@@ -263,11 +263,17 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
         businessName: '',
         businessType: 'retail',
         adminUsername: 'admin',
-        adminPassword: ''
+        adminPassword: '',
+        email: '',
+        mobile: '',
+        nationalAddress: '',
+        vatNumber: '',
+        crNumber: ''
     });
     const [registerStatus, setRegisterStatus] = useState(null); // 'submitting', 'success', 'error'
     const [registerError, setRegisterError] = useState('');
     const [registeredTenantId, setRegisteredTenantId] = useState('');
+    const [generatedLicenseKey, setGeneratedLicenseKey] = useState('');
 
     const handleRegisterChange = (e) => {
         setRegisterForm({
@@ -294,13 +300,17 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...registerForm,
-                    tenantId: cleanTenantId
+                    tenantId: cleanTenantId,
+                    billingCycle: billingCycle
                 })
             });
             const data = await response.json();
             if (response.ok) {
                 setRegisterStatus('success');
                 setRegisteredTenantId(cleanTenantId);
+                if (data.licenseKey) {
+                    setGeneratedLicenseKey(data.licenseKey);
+                }
                 // Store cleanTenantId so the "Launch My Store" button can use it
                 // (onRegisterSuccess is called from the button, not here, so the success screen stays visible)
 
@@ -1219,9 +1229,16 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         ? `تم إنشاء قاعدة بيانات معزولة لمتجرك وتعبئته بالمنتجات التجريبية.`
                                         : `Your isolated database workspace is ready and loaded with demo products.`}
                                 </p>
-                                <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '20px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
+                                <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
                                     https://{registerForm.tenantId.toLowerCase()}.26i.uk
                                 </div>
+                                {generatedLicenseKey && (
+                                    <div style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
+                                        <div style={{ fontSize: '12px', color: '#34d399', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{isRtl ? 'مفتاح الترخيص الخاص بك' : 'Your License Key'}</div>
+                                        <div style={{ fontFamily: 'monospace', fontSize: '18px', color: '#fff', fontWeight: 'bold', letterSpacing: '2px' }}>{generatedLicenseKey}</div>
+                                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>{isRtl ? 'تم إرسال نسخة إلى بريدك الإلكتروني.' : 'A copy has been sent to your email.'}</div>
+                                    </div>
+                                )}
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button 
                                         className="btn btn-primary glow-button" 
@@ -1272,6 +1289,37 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
 
                                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                     <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                        {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        name="email"
+                                        value={registerForm.email}
+                                        onChange={handleRegisterChange}
+                                        required
+                                        placeholder="owner@mystore.com"
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
+                                    />
+                                </div>
+
+                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                        {isRtl ? 'رقم الجوال' : 'Mobile Number'}
+                                    </label>
+                                    <input 
+                                        type="tel" 
+                                        name="mobile"
+                                        value={registerForm.mobile}
+                                        onChange={handleRegisterChange}
+                                        required
+                                        placeholder="+966 5X XXX XXXX"
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
+                                    />
+                                </div>
+                                </div>
+
+                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                                         {isRtl ? 'اسم المتجر / المنشأة' : 'Store / Business Name'}
                                     </label>
                                     <input 
@@ -1303,6 +1351,53 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         <option value="furniture">{isRtl ? 'معرض أثاث ومفروشات' : 'Furniture & Home Decor'}</option>
                                         <option value="spareparts">{isRtl ? 'قطع غيار (سيارات/تكييف/سباكة/كهرباء)' : 'Spare Parts (Auto/HVAC/Plumbing)'}</option>
                                     </select>
+                                </div>
+
+                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                        {isRtl ? 'العنوان الوطني' : 'National Address'}
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="nationalAddress"
+                                        value={registerForm.nationalAddress}
+                                        onChange={handleRegisterChange}
+                                        required
+                                        placeholder={isRtl ? 'الرياض، المملكة العربية السعودية' : 'Riyadh, Saudi Arabia'}
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                            {isRtl ? 'الرقم الضريبي (VAT)' : 'VAT Number'}
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            name="vatNumber"
+                                            value={registerForm.vatNumber}
+                                            onChange={handleRegisterChange}
+                                            required
+                                            placeholder="310..."
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                            {isRtl ? 'السجل التجاري (CR)' : 'CR Number'}
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            name="crNumber"
+                                            value={registerForm.crNumber}
+                                            onChange={handleRegisterChange}
+                                            required
+                                            placeholder="1010..."
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

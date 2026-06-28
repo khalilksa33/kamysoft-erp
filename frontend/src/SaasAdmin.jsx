@@ -32,6 +32,7 @@ export default function SaasAdmin() {
     const [actionMsg, setActionMsg] = useState('');
     const [search, setSearch] = useState('');
     const [confirmDelete, setConfirmDelete] = useState(null); // tenantId pending delete
+    const [expandedStore, setExpandedStore] = useState(null);
 
     const apiHeaders = useCallback(() => ({
         'Content-Type': 'application/json',
@@ -229,7 +230,8 @@ export default function SaasAdmin() {
                                         {filteredStores.length === 0 ? (
                                             <tr><td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)' }}>No stores found.</td></tr>
                                         ) : filteredStores.map((store, i) => (
-                                            <tr key={store.tenantId} style={{ borderBottom: i < filteredStores.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.15s' }}
+                                            <React.Fragment key={store.tenantId}>
+                                            <tr style={{ borderBottom: i < filteredStores.length - 1 && expandedStore !== store.tenantId ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.15s' }}
                                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                                 <td style={{ padding: '12px 16px' }}>
@@ -264,6 +266,10 @@ export default function SaasAdmin() {
                                                             <i className={store.suspended ? 'ri-play-circle-line' : 'ri-pause-circle-line'} />
                                                             {store.suspended ? 'Activate' : 'Suspend'}
                                                         </button>
+                                                        <button onClick={() => setExpandedStore(expandedStore === store.tenantId ? null : store.tenantId)}
+                                                            style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#38bdf8', fontSize: '12px', cursor: 'pointer' }}>
+                                                            <i className="ri-information-line" />
+                                                        </button>
                                                         {store.tenantId !== 'default' && (
                                                             <button onClick={() => setConfirmDelete(store.tenantId)}
                                                                 style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#f87171', fontSize: '12px', cursor: 'pointer' }}>
@@ -273,6 +279,29 @@ export default function SaasAdmin() {
                                                     </div>
                                                 </td>
                                             </tr>
+                                            {expandedStore === store.tenantId && (
+                                                <tr key={`${store.tenantId}-details`} style={{ background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <td colSpan={8} style={{ padding: '16px 24px' }}>
+                                                        <div style={{ display: 'flex', gap: '40px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                                                            <div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '100px', display: 'inline-block' }}>License Key:</span> <span style={{ color: '#10b981', fontFamily: 'monospace', fontWeight: 'bold' }}>{store.licenseKey || 'N/A'}</span></div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '100px', display: 'inline-block' }}>Expires At:</span> {store.licenseExpiresAt ? new Date(store.licenseExpiresAt).toLocaleDateString() : 'N/A'}</div>
+                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '100px', display: 'inline-block' }}>Lic. Status:</span> {store.licenseStatus || 'active'}</div>
+                                                            </div>
+                                                            <div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Email:</span> {store.email || 'N/A'}</div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Mobile:</span> {store.mobile || store.contactNumber || 'N/A'}</div>
+                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Address:</span> {store.nationalAddress || store.businessAddress || 'N/A'}</div>
+                                                            </div>
+                                                            <div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>VAT:</span> {store.vatNumber || 'N/A'}</div>
+                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>CR:</span> {store.crNumber || 'N/A'}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            </React.Fragment>
                                         ))}
                                     </tbody>
                                 </table>
