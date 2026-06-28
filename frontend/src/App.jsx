@@ -3319,6 +3319,26 @@ export default function App() {
                                 <i className="ri-cloud-line"></i> {translations[currentLanguage].zatcaSettings}
                             </h3>
                             <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? "تم حفظ إعدادات خادر هيئة الزكاة" : "ZATCA Server settings saved successfully"); }}>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'اسم المنشأة' : 'Business Name'}</label>
+                                        <input type="text" className="form-control" value={settings.businessName || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'الرقم الضريبي' : 'VAT Number'}</label>
+                                        <input type="text" className="form-control" value={settings.vatNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'السجل التجاري' : 'CR Number'}</label>
+                                        <input type="text" className="form-control" value={settings.crNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'العنوان الوطني' : 'National Address'}</label>
+                                        <input type="text" className="form-control" value={settings.nationalAddress || settings.businessAddress || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
                                 <div className="form-group">
                                     <label>{translations[currentLanguage].zatcaEnv}</label>
                                     <select className="form-control" value={zatcaConn.env} onChange={e => setZatcaConn({ ...zatcaConn, env: e.target.value })}>
