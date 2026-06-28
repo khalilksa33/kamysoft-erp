@@ -1316,7 +1316,6 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
                                     />
                                 </div>
-                                </div>
 
                                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                     <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
