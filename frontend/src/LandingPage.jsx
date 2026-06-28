@@ -267,6 +267,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     });
     const [registerStatus, setRegisterStatus] = useState(null); // 'submitting', 'success', 'error'
     const [registerError, setRegisterError] = useState('');
+    const [registeredTenantId, setRegisteredTenantId] = useState('');
 
     const handleRegisterChange = (e) => {
         setRegisterForm({
@@ -299,6 +300,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             const data = await response.json();
             if (response.ok) {
                 setRegisterStatus('success');
+                setRegisteredTenantId(cleanTenantId);
                 // Store cleanTenantId so the "Launch My Store" button can use it
                 // (onRegisterSuccess is called from the button, not here, so the success screen stays visible)
 
@@ -1225,7 +1227,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         className="btn btn-primary glow-button" 
                                         onClick={() => {
                                             setShowRegisterModal(false);
-                                            if (onRegisterSuccess) onRegisterSuccess(registerForm.tenantId.toLowerCase());
+                                            if (onRegisterSuccess) onRegisterSuccess(registeredTenantId || registerForm.tenantId.toLowerCase());
                                         }}
                                         style={{ flex: 1, padding: '12px', fontSize: '15px' }}
                                     >

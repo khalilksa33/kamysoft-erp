@@ -520,6 +520,12 @@ export default function App() {
     }, [simulatedTenant]);
 
     const handleRegisterSuccess = (newTenantId) => {
+        // Clear token so the user is forced to log in to their newly created store
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken('');
+        setUser(null);
+
         if (isLocalhost) {
             localStorage.setItem('simulatedTenant', newTenantId);
             localStorage.setItem('simulatedDomain', 'customer');
