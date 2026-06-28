@@ -508,8 +508,16 @@ const getPaymentMethodLabel = (method, lang) => {
 export default function App() {
     // Domain Routing & Simulated Environment State
     const [hostname, setHostname] = useState(window.location.hostname);
-    const [simulatedDomain, setSimulatedDomain] = useState(() => localStorage.getItem('simulatedDomain') || ''); // 'marketing', 'demo', 'customer'
-    const [simulatedTenant, setSimulatedTenant] = useState(() => localStorage.getItem('simulatedTenant') || 'cust-1');
+    const [simulatedDomain, setSimulatedDomain] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('simDomain')) return params.get('simDomain');
+        return localStorage.getItem('simulatedDomain') || '';
+    });
+    const [simulatedTenant, setSimulatedTenant] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('simTenant')) return params.get('simTenant');
+        return localStorage.getItem('simulatedTenant') || 'cust-1';
+    });
 
     useEffect(() => {
         localStorage.setItem('simulatedDomain', simulatedDomain);
@@ -527,14 +535,14 @@ export default function App() {
         if (isLocalhost) {
             localStorage.setItem('simulatedTenant', newTenantId);
             localStorage.setItem('simulatedDomain', 'customer');
-            window.open(window.location.origin, '_blank');
+            window.open(`${window.location.origin}?simDomain=customer&simTenant=${newTenantId}`, '_blank');
         } else {
             window.open(`https://${newTenantId}.26i.uk`, '_blank');
         }
     };
 
     // Hostname Routing Calculations
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || !hostname.includes('26i.uk');
     
     // Determine active route mode: 'marketing', 'demo', or 'customer'
     let routeMode = 'marketing';
@@ -570,7 +578,7 @@ export default function App() {
             if (isLocalhost) {
                 localStorage.setItem('simulatedDomain', 'customer');
                 localStorage.setItem('simulatedTenant', targetTenantId);
-                window.open(window.location.origin, '_blank');
+                window.open(`${window.location.origin}?simDomain=customer&simTenant=${targetTenantId}`, '_blank');
             } else {
                 window.open(`https://${targetTenantId}.26i.uk`, '_blank');
             }
@@ -578,7 +586,7 @@ export default function App() {
             // Launch the generic demo store
             if (isLocalhost) {
                 localStorage.setItem('simulatedDomain', 'demo');
-                window.open(window.location.origin, '_blank');
+                window.open(`${window.location.origin}?simDomain=demo`, '_blank');
             } else {
                 window.open('https://demo.26i.uk', '_blank');
             }
