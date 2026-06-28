@@ -1009,8 +1009,8 @@ export default function App() {
             };
             setInvoices([...invoices, mockInv]);
             setActiveInvoice(mockInv);
-            setInvoiceFormat('thermal'); // POS always prints thermal receipt
-            setInvoiceSource('pos');     // lock modal to POS mode
+            setInvoiceFormat(activeTab === 'b2bsale' ? 'a4' : 'thermal'); 
+            setInvoiceSource(activeTab === 'b2bsale' ? 'sales' : 'pos');
             setShowInvoiceModal(true);
             setCart([]);
             setActiveCoupon(null);
@@ -1645,12 +1645,13 @@ export default function App() {
         );
     };
 
+    // Check if admin panel is requested via URL path
+    if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
+        return <SaasAdmin />;
+    }
+
     // Render Marketing Landing Page
     if (routeMode === 'marketing') {
-        // Check if admin panel is requested via URL path
-        if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
-            return <SaasAdmin />;
-        }
         return (
             <>
                 <LandingPage 
