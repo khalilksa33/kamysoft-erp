@@ -977,8 +977,8 @@ export default function App() {
             let finalInv = newInv;
             setInvoices([...invoices, newInv]);
             setActiveInvoice(newInv);
-            setInvoiceFormat('thermal'); // POS always prints thermal receipt
-            setInvoiceSource('pos');     // lock modal to POS mode
+            setInvoiceFormat(activeTab === 'b2bsale' ? 'a4' : 'thermal'); 
+            setInvoiceSource(activeTab === 'b2bsale' ? 'sales' : 'pos');
             setShowInvoiceModal(true);
             setCart([]);
             setActiveCoupon(null);
@@ -1818,7 +1818,7 @@ export default function App() {
                     )}
                     {isAllowedTab('invoices') && (
                         <li>
-                            <button className={`nav-item ${activeTab === 'invoices' ? 'active' : ''}`} onClick={() => setActiveTab('invoices')}>
+                            <button className={`nav-item ${activeTab === 'invoices' || activeTab === 'b2bsale' ? 'active' : ''}`} onClick={() => setActiveTab('invoices')}>
                                 <i className="ri-file-list-3-line"></i>
                                 <span data-i18n="invoices">{translations[currentLanguage].invoices}</span>
                             </button>
@@ -1983,8 +1983,8 @@ export default function App() {
                     </>
                 )}
 
-                {/* TAB: POS CASHIER */}
-                {activeTab === 'pos' && (
+                {/* TAB: POS CASHIER & B2B SALE */}
+                {(activeTab === 'pos' || activeTab === 'b2bsale') && (
                     <div className="pos-layout">
                         <div className="pos-products">
                             <div className="products-filter">
@@ -2707,10 +2707,10 @@ export default function App() {
                             <button
                                 className="btn btn-primary glow-button"
                                 style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '14px' }}
-                                onClick={() => setActiveTab('pos')}
+                                onClick={() => setActiveTab('b2bsale')}
                             >
-                                <i className="ri-shopping-cart-line"></i>
-                                {currentLanguage === 'ar' ? 'بيع جديد (نقطة البيع)' : 'New Sale (POS)'}
+                                <i className="ri-building-line"></i>
+                                {currentLanguage === 'ar' ? 'بيع جديد B2B (فاتورة A4)' : 'New B2B Sale (A4)'}
                             </button>
                             <button
                                 className="btn btn-secondary"
