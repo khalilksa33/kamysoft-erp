@@ -61,10 +61,15 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            # Ensure kubectl has the right permissions in non-interactive SSH sessions
+            export PATH=$PATH:/usr/local/bin
             export KUBECONFIG=~/.kube/config
             
+            echo "Checking kubectl access..."
+            kubectl get nodes || echo "Failed to get nodes!"
+            
             IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-$(echo ${{ github.sha }} | cut -c1-7)"
+            # Lowercase the image name since Docker requires it
+            IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
             echo "Deploying image: $IMAGE"
             
             kubectl set image deployment/kamysoft-erp-deployment kamysoft-erp=$IMAGE --record
