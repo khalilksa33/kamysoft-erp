@@ -61,17 +61,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            # 1. Ensure the remote server is logged into the container registry (if private)
-            # You only need to do this once on the server, but it's safe to run it here.
-            # docker login ghcr.io -u YOUR_GITHUB_USERNAME -p YOUR_GITHUB_PAT
+            # Ensure kubectl has the right permissions in non-interactive SSH sessions
+            export KUBECONFIG=~/.kube/config
             
-            # 2. Update the Kubernetes deployment with the new image tag
-            # Note: Replace 'kamysoft-erp-deployment' with the actual name of your k3s deployment!
-            
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-$(echo ${{ github.sha }} | cut -c1-7)"
             echo "Deploying image: $IMAGE"
             
             kubectl set image deployment/kamysoft-erp-deployment kamysoft-erp=$IMAGE --record
             
-            # 3. Verify the rollout status
             kubectl rollout status deployment/kamysoft-erp-deployment
