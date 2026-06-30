@@ -1,0 +1,77 @@
+name: Deploy to k3s on Host C
+
+on:
+  push:
+    branches:
+      - main
+  # Allow manual triggers
+  workflow_dispatch:
+
+env:
+  # Using GitHub Container Registry (ghcr.io)
+  # Replace 'your-username/kamysoft-erp' with your actual image name
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=short
+            latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-to-k3s:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH to Host C
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST_C_IP }}
+          username: ${{ secrets.HOST_C_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            # 1. Ensure the remote server is logged into the container registry (if private)
+            # You only need to do this once on the server, but it's safe to run it here.
+            # docker login ghcr.io -u YOUR_GITHUB_USERNAME -p YOUR_GITHUB_PAT
+            
+            # 2. Update the Kubernetes deployment with the new image tag
+            # Note: Replace 'kamysoft-erp-deployment' with the actual name of your k3s deployment!
+            
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+            echo "Deploying image: $IMAGE"
+            
+            kubectl set image deployment/kamysoft-erp-deployment kamysoft-erp=$IMAGE --record
+            
+            # 3. Verify the rollout status
+            kubectl rollout status deployment/kamysoft-erp-deployment
