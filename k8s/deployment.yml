@@ -66,6 +66,8 @@ spec:
       labels:
         app: kamysoft-erp
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: kamysoft-erp
           image: ghcr.io/khalilksa33/kamysoft-erp:latest
