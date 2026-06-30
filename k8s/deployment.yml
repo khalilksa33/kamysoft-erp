@@ -68,9 +68,7 @@ spec:
     spec:
       containers:
         - name: kamysoft-erp
-          # This should be replaced with your actual image path
-          # For example: ghcr.io/khalilksa33/kamysoft-erp:latest
-          image: kamysoft-erp:latest
+          image: ghcr.io/khalilksa33/kamysoft-erp:latest
           ports:
             - containerPort: 8089
           env:
