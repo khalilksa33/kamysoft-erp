@@ -1,0 +1,34 @@
+apiVersion: skaffold/v4beta8
+kind: Config
+metadata:
+  name: kamysoft-erp
+build:
+  local:
+    # Use local daemon to build (or k3s registry)
+    push: false
+  artifacts:
+    - image: ghcr.io/khalilksa33/kamysoft-erp
+      context: .
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          # Sync backend files directly to pod for instant updates
+          - src: "server.js"
+            dest: "/app/server.js"
+          - src: "package.json"
+            dest: "/app/package.json"
+manifests:
+  rawYaml:
+    - k8s/mongodb.yaml
+    - k8s/app.yaml
+    - k8s/ingress.yaml
+portForward:
+  - resourceType: service
+    resourceName: kamysoft-erp
+    port: 8089
+    localPort: 8089
+  - resourceType: service
+    resourceName: mongodb
+    port: 27017
+    localPort: 27017

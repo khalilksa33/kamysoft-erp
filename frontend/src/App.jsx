@@ -11,7 +11,7 @@ window.fetch = function (url, options = {}) {
         // Resolve tenant
         const host = window.location.hostname.toLowerCase();
         let tenant = 'default';
-        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        const isLocal = host === 'localhost' || host === '127.0.0.1' || !host.includes('26i.uk');
         if (isLocal) {
             tenant = localStorage.getItem('simulatedTenant') || 'default';
             const simDomain = localStorage.getItem('simulatedDomain') || 'marketing';
@@ -609,7 +609,7 @@ export default function App() {
     const [authError, setAuthError] = useState('');
 
     // System Core Configurations
-    const [currentLanguage, setCurrentLanguage] = useState('ar');
+    const [currentLanguage, setCurrentLanguage] = useState('en');
     const [theme, setTheme] = useState('dark');
     const [activeTab, setActiveTab] = useState('dashboard');
     const [settings, setSettings] = useState({
