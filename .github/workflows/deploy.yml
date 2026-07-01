@@ -65,7 +65,7 @@ jobs:
 
       - name: Transfer Kubernetes Manifests to Host C
         run: |
-          ssh cloud@ssh-cloud.26i.uk "mkdir -p ~/kamysoft-erp/k8s"
+          ssh cloud@ssh-cloud.26i.uk "rm -rf ~/kamysoft-erp/k8s && mkdir -p ~/kamysoft-erp/k8s"
           scp -r k8s/* cloud@ssh-cloud.26i.uk:~/kamysoft-erp/k8s/
 
       - name: Deploy via Host C k3s Cluster
