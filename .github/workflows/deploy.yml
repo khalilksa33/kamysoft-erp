@@ -67,4 +67,4 @@ jobs:
 
       - name: Deploy via Host C k3s Cluster
         run: |
-          ssh cloud@ssh-cloud.26i.uk "kubectl apply -f ~/kamysoft-erp/k8s/ && kubectl rollout restart deployment/kamysoft-erp"
+          ssh cloud@ssh-cloud.26i.uk "export KUBECONFIG=~/.kube/config && kubectl apply -f ~/kamysoft-erp/k8s/ && kubectl rollout restart deployment/kamysoft-erp"
