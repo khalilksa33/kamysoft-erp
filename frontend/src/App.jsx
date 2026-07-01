@@ -794,7 +794,8 @@ export default function App() {
             setLoginUsername('demo');
             setLoginPassword('demo123');
         } else if (routeMode === 'customer' && !token) {
-            setLoginUsername('');
+            const lastUser = localStorage.getItem('lastRegisteredUsername') || 'admin';
+            setLoginUsername(lastUser);
             setLoginPassword('');
         }
     }, [routeMode, token]);

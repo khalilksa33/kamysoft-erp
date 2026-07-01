@@ -328,6 +328,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             if (response.ok) {
                 setRegisterStatus('success');
                 setRegisteredTenantId(cleanTenantId);
+                localStorage.setItem('lastRegisteredUsername', registerForm.adminUsername);
                 if (data.licenseKey) {
                     setGeneratedLicenseKey(data.licenseKey);
                 }
@@ -1249,6 +1250,9 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         ? `تم إنشاء قاعدة بيانات معزولة لمتجرك وتعبئته بالمنتجات التجريبية.`
                                         : `Your isolated database workspace is ready and loaded with demo products.`}
                                 </p>
+                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                                     {isRtl ? 'اسم مستخدم المدير:' : 'Admin Username:'} <strong style={{ color: '#fff' }}>{registerForm.adminUsername}</strong>
+                                </div>
                                 <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
                                     https://{registerForm.tenantId.toLowerCase()}.26i.uk
                                 </div>
