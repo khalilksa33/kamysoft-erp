@@ -275,6 +275,26 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     const [registeredTenantId, setRegisteredTenantId] = useState('');
     const [generatedLicenseKey, setGeneratedLicenseKey] = useState('');
 
+    const openRegisterModal = () => {
+        setRegisterForm({
+            tenantId: '',
+            businessName: '',
+            businessType: 'retail',
+            adminUsername: 'admin',
+            adminPassword: '',
+            email: '',
+            mobile: '',
+            nationalAddress: '',
+            vatNumber: '',
+            crNumber: ''
+        });
+        setRegisterStatus(null);
+        setRegisterError('');
+        setRegisteredTenantId('');
+        setGeneratedLicenseKey('');
+        setShowRegisterModal(true);
+    };
+
     const handleRegisterChange = (e) => {
         setRegisterForm({
             ...registerForm,
@@ -444,7 +464,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     {/* App CTA */}
                     <button 
                         className="btn btn-primary" 
-                        onClick={() => setShowRegisterModal(true)}
+                        onClick={openRegisterModal}
                         style={{ padding: '8px 16px', fontSize: '13px', background: 'var(--accent-cyan)' }}
                     >
                         <i className="ri-add-box-line"></i>
@@ -499,7 +519,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     </p>
                     
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }} className="hero-ctas">
-                        <button className="btn btn-primary glow-button" style={{ padding: '14px 28px', fontSize: '15px' }} onClick={() => setShowRegisterModal(true)}>
+                        <button className="btn btn-primary glow-button" style={{ padding: '14px 28px', fontSize: '15px' }} onClick={openRegisterModal}>
                             <i className="ri-store-2-line" style={{ fontSize: '18px' }}></i>
                             <span>{currentLanguage === 'ar' ? 'أنشئ متجرك الخاص' : 'Create My Store'}</span>
                         </button>
