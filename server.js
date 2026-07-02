@@ -213,6 +213,7 @@ const mockDb = {
     ],
     settings: {
         businessName: 'KamySoft ERP & POS',
+        fullName: 'خليل الغامدي / Khalil Al-Ghamdi',
         vatNumber: '310123456700003',
         taxRate: 15,
         baseCurrency: 'SAR',
@@ -426,6 +427,7 @@ const settingsSchema = new mongoose.Schema({
     
     // SaaS Registration Details
     email: { type: String },
+    fullName: { type: String },
     mobile: { type: String },
     nationalAddress: { type: String },
     
@@ -771,7 +773,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/register-tenant', async (req, res) => {
     try {
-        const { tenantId, businessName, businessType, adminUsername, adminPassword, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle } = req.body;
+        const { tenantId, businessName, businessType, adminUsername, adminPassword, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
         
         if (!tenantId || !businessName || !businessType || !adminUsername || !adminPassword) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -824,6 +826,7 @@ app.post('/api/auth/register-tenant', async (req, res) => {
             enableTables: businessType === 'restaurant',
             enableServiceDuration: businessType === 'salon',
             email: email,
+            fullName: fullName,
             mobile: mobile,
             nationalAddress: nationalAddress,
             licenseKey: licenseKey,

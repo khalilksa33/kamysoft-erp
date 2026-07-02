@@ -261,6 +261,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     const [registerForm, setRegisterForm] = useState({
         tenantId: '',
         businessName: '',
+        fullName: '',
         businessType: 'retail',
         adminUsername: 'admin',
         adminPassword: '',
@@ -1338,6 +1339,21 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         required
                                         placeholder="+966 5X XXX XXXX"
                                         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
+                                    />
+                                </div>
+
+                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                        {isRtl ? 'الاسم الكامل للمالك' : 'Owner Full Name'}
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="fullName"
+                                        value={registerForm.fullName}
+                                        onChange={handleRegisterChange}
+                                        required
+                                        placeholder={isRtl ? 'خليل الغامدي' : 'Khalil Al-Ghamdi'}
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
                                     />
                                 </div>
 

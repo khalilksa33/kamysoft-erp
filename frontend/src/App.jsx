@@ -614,6 +614,7 @@ export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [settings, setSettings] = useState({
         businessName: 'CASHIER',
+        fullName: 'خليل الغامدي / Khalil Al-Ghamdi',
         vatNumber: '310123456700003',
         taxRate: 15,
         baseCurrency: 'SAR',
@@ -2012,7 +2013,24 @@ export default function App() {
                     </button>
                     <div className="header-title">
                         <h1>{translations[currentLanguage][activeTab]}</h1>
-                        <p>{translations[currentLanguage].salesReport}</p>
+                        <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            {routeMode === 'demo' ? (
+                                <span style={{ background: 'rgba(6,182,212,0.1)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px' }}>
+                                    {currentLanguage === 'ar' ? 'نظام تجريبي' : 'DEMO'}
+                                </span>
+                            ) : null}
+                            <span>
+                                {routeMode === 'demo' ? (
+                                    currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي لـ KamySoft' : 'Welcome to KamySoft Demo Store'
+                                ) : (
+                                    settings && settings.fullName ? (
+                                        currentLanguage === 'ar' ? `مرحباً بك، ${settings.fullName}` : `Welcome, ${settings.fullName}`
+                                    ) : (
+                                        translations[currentLanguage].salesReport
+                                    )
+                                )}
+                            </span>
+                        </p>
                     </div>
                     <div className="header-actions">
                         <div className="glass-card" style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
@@ -3627,18 +3645,13 @@ export default function App() {
                 <div className="modal-overlay">
                     <div className="modal">
                         {/* Modal Header: format indicator / toggle */}
-                        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', alignItems: 'center' }}>
+                        <div className="no-print" style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', alignItems: 'center' }}>
                             {invoiceSource === 'pos' ? (
                                 /* POS: locked to thermal — show read-only badge */
-                                <>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.35)', borderRadius: '8px', flexGrow: 1 }}>
-                                        <i className="ri-receipt-line" style={{ fontSize: '18px', color: 'var(--accent-purple)' }}></i>
-                                        <span style={{ fontWeight: '600', fontSize: '14px' }}>{currentLanguage === 'ar' ? 'إيصال كاشير (طابعة حرارية)' : 'Cashier Thermal Receipt'}</span>
-                                    </div>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '4px 10px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                                        <i className="ri-lock-line"></i> {currentLanguage === 'ar' ? 'الصيغة مقفلة (POS)' : 'Format locked (POS)'}
-                                    </div>
-                                </>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.35)', borderRadius: '8px', flexGrow: 1 }}>
+                                    <i className="ri-receipt-line" style={{ fontSize: '18px', color: 'var(--accent-purple)' }}></i>
+                                    <span style={{ fontWeight: '600', fontSize: '14px' }}>{currentLanguage === 'ar' ? 'إيصال كاشير (طابعة حرارية)' : 'Cashier Thermal Receipt'}</span>
+                                </div>
                             ) : (
                                 /* Sales Management: full A4 / Thermal toggle */
                                 <>
