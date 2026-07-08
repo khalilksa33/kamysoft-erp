@@ -49,9 +49,9 @@ jobs:
           
           # Base SSH configuration
           cat <<EOF > ~/.ssh/config
-          Host ssh-cloud.26i.uk
-              HostName ssh-cloud.26i.uk
-              User cloud
+          Host ssh-erp.26i.uk
+              HostName ssh-erp.26i.uk
+              User iicc2
               IdentityFile ~/.ssh/id_rsa
               StrictHostKeyChecking no
           EOF
@@ -63,11 +63,11 @@ jobs:
             echo "    ProxyCommand cloudflared access ssh --hostname %h" >> ~/.ssh/config
           fi
 
-      - name: Transfer Kubernetes Manifests to Host C
+      - name: Transfer Kubernetes Manifests to Host B
         run: |
-          ssh cloud@ssh-cloud.26i.uk "rm -rf ~/kamysoft-erp/k8s && mkdir -p ~/kamysoft-erp/k8s"
-          scp -r k8s/* cloud@ssh-cloud.26i.uk:~/kamysoft-erp/k8s/
+          ssh iicc2@ssh-erp.26i.uk "rm -rf ~/kamysoft-erp/k8s && mkdir -p ~/kamysoft-erp/k8s"
+          scp -r k8s/* iicc2@ssh-erp.26i.uk:~/kamysoft-erp/k8s/
 
-      - name: Deploy via Host C k3s Cluster
+      - name: Deploy via Host B k3s Cluster
         run: |
-          ssh cloud@ssh-cloud.26i.uk "export KUBECONFIG=~/.kube/config && kubectl apply -f ~/kamysoft-erp/k8s/ && kubectl rollout restart deployment/kamysoft-erp"
+          ssh iicc2@ssh-erp.26i.uk "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && sudo /usr/local/bin/k3s kubectl apply -f ~/kamysoft-erp/k8s/ && sudo /usr/local/bin/k3s kubectl rollout restart deployment/kamysoft-erp -n kamysoft-erp"
