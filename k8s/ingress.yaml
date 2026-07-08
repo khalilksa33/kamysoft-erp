@@ -26,3 +26,23 @@ spec:
                 name: kamysoft-erp
                 port:
                   number: 8089
+    - host: "ssh-erp.26i.uk"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kamysoft-erp
+                port:
+                  number: 8089
+    - host: "*.ssh-erp.26i.uk"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kamysoft-erp
+                port:
+                  number: 8089

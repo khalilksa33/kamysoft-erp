@@ -25,7 +25,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt) => {
+const getBaseDomain = (host) => {
+    host = host.toLowerCase();
+    if (host.endsWith('ssh-erp.26i.uk')) return 'ssh-erp.26i.uk';
+    if (host.endsWith('26i.uk')) return '26i.uk';
+    if (host.endsWith('localhost')) return 'localhost';
+    return host;
+};
+
+const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk') => {
     if (!process.env.SENDGRID_API_KEY) {
         console.log(`[Mock Email] License key for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${licenseKey}`);
         return;
@@ -37,7 +45,7 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
             subject: 'Welcome to SME Solutions! Your License Key',
             html: `
                 <h3>Welcome to SME Solutions, ${businessName}!</h3>
-                <p>Your store has been successfully created. You can access it at: <b>https://${tenantId}.26i.uk</b></p>
+                <p>Your store has been successfully created. You can access it at: <b>https://${tenantId}.${baseDomain}</b></p>
                 <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;">
                     <p style="margin:0;font-size:14px;color:#6b7280;">Your License Key:</p>
                     <p style="margin:8px 0 0 0;font-size:24px;font-weight:bold;color:#111827;letter-spacing:2px;">${licenseKey}</p>
@@ -54,12 +62,14 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
 
 const getTenantId = (req) => {
     const host = (req.headers.host || '').split(':')[0].toLowerCase();
-    let match = host.match(/^([a-zA-Z0-9-]+)\.26i\.uk$/);
-    if (match && match[1] !== 'www' && match[1] !== 'demo') return match[1];
-    
-    match = host.match(/^([a-zA-Z0-9-]+)\.localhost$/);
-    if (match && match[1] !== 'www' && match[1] !== 'demo') return match[1];
-    
+    const baseDomain = getBaseDomain(host);
+
+    if (host.endsWith(`.${baseDomain}`)) {
+        const subdomain = host.slice(0, -(baseDomain.length + 1));
+        if (subdomain !== 'www' && subdomain !== 'demo') return subdomain;
+    }
+    if (host === baseDomain) return 'default';
+
     const tenantHeader = req.headers['x-tenant-id'];
     if (tenantHeader) return tenantHeader.trim().toLowerCase();
     
@@ -774,6 +784,8 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/register-tenant', async (req, res) => {
     try {
         const { tenantId, businessName, businessType, adminUsername, adminPassword, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
+        const host = (req.headers.host || '').split(':')[0].toLowerCase();
+        const baseDomain = getBaseDomain(host);
         
         if (!tenantId || !businessName || !businessType || !adminUsername || !adminPassword) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -883,7 +895,7 @@ app.post('/api/auth/register-tenant', async (req, res) => {
         
         // Send email asynchronously (don't block the response)
         if (email) {
-            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate);
+            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain);
         }
         
         res.status(201).json({ 

@@ -3,6 +3,14 @@ import LandingPage from './LandingPage';
 import SaasAdmin from './SaasAdmin';
 
 // Automatically add x-tenant-id header to relative API calls
+const getBaseDomain = (host) => {
+    host = host.toLowerCase();
+    if (host.endsWith('ssh-erp.26i.uk')) return 'ssh-erp.26i.uk';
+    if (host.endsWith('26i.uk')) return '26i.uk';
+    if (host.endsWith('localhost')) return 'localhost';
+    return host;
+};
+
 const originalFetch = window.fetch;
 window.fetch = function (url, options = {}) {
     if (typeof url === 'string' && url.startsWith('/api/')) {
@@ -11,19 +19,22 @@ window.fetch = function (url, options = {}) {
         // Resolve tenant
         const host = window.location.hostname.toLowerCase();
         let tenant = 'default';
-        const isLocal = host === 'localhost' || host === '127.0.0.1' || !host.includes('26i.uk');
+        const isSaaSDomain = host.endsWith('26i.uk') || host.endsWith('localhost') || host.endsWith('127.0.0.1');
+        const isLocal = !isSaaSDomain || host === 'localhost' || host === '127.0.0.1';
+        
         if (isLocal) {
             tenant = localStorage.getItem('simulatedTenant') || 'default';
             const simDomain = localStorage.getItem('simulatedDomain') || 'marketing';
             if (simDomain === 'demo') tenant = 'default';
             else if (simDomain === 'marketing') tenant = 'default';
         } else {
-            if (host === 'demo.26i.uk' || host.startsWith('demo')) {
+            const baseDomain = getBaseDomain(host);
+            if (host === `demo.${baseDomain}` || host === `www.${baseDomain}` || host === baseDomain) {
                 tenant = 'default';
-            } else {
-                const tenantMatch = host.match(/^(?!www\b|demo\b)([a-zA-Z0-9-]+)\.26i\.uk$/);
-                if (tenantMatch) {
-                    tenant = tenantMatch[1];
+            } else if (host.endsWith(`.${baseDomain}`)) {
+                const subdomain = host.slice(0, -(baseDomain.length + 1));
+                if (subdomain !== 'www' && subdomain !== 'demo') {
+                    tenant = subdomain;
                 }
             }
         }
@@ -527,6 +538,8 @@ export default function App() {
         localStorage.setItem('simulatedTenant', simulatedTenant);
     }, [simulatedTenant]);
 
+    const baseDomain = getBaseDomain(hostname);
+
     const handleRegisterSuccess = (newTenantId) => {
         // Clear token so the user is forced to log in to their newly created store
         localStorage.removeItem('token');
@@ -537,12 +550,12 @@ export default function App() {
             localStorage.setItem('simulatedDomain', 'customer');
             window.open(`${window.location.origin}?simDomain=customer&simTenant=${newTenantId}`, '_blank');
         } else {
-            window.open(`https://${newTenantId}.26i.uk`, '_blank');
+            window.open(`https://${newTenantId}.${baseDomain}`, '_blank');
         }
     };
 
     // Hostname Routing Calculations
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || !hostname.includes('26i.uk');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || (!hostname.includes('26i.uk') && !hostname.includes('localhost'));
     
     // Determine active route mode: 'marketing', 'demo', or 'customer'
     let routeMode = 'marketing';
@@ -556,13 +569,17 @@ export default function App() {
     } else {
         // Live hostname parsing
         const host = hostname.toLowerCase();
-        if (host === 'demo.26i.uk' || host.startsWith('demo')) {
+        if (host === `demo.${baseDomain}` || host.startsWith('demo.')) {
             routeMode = 'demo';
         } else {
-            const tenantMatch = host.match(/^(?!www\b|demo\b)([a-zA-Z0-9-]+)\.26i\.uk$/);
-            if (tenantMatch) {
-                routeMode = 'customer';
-                tenantId = tenantMatch[1];
+            if (host.endsWith(`.${baseDomain}`)) {
+                const subdomain = host.slice(0, -(baseDomain.length + 1));
+                if (subdomain !== 'www' && subdomain !== 'demo') {
+                    routeMode = 'customer';
+                    tenantId = subdomain;
+                } else {
+                    routeMode = 'marketing';
+                }
             } else {
                 routeMode = 'marketing';
             }
@@ -580,7 +597,7 @@ export default function App() {
                 localStorage.setItem('simulatedTenant', targetTenantId);
                 window.open(`${window.location.origin}?simDomain=customer&simTenant=${targetTenantId}`, '_blank');
             } else {
-                window.open(`https://${targetTenantId}.26i.uk`, '_blank');
+                window.open(`https://${targetTenantId}.${baseDomain}`, '_blank');
             }
         } else {
             // Launch the generic demo store
@@ -588,7 +605,7 @@ export default function App() {
                 localStorage.setItem('simulatedDomain', 'demo');
                 window.open(`${window.location.origin}?simDomain=demo`, '_blank');
             } else {
-                window.open('https://demo.26i.uk', '_blank');
+                window.open(`https://demo.${baseDomain}`, '_blank');
             }
         }
     };
@@ -597,7 +614,7 @@ export default function App() {
         if (isLocalhost) {
             setSimulatedDomain('marketing');
         } else {
-            window.location.href = 'https://26i.uk';
+            window.location.href = `https://${baseDomain}`;
         }
     };
 
@@ -1751,7 +1768,7 @@ export default function App() {
 
     // Check if admin panel is requested via URL path
     if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
-        return <SaasAdmin />;
+        return <SaasAdmin baseDomain={baseDomain} />;
     }
 
     // Render Marketing Landing Page
@@ -1765,6 +1782,7 @@ export default function App() {
                     setTheme={setTheme} 
                     onLaunchApp={handleLaunchApp} 
                     onRegisterSuccess={handleRegisterSuccess}
+                    baseDomain={baseDomain}
                 />
                 {renderDevToolbar()}
             </>

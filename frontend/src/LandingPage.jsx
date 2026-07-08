@@ -248,7 +248,7 @@ const landingTranslations = {
     }
 };
 
-export default function LandingPage({ currentLanguage, setCurrentLanguage, theme, setTheme, onLaunchApp, onRegisterSuccess }) {
+export default function LandingPage({ currentLanguage, setCurrentLanguage, theme, setTheme, onLaunchApp, onRegisterSuccess, baseDomain = '26i.uk' }) {
     const t = landingTranslations[currentLanguage];
     const isRtl = currentLanguage === 'ar';
     
@@ -557,7 +557,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }}></span>
                                 <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
                             </div>
-                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>demo.26i.uk/cashier</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>demo.{baseDomain}/cashier</span>
                         </div>
                         
                         {/* Mock Cashier Layout */}
@@ -1255,7 +1255,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                      {isRtl ? 'اسم مستخدم المدير:' : 'Admin Username:'} <strong style={{ color: '#fff' }}>{registerForm.adminUsername}</strong>
                                 </div>
                                 <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
-                                    https://{registerForm.tenantId.toLowerCase()}.26i.uk
+                                    https://{registerForm.tenantId.toLowerCase()}.{baseDomain}
                                 </div>
                                 {generatedLicenseKey && (
                                     <div style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
@@ -1308,7 +1308,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                             placeholder="my-store"
                                             style={{ flexGrow: 1, background: 'none', border: 'none', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
                                         />
-                                        <span style={{ padding: '0 12px', fontSize: '13px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderLeft: isRtl ? 'none' : '1px solid var(--glass-border)', borderRight: isRtl ? '1px solid var(--glass-border)' : 'none' }}>.26i.uk</span>
+                                        <span style={{ padding: '0 12px', fontSize: '13px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderLeft: isRtl ? 'none' : '1px solid var(--glass-border)', borderRight: isRtl ? '1px solid var(--glass-border)' : 'none' }}>.{baseDomain}</span>
                                     </div>
                                 </div>
 

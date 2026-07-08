@@ -18,7 +18,7 @@ function timeAgo(date) {
     return `${Math.round(diff / 86400)}d ago`;
 }
 
-export default function SaasAdmin() {
+export default function SaasAdmin({ baseDomain = '26i.uk' }) {
     const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || '');
     const [keyInput, setKeyInput] = useState('');
     const [authenticated, setAuthenticated] = useState(false);
@@ -236,9 +236,9 @@ export default function SaasAdmin() {
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                                 <td style={{ padding: '12px 16px' }}>
                                                     <div style={{ fontWeight: '600', color: '#a78bfa' }}>{store.tenantId}</div>
-                                                    <a href={`https://${store.tenantId}.26i.uk`} target="_blank" rel="noreferrer"
+                                                    <a href={`https://${store.tenantId}.${baseDomain}`} target="_blank" rel="noreferrer"
                                                         style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px', textDecoration: 'none' }}>
-                                                        {store.tenantId}.26i.uk <i className="ri-external-link-line" />
+                                                        {store.tenantId}.{baseDomain} <i className="ri-external-link-line" />
                                                     </a>
                                                 </td>
                                                 <td style={{ padding: '12px 16px', color: '#e5e7eb' }}>{store.businessName || '—'}</td>
@@ -257,7 +257,7 @@ export default function SaasAdmin() {
                                                 </td>
                                                 <td style={{ padding: '12px 16px' }}>
                                                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                        <a href={`https://${store.tenantId}.26i.uk`} target="_blank" rel="noreferrer"
+                                                        <a href={`https://${store.tenantId}.${baseDomain}`} target="_blank" rel="noreferrer"
                                                             style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#a78bfa', fontSize: '12px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                             <i className="ri-external-link-line" />Visit
                                                         </a>
@@ -355,7 +355,7 @@ export default function SaasAdmin() {
                         <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
                         <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '10px' }}>Delete Store?</h3>
                         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
-                            This will permanently delete <strong style={{ color: '#f87171' }}>{confirmDelete}.26i.uk</strong> and <strong>all its data</strong> — products, invoices, users — and cannot be undone.
+                            This will permanently delete <strong style={{ color: '#f87171' }}>{confirmDelete}.{baseDomain}</strong> and <strong>all its data</strong> — products, invoices, users — and cannot be undone.
                         </p>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
