@@ -43,7 +43,7 @@ spec:
       containers:
         - name: kamysoft-erp
           image: ghcr.io/khalilksa33/kamysoft-erp:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8089
               name: http
