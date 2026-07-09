@@ -68,6 +68,24 @@ spec:
                 secretKeyRef:
                   name: kamysoft-erp-secrets
                   key: SAAS_ADMIN_KEY
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-secrets
+                  key: CF_API_TOKEN
+                  optional: true
+            - name: CF_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-secrets
+                  key: CF_ACCOUNT_ID
+                  optional: true
+            - name: CF_TUNNEL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-secrets
+                  key: CF_TUNNEL_ID
+                  optional: true
           resources:
             limits:
               cpu: "500m"

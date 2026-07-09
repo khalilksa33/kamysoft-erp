@@ -760,6 +760,78 @@ const defaultProductsBySector = {
     ]
 };
 
+// Function to update Cloudflare Zero Trust Tunnel configuration dynamically
+async function updateCloudflareTunnelConfig(tenantDomain) {
+    const cfAccountId = process.env.CF_ACCOUNT_ID;
+    const cfTunnelId = process.env.CF_TUNNEL_ID;
+    const cfApiToken = process.env.CF_API_TOKEN;
+
+    if (!cfAccountId || !cfTunnelId || !cfApiToken) {
+        console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
+        return;
+    }
+
+    try {
+        const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
+        const headers = {
+            'Authorization': `Bearer ${cfApiToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        // 1. Fetch existing configuration
+        const fetchResponse = await fetch(url, { headers });
+        const fetchData = await fetchResponse.json();
+
+        if (!fetchData.success) {
+            console.error('Failed to fetch CF Tunnel config:', fetchData.errors);
+            return;
+        }
+
+        const config = fetchData.result.config;
+        if (!config || !config.ingress) {
+            console.error('CF Tunnel config is malformed.');
+            return;
+        }
+
+        // 2. Check if route already exists
+        const routeExists = config.ingress.some(route => route.hostname === tenantDomain);
+        if (routeExists) {
+            console.log(`Route for ${tenantDomain} already exists in Cloudflare Tunnel.`);
+            return;
+        }
+
+        // 3. Add new route
+        const newRoute = {
+            hostname: tenantDomain,
+            service: "http://127.0.0.1:30184"
+        };
+        
+        // Find index of catch-all rule to insert before it
+        const catchAllIndex = config.ingress.findIndex(route => !route.hostname || route.service === 'http_status:404');
+        if (catchAllIndex !== -1) {
+            config.ingress.splice(catchAllIndex, 0, newRoute);
+        } else {
+            config.ingress.push(newRoute);
+        }
+
+        // 4. Update the configuration
+        const updateResponse = await fetch(url, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ config })
+        });
+        const updateData = await updateResponse.json();
+
+        if (updateData.success) {
+            console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
+        } else {
+            console.error('Failed to update CF Tunnel config:', updateData.errors);
+        }
+    } catch (err) {
+        console.error('Error updating Cloudflare Tunnel:', err);
+    }
+}
+
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -896,6 +968,11 @@ app.post('/api/auth/register-tenant', async (req, res) => {
         // Send email asynchronously (don't block the response)
         if (email) {
             sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain);
+        }
+        
+        // Update Cloudflare Tunnel asynchronously
+        if (process.env.CF_ACCOUNT_ID && baseDomain) {
+            updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
         }
         
         res.status(201).json({ 
