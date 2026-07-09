@@ -772,13 +772,56 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
     }
 
     try {
-        const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
         const headers = {
             'Authorization': `Bearer ${cfApiToken}`,
             'Content-Type': 'application/json'
         };
 
-        // 1. Fetch existing configuration
+        // 1. Get Zone ID for the base domain
+        const baseDomain = tenantDomain.split('.').slice(1).join('.');
+        let cfZoneId = null;
+        
+        const zoneRes = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
+        const zoneData = await zoneRes.json();
+        
+        if (zoneData.success && zoneData.result.length > 0) {
+            cfZoneId = zoneData.result[0].id;
+        } else {
+            console.error('Failed to fetch Zone ID for', baseDomain, zoneData.errors);
+        }
+
+        // 2. Create DNS CNAME record for the tenant
+        if (cfZoneId) {
+            const dnsPayload = {
+                type: 'CNAME',
+                name: tenantDomain,
+                content: `${cfTunnelId}.cfargotunnel.com`,
+                ttl: 1, // Auto
+                proxied: true
+            };
+            
+            const dnsRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(dnsPayload)
+            });
+            const dnsData = await dnsRes.json();
+            
+            if (dnsData.success) {
+                console.log(`Successfully created CNAME record for ${tenantDomain}`);
+            } else {
+                // If it already exists, that's fine (code 81053)
+                const exists = dnsData.errors.some(e => e.code === 81053 || e.message.includes('already exists'));
+                if (exists) {
+                    console.log(`CNAME record for ${tenantDomain} already exists.`);
+                } else {
+                    console.error('Failed to create CNAME record:', dnsData.errors);
+                }
+            }
+        }
+
+        // 3. Fetch existing Tunnel configuration
+        const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
         const fetchResponse = await fetch(url, { headers });
         const fetchData = await fetchResponse.json();
 
@@ -793,14 +836,14 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
             return;
         }
 
-        // 2. Check if route already exists
+        // 4. Check if route already exists in Tunnel
         const routeExists = config.ingress.some(route => route.hostname === tenantDomain);
         if (routeExists) {
             console.log(`Route for ${tenantDomain} already exists in Cloudflare Tunnel.`);
             return;
         }
 
-        // 3. Add new route
+        // 5. Add new route to Tunnel
         const newRoute = {
             hostname: tenantDomain,
             service: "http://127.0.0.1:30184"
@@ -814,7 +857,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
             config.ingress.push(newRoute);
         }
 
-        // 4. Update the configuration
+        // 6. Update the Tunnel configuration
         const updateResponse = await fetch(url, {
             method: 'PUT',
             headers,
