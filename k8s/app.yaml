@@ -88,7 +88,6 @@ spec:
       targetPort: 8089
       protocol: TCP
       name: http
-      nodePort: 30089
   selector:
     app: kamysoft-erp
   type: NodePort
