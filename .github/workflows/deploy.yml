@@ -70,4 +70,4 @@ jobs:
 
       - name: Deploy via Host B k3s Cluster
         run: |
-          ssh iicc2@ssh-erp.26i.uk "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && sudo /usr/local/bin/k3s kubectl apply -f ~/kamysoft-erp/k8s/ && sudo /usr/local/bin/k3s kubectl rollout restart deployment/kamysoft-erp -n kamysoft-erp"
+          ssh iicc2@ssh-erp.26i.uk "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && sudo /usr/local/bin/k3s kubectl apply -f ~/kamysoft-erp/k8s/ && sudo /usr/local/bin/k3s kubectl rollout restart deployment/kamysoft-erp"
