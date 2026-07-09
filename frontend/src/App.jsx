@@ -574,7 +574,7 @@ export default function App() {
         } else {
             if (host.endsWith(`.${baseDomain}`)) {
                 const subdomain = host.slice(0, -(baseDomain.length + 1));
-                if (subdomain !== 'www' && subdomain !== 'demo') {
+                if (subdomain !== 'www' && subdomain !== 'demo' && subdomain !== 'ssh-erp' && subdomain !== 'ssh-cloud') {
                     routeMode = 'customer';
                     tenantId = subdomain;
                 } else {
