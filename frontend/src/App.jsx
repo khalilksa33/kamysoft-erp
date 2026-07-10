@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './LandingPage';
+import Sidebar from './components/Sidebar';
 import SaasAdmin from './SaasAdmin';
 
 // Automatically add x-tenant-id header to relative API calls
@@ -1858,166 +1859,16 @@ export default function App() {
 
     return (
         <div className="app-container">
-            {/* Sidebar Navigation */}
-            {mobileMenuOpen && <div className="sidebar-backdrop" onClick={() => setMobileMenuOpen(false)} />}
-            <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} onClickCapture={() => setMobileMenuOpen(false)}>
-                {/* Language & Theme Controls */}
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', width: '100%' }}>
-                    <button 
-                        className="btn btn-secondary" 
-                        onClick={() => setCurrentLanguage(currentLanguage === 'ar' ? 'en' : 'ar')} 
-                        style={{ flex: 1, padding: '6px 8px', fontSize: '11px', height: '32px', gap: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}
-                    >
-                        <i className="ri-translate" style={{ fontSize: '14px', color: 'var(--accent-cyan)' }}></i>
-                        <span>{currentLanguage === 'ar' ? 'English' : 'العربية'}</span>
-                    </button>
-                    <button 
-                        className="btn btn-secondary" 
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
-                        style={{ flex: 1, padding: '6px 8px', fontSize: '11px', height: '32px', gap: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}
-                    >
-                        <i className={theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'} style={{ fontSize: '14px', color: 'var(--accent-gold)' }}></i>
-                        <span>{theme === 'dark' ? (currentLanguage === 'ar' ? 'نهاري' : 'Light') : (currentLanguage === 'ar' ? 'ليلي' : 'Dark')}</span>
-                    </button>
-                </div>
-                <div className="brand">
-                    <i className="ri-store-2-line"></i>
-                    <span>SME Solutions</span>
-                </div>
-                <ul className="nav-links">
-                    <li>
-                        <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
-                            <i className="ri-dashboard-line"></i>
-                            <span data-i18n="dashboard">{translations[currentLanguage].dashboard}</span>
-                        </button>
-                    </li>
-                    {isAllowedTab('pos') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'pos' ? 'active' : ''}`} onClick={() => setActiveTab('pos')}>
-                                <i className="ri-shopping-cart-line"></i>
-                                <span data-i18n="posCashier">{translations[currentLanguage].posCashier}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('inventory') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>
-                                <i className="ri-barcode-box-line"></i>
-                                <span data-i18n="inventory">{translations[currentLanguage].inventory}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('expenses') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')}>
-                                <i className="ri-hand-coin-line"></i>
-                                <span data-i18n="expenses">{translations[currentLanguage].expenses}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('assets') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'assets' ? 'active' : ''}`} onClick={() => setActiveTab('assets')}>
-                                <i className="ri-briefcase-line"></i>
-                                <span data-i18n="assets">{translations[currentLanguage].assets}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('customers') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'customers' ? 'active' : ''}`} onClick={() => setActiveTab('customers')}>
-                                <i className="ri-user-shared-line"></i>
-                                <span data-i18n="customers">{translations[currentLanguage].customers}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('suppliers') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'suppliers' ? 'active' : ''}`} onClick={() => setActiveTab('suppliers')}>
-                                <i className="ri-user-received-line"></i>
-                                <span data-i18n="suppliers">{translations[currentLanguage].suppliers}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('invoices') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'invoices' || activeTab === 'b2bsale' ? 'active' : ''}`} onClick={() => setActiveTab('invoices')}>
-                                <i className="ri-file-list-3-line"></i>
-                                <span data-i18n="invoices">{translations[currentLanguage].invoices}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('quotations') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'quotations' ? 'active' : ''}`} onClick={() => setActiveTab('quotations')}>
-                                <i className="ri-file-text-line"></i>
-                                <span data-i18n="quotations">{translations[currentLanguage].quotations}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('orders') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
-                                <i className="ri-truck-line"></i>
-                                <span data-i18n="orders">{translations[currentLanguage].orders}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('reports') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
-                                <i className="ri-pie-chart-line"></i>
-                                <span data-i18n="reports">{translations[currentLanguage].reports}</span>
-                            </button>
-                        </li>
-                    )}
-                    {isAllowedTab('settings') && (
-                        <li>
-                            <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
-                                <i className="ri-settings-4-line"></i>
-                                <span data-i18n="settings">{translations[currentLanguage].settings}</span>
-                            </button>
-                            <ul className="sidebar-submenu" style={{ 
-                                paddingLeft: currentLanguage === 'ar' ? '0' : '15px', 
-                                paddingRight: currentLanguage === 'ar' ? '15px' : '0', 
-                                listStyle: 'none', 
-                                marginTop: '6px', 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                gap: '4px',
-                                borderLeft: currentLanguage === 'ar' ? 'none' : '1px solid var(--glass-border)',
-                                borderRight: currentLanguage === 'ar' ? '1px solid var(--glass-border)' : 'none',
-                                marginLeft: currentLanguage === 'ar' ? '0' : '10px',
-                                marginRight: currentLanguage === 'ar' ? '10px' : '0'
-                            }}>
-                                {isAllowedTab('permissions') && (
-                                    <li>
-                                        <button className={`nav-item ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')} style={{ fontSize: '13px', padding: '6px 12px' }}>
-                                            <i className="ri-shield-user-line" style={{ fontSize: '16px', width: '20px' }}></i>
-                                            <span data-i18n="permissions">{translations[currentLanguage].permissions}</span>
-                                        </button>
-                                    </li>
-                                )}
-                                {isAllowedTab('zatca') && (
-                                    <li>
-                                        <button className={`nav-item ${activeTab === 'zatca' ? 'active' : ''}`} onClick={() => setActiveTab('zatca')} style={{ fontSize: '13px', padding: '6px 12px' }}>
-                                            <i className="ri-cloud-line" style={{ fontSize: '16px', width: '20px' }}></i>
-                                            <span data-i18n="zatcaPortal">{translations[currentLanguage].zatcaPortal}</span>
-                                        </button>
-                                    </li>
-                                )}
-                            </ul>
-                        </li>
-                    )}
-                </ul>
-                
-                <div className="sidebar-footer">
-                    <button className="btn btn-danger" onClick={handleLogout} style={{ marginTop: '10px', width: '100%' }}>
-                        <i className="ri-logout-box-line"></i>
-                        <span>{currentLanguage === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-                    </button>
-                </div>
-            </aside>
+            <Sidebar 
+                mobileMenuOpen={mobileMenuOpen} 
+                setMobileMenuOpen={setMobileMenuOpen} 
+                currentLanguage={currentLanguage} 
+                setCurrentLanguage={setCurrentLanguage} 
+                theme={theme} 
+                setTheme={setTheme} 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+            />
 
             {/* Main Application Area */}
             <main className="main-content">
