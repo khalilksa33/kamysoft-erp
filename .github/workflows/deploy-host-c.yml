@@ -74,3 +74,4 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f - && \
           kubectl apply -f ~/kamysoft-erp/k8s/ && \
           kubectl rollout restart deployment/kamysoft-erp"
+
