@@ -4,6 +4,7 @@ import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
 import Customers from './views/people/Customers';
 import Suppliers from './views/people/Suppliers';
+import Inventory from './views/inventory/Inventory';
 import Employees from './views/people/Employees';
 import Sidebar from './components/Sidebar';
 import SaasAdmin from './SaasAdmin';
@@ -2334,42 +2335,7 @@ export default function App() {
                 )}
 
                 {/* TAB: INVENTORY */}
-                {activeTab === 'inventory' && (
-                    <div className="glass-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 data-i18n="inventory">{translations[currentLanguage].inventory}</h3>
-                            <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>{translations[currentLanguage].addProduct}</button>
-                        </div>
-                        <div className="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>{translations[currentLanguage].prodId}</th>
-                                        <th>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</th>
-                                        <th>{translations[currentLanguage].prodName}</th>
-                                        <th>{translations[currentLanguage].prodCategory}</th>
-                                        <th>{translations[currentLanguage].prodStock}</th>
-                                        <th>{translations[currentLanguage].purchaseCost}</th>
-                                        <th>{translations[currentLanguage].sellingPrice}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {products.map(p => (
-                                        <tr key={p.id}>
-                                            <td>{p.id}</td>
-                                            <td>{p.barcode || '-'}</td>
-                                            <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
-                                            <td>{translations[currentLanguage][p.category] || p.category}</td>
-                                            <td>{p.stock}</td>
-                                            <td>{formatCurrency(p.cost || 0)}</td>
-                                            <td>{formatCurrency(p.price)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
+                {activeTab === 'inventory' && <Inventory {...props} />}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (
