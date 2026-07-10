@@ -3,6 +3,13 @@ import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
 import Reports from './views/reports/Reports';
+import Warehouses from './views/inventory/Warehouses';
+import InventoryTransactions from './views/inventory/InventoryTransactions';
+import JournalEntries from './views/financials/JournalEntries';
+import Vouchers from './views/financials/Vouchers';
+import Salaries from './views/people/Salaries';
+import Purchases from './views/invoices/Purchases';
+import Returns from './views/invoices/Returns';
 import Customers from './views/people/Customers';
 import Suppliers from './views/people/Suppliers';
 import Inventory from './views/inventory/Inventory';
@@ -1923,6 +1930,15 @@ export default function App() {
 
                 {/* TAB: DASHBOARD */}
                 {activeTab === 'dashboard' && <Dashboard {...props} />}
+
+                {['addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
+                {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
+                {['dailyJournal'].includes(activeTab) && <JournalEntries {...props} />}
+                {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
+                {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
+                {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
+                {['salesReturn', 'purchaseReturn'].includes(activeTab) && <Returns {...props} />}
+                {['salesInvoice', 'quotation'].includes(activeTab) && <Invoices {...props} />}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
                 {activeTab === 'pos' && <POS {...props} />}
