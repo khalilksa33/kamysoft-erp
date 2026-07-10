@@ -67,10 +67,10 @@ jobs:
       - name: Deploy via Host C k3s Cluster
         run: |
           ssh cloud@ssh-cloud.cloud.26i.uk "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && \
-          sudo /usr/local/bin/k3s kubectl create secret generic cloudflare-secrets \
+          kubectl create secret generic cloudflare-secrets \
             --from-literal=CF_API_TOKEN='${{ secrets.CF_API_TOKEN }}' \
             --from-literal=CF_ACCOUNT_ID='${{ secrets.CF_ACCOUNT_ID }}' \
             --from-literal=CF_TUNNEL_ID='${{ secrets.CF_TUNNEL_ID }}' \
-            --dry-run=client -o yaml | sudo /usr/local/bin/k3s kubectl apply -f - && \
-          sudo /usr/local/bin/k3s kubectl apply -f ~/kamysoft-erp/k8s/ && \
-          sudo /usr/local/bin/k3s kubectl rollout restart deployment/kamysoft-erp"
+            --dry-run=client -o yaml | kubectl apply -f - && \
+          kubectl apply -f ~/kamysoft-erp/k8s/ && \
+          kubectl rollout restart deployment/kamysoft-erp"
