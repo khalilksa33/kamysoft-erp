@@ -687,6 +687,7 @@ global.mockDb = mockDb;
 global.getTenantId = getTenantId;
 global.defaultProductsBySector = defaultProductsBySector;
 global.sendLicenseEmail = sendLicenseEmail;
+global.updateCloudflareTunnelConfig = updateCloudflareTunnelConfig;
 
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);

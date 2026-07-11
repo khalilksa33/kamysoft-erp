@@ -166,7 +166,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         
         // Update Cloudflare Tunnel asynchronously
         if (process.env.CF_ACCOUNT_ID && baseDomain) {
-            updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
+            global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
         }
         
         res.status(201).json({ 
