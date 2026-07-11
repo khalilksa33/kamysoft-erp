@@ -44,9 +44,7 @@ jobs:
       - name: Set up SSH configuration for Cloudflare Tunnel
         run: |
           mkdir -p ~/.ssh
-          cat << 'EOF' > ~/.ssh/id_rsa
-          ${{ secrets.SSH_PRIVATE_KEY_HOST_B }}
-          EOF
+          echo "${{ secrets.SSH_PRIVATE_KEY_HOST_B }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           
           # Base SSH configuration
