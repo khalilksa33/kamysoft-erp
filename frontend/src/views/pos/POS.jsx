@@ -9,7 +9,7 @@ const POS = (props) => {
         couponInput, setCouponInput, applyCoupon, removeCoupon, activeCoupon,
         paymentMethod, setPaymentMethod, splitCash, setSplitCash, splitCard, setSplitCard,
         tableNum, setTableNum, serviceDuration, setServiceDuration,
-        checkout
+        checkout, processCheckout, handleSaveQuotationFromCart
     } = props;
 
     return (

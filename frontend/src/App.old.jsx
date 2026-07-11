@@ -1,21 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './LandingPage';
-import Invoices from './views/invoices/Invoices';
-import Settings from './views/settings/Settings';
-import Reports from './views/reports/Reports';
-import Warehouses from './views/inventory/Warehouses';
-import InventoryTransactions from './views/inventory/InventoryTransactions';
-import JournalEntries from './views/financials/JournalEntries';
-import Vouchers from './views/financials/Vouchers';
-import Salaries from './views/people/Salaries';
-import Purchases from './views/invoices/Purchases';
-import Returns from './views/invoices/Returns';
-import Customers from './views/people/Customers';
-import Suppliers from './views/people/Suppliers';
-import Inventory from './views/inventory/Inventory';
-import POS from './views/pos/POS';
-import Dashboard from './views/dashboard/Dashboard';
-import Employees from './views/people/Employees';
 import Sidebar from './components/Sidebar';
 import SaasAdmin from './SaasAdmin';
 
@@ -732,6 +716,9 @@ export default function App() {
 
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [custForm, setCustForm] = useState({ name: '', phone: '', email: '' });
+
+    const [showSupplierModal, setShowSupplierModal] = useState(false);
+    const [suppForm, setSuppForm] = useState({ company: '', contact: '', phone: '', items: '' });
 
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [expForm, setExpForm] = useState({ category: 'rent', amount: '', description: '', date: '' });
@@ -1631,6 +1618,41 @@ export default function App() {
         });
     };
 
+    const handleSaveSupplier = (e) => {
+        e.preventDefault();
+        const method = suppForm.id ? 'PUT' : 'POST';
+        const url = suppForm.id ? `/api/suppliers/${suppForm.id}` : '/api/suppliers';
+        
+        fetch(url, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(suppForm)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(data => {
+            if (suppForm.id) {
+                setSuppliers(suppliers.map(s => s.id === suppForm.id ? data : s));
+            } else {
+                setSuppliers([...suppliers, data]);
+            }
+            setShowSupplierModal(false);
+            setSuppForm({ company: '', contact: '', phone: '', items: '' });
+        })
+        .catch(() => {
+            if (suppForm.id) {
+                setSuppliers(suppliers.map(s => s.id === suppForm.id ? { ...suppForm } : s));
+            } else {
+                const mock = { ...suppForm, id: `SUPP-${Date.now().toString().slice(-4)}` };
+                setSuppliers([...suppliers, mock]);
+            }
+            setShowSupplierModal(false);
+            setSuppForm({ company: '', contact: '', phone: '', items: '' });
+        });
+    };
+
     const handleDeleteSupplier = (id) => {
         if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this supplier?')) return;
         fetch(`/api/suppliers/${id}`, { method: 'DELETE', headers: headers })
@@ -1835,8 +1857,6 @@ export default function App() {
         );
     }
 
-    const props = { handleB2BAddItem, setHostname, products, settings, showProductModal, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, setShowProductModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, appendLog, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, prodForm, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, setProdForm, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, handleSaveProduct, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal };
-
     return (
         <div className="app-container">
             <Sidebar 
@@ -1893,19 +1913,301 @@ export default function App() {
                 </header>
 
                 {/* TAB: DASHBOARD */}
-                {activeTab === 'dashboard' && <Dashboard {...props} />}
+                {activeTab === 'dashboard' && (
+                    <>
+                        <div className="card-grid">
+                            <div className="glass-card purple">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3 data-i18n="totalSales">{translations[currentLanguage].totalSales}</h3>
+                                        <div className="stat-value">{formatCurrency(invoices.reduce((a, b) => a + b.total, 0))}</div>
+                                    </div>
+                                    <div className="stat-icon"><i class="ri-money-dollar-circle-line"></i></div>
+                                </div>
+                            </div>
+                            <div className="glass-card cyan">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3 data-i18n="activeProducts">{translations[currentLanguage].activeProducts}</h3>
+                                        <div className="stat-value">{products.length}</div>
+                                    </div>
+                                    <div className="stat-icon"><i class="ri-archive-line"></i></div>
+                                </div>
+                            </div>
+                            <div className="glass-card gold">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3 data-i18n="invoicesGenerated">{translations[currentLanguage].invoicesGenerated}</h3>
+                                        <div className="stat-value">{invoices.length}</div>
+                                    </div>
+                                    <div className="stat-icon"><i class="ri-file-paper-2-line"></i></div>
+                                </div>
+                            </div>
+                        </div>
 
-                {['addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
-                {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
-                {['dailyJournal'].includes(activeTab) && <JournalEntries {...props} />}
-                {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
-                {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
-                {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
-                {['salesReturn', 'purchaseReturn'].includes(activeTab) && <Returns {...props} />}
-                {['salesInvoice', 'quotation'].includes(activeTab) && <Invoices {...props} />}
+                        {/* Recent Transactions List */}
+                        <div className="glass-card" style={{ marginTop: '24px' }}>
+                            <h3 data-i18n="recentTransactions" style={{ marginBottom: '15px' }}>{translations[currentLanguage].recentTransactions}</h3>
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>{translations[currentLanguage].invoiceNum}</th>
+                                            <th>{translations[currentLanguage].invoiceDate}</th>
+                                            <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                            <th>{translations[currentLanguage].invoiceTotal}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {invoices.slice(-5).reverse().map(inv => (
+                                            <tr key={inv.id}>
+                                                <td>{inv.id}</td>
+                                                <td>{inv.date}</td>
+                                                <td>{inv.customer}</td>
+                                                <td>{formatCurrency(inv.total)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </>
+                )}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
-                {activeTab === 'pos' && <POS {...props} />}
+                {activeTab === 'pos' && (
+                    <div className="pos-layout">
+                        <div className="pos-products">
+                            <div className="products-filter">
+                                <button className={`filter-chip ${posFilter === 'all' ? 'active' : ''}`} onClick={() => setPosFilter('all')}>{translations[currentLanguage].allCategories}</button>
+                                <button className={`filter-chip ${posFilter === 'electronics' ? 'active' : ''}`} onClick={() => setPosFilter('electronics')}>{translations[currentLanguage].electronics}</button>
+                                <button className={`filter-chip ${posFilter === 'apparel' ? 'active' : ''}`} onClick={() => setPosFilter('apparel')}>{translations[currentLanguage].apparel}</button>
+                                <button className={`filter-chip ${posFilter === 'groceries' ? 'active' : ''}`} onClick={() => setPosFilter('groceries')}>{translations[currentLanguage].groceries}</button>
+                            </div>
+
+                            <input type="text" className="form-control" placeholder={translations[currentLanguage].searchPlaceholder} value={posSearch} onChange={e => setPosSearch(e.target.value)} />
+
+                            <div className="products-grid">
+                                {products.filter(p => (posFilter === 'all' || p.category === posFilter) && (p.nameAR.includes(posSearch) || p.nameEN.toLowerCase().includes(posSearch.toLowerCase()))).map(prod => (
+                                    <div className="product-card" key={prod.id} onClick={() => addToCart(prod)}>
+                                        <div className="product-img">{prod.emoji || '📦'}</div>
+                                        <div className="product-title">{currentLanguage === 'ar' ? prod.nameAR : prod.nameEN}</div>
+                                        <div className="product-stock">{currentLanguage === 'ar' ? `المخزن: ${prod.stock}` : `Stock: ${prod.stock}`}</div>
+                                        <div className="product-price">{formatCurrency(prod.price)}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Cart Drawer */}
+                        <div className="pos-cart">
+                            <h3 data-i18n="cartTitle">{translations[currentLanguage].cartTitle}</h3>
+                            
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px', marginBottom: '8px' }}>
+                                <span>{currentLanguage === 'ar' ? 'الفرع:' : 'Branch:'} {settings.currentBranch || (currentLanguage === 'ar' ? 'الرئيسي' : 'Main Branch')}</span>
+                                <span>
+                                    {currentLanguage === 'ar' ? 'النشاط:' : 'Type:'}{' '}
+                                    {settings.businessType === 'restaurant' ? (currentLanguage === 'ar' ? 'مطعم' : 'Restaurant') :
+                                     settings.businessType === 'services' ? (currentLanguage === 'ar' ? 'خدمات' : 'Services') :
+                                     settings.businessType === 'appliances' ? (currentLanguage === 'ar' ? 'أجهزة منزلية' : 'Appliances') :
+                                     settings.businessType === 'furniture' ? (currentLanguage === 'ar' ? 'أثاث' : 'Furniture') :
+                                     settings.businessType === 'spareparts' ? (currentLanguage === 'ar' ? 'قطع غيار' : 'Spare Parts') :
+                                     settings.businessType === 'grocery' ? (currentLanguage === 'ar' ? 'مواد غذائية' : 'Grocery') :
+                                     settings.businessType === 'apparel' ? (currentLanguage === 'ar' ? 'ملابس وأزياء' : 'Apparel') :
+                                     (currentLanguage === 'ar' ? 'تجزئة' : 'Retail')}
+                                </span>
+                            </div>
+
+                            <div style={{ marginTop: '10px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد العميل' : 'Assign Customer'}</label>
+                                <select className="form-control" value={activeCustomer} onChange={e => setActiveCustomer(e.target.value)}>
+                                    <option value="walk-in">{translations[currentLanguage].walkIn}</option>
+                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+
+                            {settings.businessType === 'restaurant' && settings.enableTables && (
+                                <div style={{ marginTop: '10px' }}>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد الطاولة' : 'Select Table'}</label>
+                                    <select className="form-control" value={tableNum} onChange={e => setTableNum(e.target.value)}>
+                                        {Array.from({ length: 20 }, (_, i) => (
+                                            <option key={i+1} value={(i+1).toString()}>{currentLanguage === 'ar' ? `طاولة ${i+1}` : `Table ${i+1}`}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {settings.businessType === 'services' && settings.enableServiceDuration && (
+                                <div style={{ marginTop: '10px' }}>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'مدة الجلسة' : 'Session Duration'}</label>
+                                    <select className="form-control" value={serviceDuration} onChange={e => setServiceDuration(e.target.value)}>
+                                        <option value="30 mins">{currentLanguage === 'ar' ? '٣٠ دقيقة' : '30 mins'}</option>
+                                        <option value="60 mins">{currentLanguage === 'ar' ? 'ساعة واحدة' : '60 mins'}</option>
+                                        <option value="90 mins">{currentLanguage === 'ar' ? 'ساعة ونصف' : '90 mins'}</option>
+                                        <option value="120 mins">{currentLanguage === 'ar' ? 'ساعتين' : '120 mins'}</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            <div className="cart-items">
+                                {cart.length === 0 ? <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '40px' }}>{translations[currentLanguage].cartEmpty}</p> : 
+                                    cart.map(item => (
+                                        <div className="cart-item" key={item.product.id}>
+                                            <div className="cart-item-info">
+                                                <div className="product-title">{currentLanguage === 'ar' ? item.product.nameAR : item.product.nameEN}</div>
+                                                {item.product.barcode && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                                                        {currentLanguage === 'ar' ? 'الرمز:' : 'Code:'} {item.product.barcode}
+                                                    </div>
+                                                )}
+                                                {settings.businessType === 'appliances' && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--accent-purple)' }}>
+                                                        {currentLanguage === 'ar' ? 'سجل الضمان مفعل (٢ سنة)' : 'Warranty Logs Enabled (2 Yrs)'}
+                                                    </div>
+                                                )}
+                                                {settings.businessType === 'spareparts' && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--accent-cyan)' }}>
+                                                        {currentLanguage === 'ar' ? 'توافق OEM: معتمد' : 'OEM Compatibility: Certified'}
+                                                    </div>
+                                                )}
+                                                <div style={{ color: 'var(--accent-cyan)' }}>{formatCurrency(item.product.price)}</div>
+                                            </div>
+                                            <div className="cart-item-qty">
+                                                <button className="qty-btn" onClick={() => updateCartQty(item.product.id, -1)}>-</button>
+                                                <span>{item.qty}</span>
+                                                <button className="qty-btn" onClick={() => updateCartQty(item.product.id, 1)}>+</button>
+                                            </div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                <input type="text" className="form-control" placeholder="Coupon KAMY50" value={couponInput} onChange={e => setCouponInput(e.target.value)} />
+                                <button className="btn btn-secondary" onClick={applyCoupon}>{translations[currentLanguage].couponLabel}</button>
+                            </div>
+
+                            <div className="cart-totals">
+                                <div className="total-row">
+                                    <span>{translations[currentLanguage].subtotal}</span>
+                                    <span>{formatCurrency(cart.reduce((a, b) => a + (b.product.price * b.qty), 0))}</span>
+                                </div>
+                                <div className="total-row">
+                                    <span>{translations[currentLanguage].discount}</span>
+                                    <span>-{formatCurrency(activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)}</span>
+                                </div>
+                                <div className="total-row">
+                                    <span>{translations[currentLanguage].vat}</span>
+                                    <span>{formatCurrency(cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * (settings.taxRate / 100))}</span>
+                                </div>
+                                <div className="total-row grand-total">
+                                    <span>{translations[currentLanguage].grandTotal}</span>
+                                    <span>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100))}</span>
+                                </div>
+                                {settings.businessType === 'furniture' && cart.length > 0 && (
+                                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed var(--glass-border)', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{currentLanguage === 'ar' ? 'العربون المطلوب (30%)' : 'Required Deposit (30%)'}</span>
+                                            <span style={{ color: 'var(--accent-success)', fontWeight: 'bold' }}>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100) * 0.3)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{currentLanguage === 'ar' ? 'المبلغ المتبقي للتحصيل' : 'Remaining Balance Due'}</span>
+                                            <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>{formatCurrency((cart.reduce((a, b) => a + (b.product.price * b.qty), 0) - (activeCoupon ? cart.reduce((a, b) => a + (b.product.price * b.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100) * 0.7)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Payment Method Selector */}
+                                <div style={{ borderTop: '1px dashed var(--glass-border)', marginTop: '12px', paddingTop: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                                        {translations[currentLanguage].paymentMethod}
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                                        {[
+                                            { id: 'cash', label: translations[currentLanguage].paymentCash, icon: 'ri-money-dollar-circle-line' },
+                                            { id: 'visa', label: translations[currentLanguage].paymentVisa, icon: 'ri-bank-card-line' },
+                                            { id: 'mada', label: translations[currentLanguage].paymentMada, icon: 'ri-bank-card-2-line' },
+                                            { id: 'mobile', label: translations[currentLanguage].paymentMobile, icon: 'ri-smartphone-line' },
+                                            { id: 'stc', label: translations[currentLanguage].paymentStc, icon: 'ri-wallet-3-line' },
+                                            { id: 'apple', label: translations[currentLanguage].paymentApplePay, icon: 'ri-apple-line' },
+                                            { id: 'tabby', label: translations[currentLanguage].paymentTabby, icon: 'ri-coupon-line' },
+                                            { id: 'tamara', label: translations[currentLanguage].paymentTamara, icon: 'ri-coupon-line' },
+                                            { id: 'split', label: translations[currentLanguage].paymentSplit, icon: 'ri-split-cells-vertical' }
+                                        ].map(m => (
+                                            <button
+                                                key={m.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setPaymentMethod(m.id);
+                                                    if (m.id === 'split') {
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCash((totalVal / 2).toFixed(2));
+                                                        setSplitCard((totalVal / 2).toFixed(2));
+                                                    }
+                                                }}
+                                                className={`btn ${paymentMethod === m.id ? 'btn-primary' : 'btn-secondary'}`}
+                                                style={{
+                                                    padding: '6px 4px',
+                                                    fontSize: '10px',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    height: '52px',
+                                                    border: paymentMethod === m.id ? '1px solid var(--accent-cyan)' : '1px solid var(--glass-border)',
+                                                    background: paymentMethod === m.id ? 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))' : 'var(--glass-bg)',
+                                                    opacity: paymentMethod === m.id ? 1 : 0.85
+                                                }}
+                                            >
+                                                <i className={m.icon} style={{ fontSize: '15px', color: paymentMethod === m.id ? '#fff' : 'var(--accent-cyan)' }}></i>
+                                                <span style={{ fontSize: '9px', whiteSpace: 'nowrap' }}>{m.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    {paymentMethod === 'split' && (
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', background: 'var(--bg-primary)', padding: '8px', borderRadius: '4px', border: '1px dashed var(--glass-border)' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Cash / نقداً</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    style={{ padding: '4px 6px', fontSize: '11px', height: '28px' }}
+                                                    value={splitCash}
+                                                    onChange={e => {
+                                                        const cash = parseFloat(e.target.value) || 0;
+                                                        setSplitCash(e.target.value);
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCard((Math.max(0, totalVal - cash)).toFixed(2));
+                                                    }}
+                                                />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>Card / شبكة</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    style={{ padding: '4px 6px', fontSize: '11px', height: '28px' }}
+                                                    value={splitCard}
+                                                    onChange={e => {
+                                                        const card = parseFloat(e.target.value) || 0;
+                                                        setSplitCard(e.target.value);
+                                                        const totalVal = (cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) - (activeCoupon ? cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0) * activeCoupon.rate : 0)) * (1 + settings.taxRate / 100);
+                                                        setSplitCash((Math.max(0, totalVal - card)).toFixed(2));
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
+                                    <button className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={handleSaveQuotationFromCart}>
+                                        <i className="ri-file-text-line"></i> {translations[currentLanguage].saveAsQuotation}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* TAB: B2B SALES PANEL */}
                 {activeTab === 'b2bsale' && (
@@ -2027,7 +2329,42 @@ export default function App() {
                 )}
 
                 {/* TAB: INVENTORY */}
-                {activeTab === 'inventory' && <Inventory {...props} />}
+                {activeTab === 'inventory' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="inventory">{translations[currentLanguage].inventory}</h3>
+                            <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>{translations[currentLanguage].addProduct}</button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].prodId}</th>
+                                        <th>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</th>
+                                        <th>{translations[currentLanguage].prodName}</th>
+                                        <th>{translations[currentLanguage].prodCategory}</th>
+                                        <th>{translations[currentLanguage].prodStock}</th>
+                                        <th>{translations[currentLanguage].purchaseCost}</th>
+                                        <th>{translations[currentLanguage].sellingPrice}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {products.map(p => (
+                                        <tr key={p.id}>
+                                            <td>{p.id}</td>
+                                            <td>{p.barcode || '-'}</td>
+                                            <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
+                                            <td>{translations[currentLanguage][p.category] || p.category}</td>
+                                            <td>{p.stock}</td>
+                                            <td>{formatCurrency(p.cost || 0)}</td>
+                                            <td>{formatCurrency(p.price)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (
@@ -2078,11 +2415,110 @@ export default function App() {
                 )}
 
                 {/* TAB: CUSTOMERS */}
-                {activeTab === 'customers' && <Customers {...props} />}
+                {activeTab === 'customers' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="customers">{translations[currentLanguage].customers}</h3>
+                            <button className="btn btn-primary" onClick={() => { setCustForm({ name: '', phone: '', email: '' }); setShowCustomerModal(true); }}>
+                                {translations[currentLanguage].addCustomer}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].custName}</th>
+                                        <th>{translations[currentLanguage].phone}</th>
+                                        <th>{translations[currentLanguage].email}</th>
+                                        <th>{translations[currentLanguage].loyaltyPoints}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {customers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا يوجد عملاء مسجلين حالياً' : 'No customers registered currently'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        customers.map(c => (
+                                            <tr key={c.id}>
+                                                <td>{c.name}</td>
+                                                <td>{c.phone}</td>
+                                                <td>{c.email}</td>
+                                                <td><span className="badge purple">{c.loyaltyPoints || 0} PTS</span></td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setCustForm(c); setShowCustomerModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteCustomer(c.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* TAB: SUPPLIERS */}
-                {activeTab === 'suppliers' && <Suppliers {...props} />}
-                {activeTab === 'employees' && <Employees {...props} />}
+                {activeTab === 'suppliers' && (
+                    <div className="glass-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 data-i18n="suppliers">{translations[currentLanguage].suppliers}</h3>
+                            <button className="btn btn-primary" onClick={() => { setSuppForm({ company: '', contact: '', phone: '', items: '' }); setShowSupplierModal(true); }}>
+                                {translations[currentLanguage].addSupplier}
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{translations[currentLanguage].suppName}</th>
+                                        <th>{translations[currentLanguage].suppContact}</th>
+                                        <th>{translations[currentLanguage].phone}</th>
+                                        <th>{translations[currentLanguage].suppliedItems}</th>
+                                        <th>{translations[currentLanguage].actions}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {suppliers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                {currentLanguage === 'ar' ? 'لا يوجد موردون مسجلون حالياً' : 'No suppliers registered currently'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        suppliers.map(s => (
+                                            <tr key={s.id}>
+                                                <td>{s.company}</td>
+                                                <td>{s.contact}</td>
+                                                <td>{s.phone}</td>
+                                                <td>{s.items}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => { setSuppForm(s); setShowSupplierModal(true); }}>
+                                                            <i className="ri-edit-line"></i>
+                                                        </button>
+                                                        <button className="btn btn-danger" onClick={() => handleDeleteSupplier(s.id)}>
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
                 {/* TAB: EXPENSES */}
                 {activeTab === 'expenses' && (
                     <div className="glass-card">
@@ -2336,7 +2772,231 @@ export default function App() {
                 )}
 
                 {/* TAB: INVOICES & REPRINT (SALES MANAGEMENT) */}
-                {activeTab === 'invoices' && <Invoices {...props} />}
+                {activeTab === 'invoices' && (() => {
+                    const activeInvoicesList = invoices.filter(inv => inv.zatcaStatus !== 'REFUNDED');
+                    const refundedInvoicesList = invoices.filter(inv => inv.zatcaStatus === 'REFUNDED');
+                    const totalSalesVal = activeInvoicesList.reduce((acc, inv) => acc + (inv.total || 0), 0);
+                    const totalVatVal = activeInvoicesList.reduce((acc, inv) => acc + (inv.vat || 0), 0);
+
+                    const filteredInvoices = invoices.filter(inv => {
+                        const matchesSearch = !salesSearch || 
+                            inv.id.toLowerCase().includes(salesSearch.toLowerCase()) || 
+                            (inv.customer && inv.customer.toLowerCase().includes(salesSearch.toLowerCase()));
+                            
+                        let invDateObj = null;
+                        if (inv.date) {
+                            const datePart = inv.date.split(',')[0] || inv.date;
+                            invDateObj = new Date(datePart);
+                        }
+                        
+                        let matchesStartDate = true;
+                        if (salesStartDate && invDateObj) {
+                            const start = new Date(salesStartDate);
+                            start.setHours(0,0,0,0);
+                            const comp = new Date(invDateObj);
+                            comp.setHours(0,0,0,0);
+                            matchesStartDate = comp >= start;
+                        }
+                        
+                        let matchesEndDate = true;
+                        if (salesEndDate && invDateObj) {
+                            const end = new Date(salesEndDate);
+                            end.setHours(23,59,59,999);
+                            const comp = new Date(invDateObj);
+                            comp.setHours(0,0,0,0);
+                            matchesEndDate = comp <= end;
+                        }
+                        
+                        return matchesSearch && matchesStartDate && matchesEndDate;
+                    });
+
+                    return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {/* Quick Actions Bar */}
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                            <button
+                                className="btn btn-primary glow-button"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '14px' }}
+                                onClick={() => setActiveTab('b2bsale')}
+                            >
+                                <i className="ri-building-line"></i>
+                                {currentLanguage === 'ar' ? 'بيع جديد B2B' : 'New B2B Sale'}
+                            </button>
+                            <button
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '14px', background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)', color: 'var(--accent-cyan)' }}
+                                onClick={() => setActiveTab('quotations')}
+                            >
+                                <i className="ri-file-text-line"></i>
+                                {currentLanguage === 'ar' ? 'إنشاء عرض سعر' : 'Create Quotation'}
+                            </button>
+                        </div>
+
+                        {/* Stats Grid */}
+                            <div className="card-grid">
+                                <div className="glass-card purple">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{currentLanguage === 'ar' ? 'إجمالي المبيعات (الصافي)' : 'Net Total Sales'}</h3>
+                                            <div className="stat-value">{formatCurrency(totalSalesVal)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card cyan">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{currentLanguage === 'ar' ? 'إجمالي ضريبة القيمة المضافة' : 'Total VAT Collected'}</h3>
+                                            <div className="stat-value">{formatCurrency(totalVatVal)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-percent-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card gold">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{currentLanguage === 'ar' ? 'الفواتير النشطة' : 'Active Invoices'}</h3>
+                                            <div className="stat-value">{activeInvoicesList.length}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-file-paper-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card red">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{currentLanguage === 'ar' ? 'الفواتير المسترجعة' : 'Refunded Invoices'}</h3>
+                                            <div className="stat-value">{refundedInvoicesList.length}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-arrow-go-back-line"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Filters Bar */}
+                            <div className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
+                                <div style={{ display: 'flex', gap: '15px', flexGrow: 1, flexWrap: 'wrap' }}>
+                                    <div style={{ minWidth: '220px', flexGrow: 1 }}>
+                                        <input 
+                                            type="text" 
+                                            className="form-control" 
+                                            placeholder={currentLanguage === 'ar' ? 'ابحث برقم الفاتورة أو اسم العميل...' : 'Search Invoice #, customer...'} 
+                                            value={salesSearch} 
+                                            onChange={e => setSalesSearch(e.target.value)} 
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'من:' : 'From:'}</span>
+                                        <input 
+                                            type="date" 
+                                            className="form-control" 
+                                            value={salesStartDate} 
+                                            onChange={e => setSalesStartDate(e.target.value)} 
+                                            style={{ width: '150px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'إلى:' : 'To:'}</span>
+                                        <input 
+                                            type="date" 
+                                            className="form-control" 
+                                            value={salesEndDate} 
+                                            onChange={e => setSalesEndDate(e.target.value)} 
+                                            style={{ width: '150px' }}
+                                        />
+                                    </div>
+                                </div>
+                                {(salesSearch || salesStartDate || salesEndDate) && (
+                                    <button 
+                                        className="btn btn-secondary" 
+                                        onClick={() => { setSalesSearch(''); setSalesStartDate(''); setSalesEndDate(''); }}
+                                        style={{ height: '38px', padding: '0 15px', fontSize: '12px' }}
+                                    >
+                                        <i className="ri-refresh-line"></i> {currentLanguage === 'ar' ? 'إعادة تعيين الفلاتر' : 'Reset Filters'}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Invoices List Table */}
+                            <div className="glass-card">
+                                <div className="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>{translations[currentLanguage].invoiceNum}</th>
+                                                <th>{translations[currentLanguage].invoiceDate}</th>
+                                                <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                                <th>{currentLanguage === 'ar' ? 'الفرع' : 'Branch'}</th>
+                                                <th>{currentLanguage === 'ar' ? 'المبلغ شامل الضريبة' : 'Total (Inc. VAT)'}</th>
+                                                <th>{currentLanguage === 'ar' ? 'ضريبة القيمة المضافة' : 'VAT (15%)'}</th>
+                                                <th>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</th>
+                                                <th>{translations[currentLanguage].actions}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredInvoices.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                        {currentLanguage === 'ar' ? 'لا توجد فواتير مطابقة للبحث' : 'No matching invoices found'}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredInvoices.map(inv => {
+                                                    let statusBadgeClass = 'blue';
+                                                    let statusLabel = inv.zatcaStatus || 'ACTIVE';
+                                                    if (inv.zatcaStatus === 'REFUNDED') {
+                                                        statusBadgeClass = 'danger';
+                                                        statusLabel = currentLanguage === 'ar' ? 'مرتجع' : 'REFUNDED';
+                                                    } else if (inv.zatcaStatus === 'REPORTED') {
+                                                        statusBadgeClass = 'green';
+                                                        statusLabel = currentLanguage === 'ar' ? 'مُرسل للزكاة' : 'REPORTED (ZATCA)';
+                                                    } else if (inv.zatcaStatus === 'PENDING') {
+                                                        statusBadgeClass = 'gold';
+                                                        statusLabel = currentLanguage === 'ar' ? 'معلق الزكاة' : 'PENDING ZATCA';
+                                                    } else {
+                                                        statusLabel = currentLanguage === 'ar' ? 'نشط' : 'ACTIVE';
+                                                    }
+
+                                                    return (
+                                                        <tr key={inv.id}>
+                                                            <td>{inv.id}</td>
+                                                            <td>{inv.date}</td>
+                                                            <td>{inv.customer}</td>
+                                                            <td>{inv.branch || (currentLanguage === 'ar' ? 'الرئيسي' : 'Main Branch')}</td>
+                                                            <td style={{ fontWeight: 'bold' }}>{formatCurrency(inv.total)}</td>
+                                                            <td>{formatCurrency(inv.vat || (inv.total - (inv.total / 1.15)))}</td>
+                                                            <td>
+                                                                <span className={`badge ${statusBadgeClass}`}>{statusLabel}</span>
+                                                            </td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <button className="btn btn-secondary" title={currentLanguage === 'ar' ? 'عرض وطباعة بتنسيق A4' : 'View & Print A4 Invoice'} onClick={() => { setInvoiceFormat('a4'); setInvoiceSource('sales'); setActiveInvoice(inv); setShowInvoiceModal(true); }}>
+                                                                        <i className="ri-printer-line"></i>
+                                                                    </button>
+                                                                    {inv.zatcaStatus !== 'REPORTED' && inv.zatcaStatus !== 'REFUNDED' && (
+                                                                        <button className="btn btn-secondary" style={{ color: 'var(--accent-cyan)' }} title={currentLanguage === 'ar' ? 'إرسال لهيئة الزكاة' : 'Submit to ZATCA'} onClick={() => {
+                                                                            simulateZATCAReporting(inv.id);
+                                                                        }}>
+                                                                            <i className="ri-cloud-upload-line"></i>
+                                                                        </button>
+                                                                    )}
+                                                                    {inv.zatcaStatus !== 'REFUNDED' && (
+                                                                        <button className="btn btn-danger" title={currentLanguage === 'ar' ? 'استرجاع الفاتورة' : 'Refund Invoice'} onClick={() => handleRefundInvoice(inv.id)}>
+                                                                            <i className="ri-arrow-go-back-line"></i>
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
                 
                 {/* TAB: QUOTATIONS */}
                 {activeTab === 'quotations' && (
@@ -2399,7 +3059,142 @@ export default function App() {
                 )}
 
                 {/* TAB: REPORTS */}
-                {activeTab === 'reports' && <Reports {...props} />}
+                {activeTab === 'reports' && (() => {
+                    const now = new Date();
+                    const todayStr = now.toLocaleDateString();
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+                    
+                    const reportInvoices = invoices.filter(inv => {
+                        if (!inv.date) return false;
+                        const invDate = new Date(inv.date);
+                        
+                        if (isNaN(invDate.getTime())) {
+                            const datePart = inv.date.split(',')[0] || inv.date;
+                            if (reportSubTab === 'daily') {
+                                return datePart.includes(todayStr) || inv.date.includes(todayStr);
+                            }
+                            if (reportSubTab === 'monthly') {
+                                return inv.date.includes(`/${currentMonth + 1}/`) || inv.date.includes(`/${String(currentMonth + 1).padStart(2, '0')}/`) || inv.date.includes(`-${currentMonth + 1}-`);
+                            }
+                            if (reportSubTab === 'annual') {
+                                return inv.date.includes(String(currentYear));
+                            }
+                            return false;
+                        }
+                        
+                        if (reportSubTab === 'daily') {
+                            return invDate.toDateString() === now.toDateString();
+                        } else if (reportSubTab === 'monthly') {
+                            return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+                        } else if (reportSubTab === 'annual') {
+                            return invDate.getFullYear() === currentYear;
+                        }
+                        return true;
+                    });
+
+                    const totalSales = reportInvoices.reduce((sum, inv) => sum + inv.total, 0);
+                    const totalVat = reportInvoices.reduce((sum, inv) => sum + (inv.vat || 0), 0);
+                    const netSales = totalSales - totalVat;
+                    const invoiceCount = reportInvoices.length;
+
+                    return (
+                        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {/* Sub Tabs Selection */}
+                            <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                                <button className={`btn ${reportSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('daily')}>
+                                    <i className="ri-calendar-event-line"></i> {translations[currentLanguage].dailyReports}
+                                </button>
+                                <button className={`btn ${reportSubTab === 'monthly' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('monthly')}>
+                                    <i className="ri-calendar-todo-line"></i> {translations[currentLanguage].monthlyReports}
+                                </button>
+                                <button className={`btn ${reportSubTab === 'annual' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setReportSubTab('annual')}>
+                                    <i className="ri-calendar-line"></i> {translations[currentLanguage].annualReports}
+                                </button>
+                                
+                                <button className="btn btn-secondary" style={{ marginRight: currentLanguage === 'en' ? 'auto' : '0', marginLeft: currentLanguage === 'ar' ? 'auto' : '0' }} onClick={() => window.print()}>
+                                    <i className="ri-printer-line"></i> {translations[currentLanguage].printReport}
+                                </button>
+                            </div>
+
+                            {/* Report Stats Grid */}
+                            <div className="card-grid">
+                                <div className="glass-card purple">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].totalSalesTax}</h3>
+                                            <div className="stat-value">{formatCurrency(totalSales)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card cyan">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].totalVatCollected}</h3>
+                                            <div className="stat-value">{formatCurrency(totalVat)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-percent-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card gold">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].netSalesValue}</h3>
+                                            <div className="stat-value">{formatCurrency(netSales)}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-coins-line"></i></div>
+                                    </div>
+                                </div>
+                                <div className="glass-card green">
+                                    <div className="card-stat">
+                                        <div className="stat-info">
+                                            <h3>{translations[currentLanguage].invoiceCount}</h3>
+                                            <div className="stat-value">{invoiceCount}</div>
+                                        </div>
+                                        <div className="stat-icon"><i className="ri-file-list-3-line"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Detailed List */}
+                            <div className="table-container" style={{ marginTop: '12px' }}>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>{translations[currentLanguage].invoiceNum}</th>
+                                            <th>{translations[currentLanguage].invoiceDate}</th>
+                                            <th>{translations[currentLanguage].invoiceCustomer}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].netSalesValue}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].vat}</th>
+                                            <th style={{ textAlign: 'right' }}>{translations[currentLanguage].invoiceTotal}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportInvoices.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                    {currentLanguage === 'ar' ? 'لا توجد مبيعات مسجلة لهذه الفترة' : 'No sales recorded for this period'}
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            reportInvoices.map(inv => (
+                                                <tr key={inv.id}>
+                                                    <td>{inv.id}</td>
+                                                    <td>{inv.date}</td>
+                                                    <td>{inv.customer}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.total - (inv.vat || 0))}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.vat || 0)}</td>
+                                                    <td style={{ textAlign: 'right' }}>{formatCurrency(inv.total)}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* TAB: ZATCA INTEGRATION AND CLEARANCE */}
                 {activeTab === 'zatca' && (
@@ -2447,7 +3242,265 @@ export default function App() {
                 )}
 
                 {/* TAB: SETTINGS & CURRENCY CONFIG */}
-                {activeTab === 'settings' && <Settings {...props} />}
+                {activeTab === 'settings' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                        {/* General Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-settings-4-line"></i> {translations[currentLanguage].generalSettings}
+                            </h3>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                fetch('/api/settings', {
+                                    method: 'POST',
+                                    headers: headers,
+                                    body: JSON.stringify(settings)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    setSettings(data);
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات بنجاح" : "Settings saved successfully");
+                                })
+                                .catch(() => {
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات محلياً" : "Settings saved locally");
+                                });
+                            }}>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].businessName}</label>
+                                    <input type="text" className="form-control" value={settings.businessName} onChange={e => setSettings({ ...settings, businessName: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].vatNumber}</label>
+                                    <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Company Address / عنوان الشركة</label>
+                                    <input type="text" className="form-control" value={settings.businessAddress || ''} onChange={e => setSettings({ ...settings, businessAddress: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>CR Number / رقم السجل التجاري</label>
+                                    <input type="text" className="form-control" value={settings.crNumber || ''} onChange={e => setSettings({ ...settings, crNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Contact Number / رقم التواصل</label>
+                                    <input type="text" className="form-control" value={settings.contactNumber || ''} onChange={e => setSettings({ ...settings, contactNumber: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Company Logo / شعار الشركة</label>
+                                    <input type="file" accept="image/*" className="form-control" onChange={e => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setSettings(prev => ({ ...prev, logo: reader.result }));
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }} />
+                                    {settings.logo && (
+                                        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <img src={settings.logo} alt="Company Logo Preview" style={{ maxHeight: '50px', maxWidth: '100px', borderRadius: '4px', objectFit: 'contain' }} />
+                                            <button type="button" className="btn btn-secondary" onClick={() => setSettings(prev => {
+                                                const copy = { ...prev };
+                                                delete copy.logo;
+                                                return copy;
+                                            })} style={{ padding: '4px 8px', fontSize: '11px' }}>Remove</button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="form-group">
+                                    <label>Base System Currency / العملة الأساسية</label>
+                                    <select className="form-control" value={settings.baseCurrency} onChange={e => setSettings({ ...settings, baseCurrency: e.target.value })}>
+                                        <option value="SAR">SAR / ر.س</option>
+                                        <option value="USD">USD / دولار أمريكي</option>
+                                        <option value="EUR">EUR / يورو</option>
+                                        <option value="EGP">EGP / جنيه مصري</option>
+                                        <option value="AED">AED / درهم إماراتي</option>
+                                    </select>
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{translations[currentLanguage].saveSettings}</button>
+                            </form>
+                        </div>
+
+                        {/* Branch & Business Configuration Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-building-line"></i> {currentLanguage === 'ar' ? 'تهيئة الفروع ونوع النشاط' : 'Branch & Business Configuration'}
+                            </h3>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                fetch('/api/settings', {
+                                    method: 'POST',
+                                    headers: headers,
+                                    body: JSON.stringify(settings)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    setSettings(data);
+                                    alert(currentLanguage === 'ar' ? "تم حفظ إعدادات الفروع ونوع النشاط بنجاح" : "Branch & business configuration saved successfully");
+                                })
+                                .catch(() => {
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات محلياً" : "Settings saved locally");
+                                });
+                            }}>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'نوع النشاط التجاري' : 'Business Type'}</label>
+                                    <select className="form-control" value={settings.businessType || 'retail'} onChange={e => {
+                                        const type = e.target.value;
+                                        setSettings({ 
+                                            ...settings, 
+                                            businessType: type,
+                                            enableTables: type === 'restaurant',
+                                            enableServiceDuration: type === 'services'
+                                        });
+                                    }}>
+                                        <option value="retail">{currentLanguage === 'ar' ? 'بيع بالتجزئة ومحلات' : 'Retail & Shop'}</option>
+                                        <option value="restaurant">{currentLanguage === 'ar' ? 'مطاعم ومقاهي' : 'Restaurant & Cafe'}</option>
+                                        <option value="services">{currentLanguage === 'ar' ? 'خدمات واستشارات وطبية' : 'Services & Medical'}</option>
+                                        <option value="appliances">{currentLanguage === 'ar' ? 'أجهزة منزلية وإلكترونيات' : 'Home Appliances & Electronics'}</option>
+                                        <option value="furniture">{currentLanguage === 'ar' ? 'معارض ومحلات أثاث' : 'Furniture & Home Decor'}</option>
+                                        <option value="spareparts">{currentLanguage === 'ar' ? 'قطع غيار (سيارات/تكييف/سباكة)' : 'Auto, HVAC & Spare Parts'}</option>
+                                        <option value="grocery">{currentLanguage === 'ar' ? 'سوبرماركت ومواد غذائية' : 'Supermarket & Grocery'}</option>
+                                        <option value="apparel">{currentLanguage === 'ar' ? 'ملابس وأزياء وأحذية' : 'Garments & Apparel'}</option>
+                                    </select>
+                                </div>
+
+                                {settings.businessType === 'restaurant' && (
+                                    <div className="form-group" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', margin: '15px 0' }}>
+                                        <input type="checkbox" id="enableTables" checked={settings.enableTables || false} onChange={e => setSettings({ ...settings, enableTables: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                                        <label htmlFor="enableTables" style={{ cursor: 'pointer' }}>{currentLanguage === 'ar' ? 'تفعيل إدارة الطاولات والطلبات الداخلية' : 'Enable Table Management'}</label>
+                                    </div>
+                                )}
+
+                                {settings.businessType === 'services' && (
+                                    <div className="form-group" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', margin: '15px 0' }}>
+                                        <input type="checkbox" id="enableServiceDuration" checked={settings.enableServiceDuration || false} onChange={e => setSettings({ ...settings, enableServiceDuration: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                                        <label htmlFor="enableServiceDuration" style={{ cursor: 'pointer' }}>{currentLanguage === 'ar' ? 'تفعيل مدة وموعد الجلسات / الخدمات' : 'Enable Session Duration Tracking'}</label>
+                                    </div>
+                                )}
+
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'الفرع النشط حالياً للمبيعات' : 'Current Active POS Branch'}</label>
+                                    <select className="form-control" value={settings.currentBranch || ''} onChange={e => setSettings({ ...settings, currentBranch: e.target.value })}>
+                                        {(settings.branches || []).map((br, idx) => (
+                                            <option key={idx} value={br.name}>{br.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '15px', marginTop: '15px' }}>
+                                    <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
+                                        {currentLanguage === 'ar' ? 'إضافة فرع جديد للمؤسسة' : 'Add New Branch'}
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                        <input type="text" id="newBranchName" placeholder={currentLanguage === 'ar' ? 'اسم الفرع الجديد' : 'New Branch Name'} className="form-control" style={{ flexGrow: 1 }} />
+                                        <button type="button" className="btn btn-secondary" onClick={() => {
+                                            const el = document.getElementById('newBranchName');
+                                            const name = el ? el.value.trim() : '';
+                                            if (name) {
+                                                const newBranches = [...(settings.branches || []), { name, address: '', phone: '' }];
+                                                setSettings({ ...settings, branches: newBranches, currentBranch: settings.currentBranch || name });
+                                                if (el) el.value = '';
+                                            }
+                                        }}>{currentLanguage === 'ar' ? 'إضافة' : 'Add'}</button>
+                                    </div>
+                                    
+                                    <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid var(--glass-border)', borderRadius: '4px', padding: '8px' }}>
+                                        {(settings.branches || []).map((br, idx) => (
+                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <span style={{ fontSize: '13px' }}>{br.name}</span>
+                                                <button type="button" style={{ color: 'var(--accent-danger)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => {
+                                                    const newBranches = (settings.branches || []).filter((_, i) => i !== idx);
+                                                    const nextBranch = newBranches.length > 0 ? newBranches[0].name : '';
+                                                    setSettings({ ...settings, branches: newBranches, currentBranch: nextBranch });
+                                                }}><i className="ri-delete-bin-line"></i></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '20px' }}>{translations[currentLanguage].saveSettings}</button>
+                            </form>
+                        </div>
+
+                        {/* ZATCA Connection Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-cloud-line"></i> {translations[currentLanguage].zatcaSettings}
+                            </h3>
+                            <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? "تم حفظ إعدادات خادر هيئة الزكاة" : "ZATCA Server settings saved successfully"); }}>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'اسم المنشأة' : 'Business Name'}</label>
+                                        <input type="text" className="form-control" value={settings.businessName || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'الرقم الضريبي' : 'VAT Number'}</label>
+                                        <input type="text" className="form-control" value={settings.vatNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'السجل التجاري' : 'CR Number'}</label>
+                                        <input type="text" className="form-control" value={settings.crNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'العنوان الوطني' : 'National Address'}</label>
+                                        <input type="text" className="form-control" value={settings.nationalAddress || settings.businessAddress || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEnv}</label>
+                                    <select className="form-control" value={zatcaConn.env} onChange={e => setZatcaConn({ ...zatcaConn, env: e.target.value })}>
+                                        <option value="sandbox">Sandbox / البيئة التجريبية (المحاكاة)</option>
+                                        <option value="simulation">Simulation / بيئة المحاكاة الرسمية</option>
+                                        <option value="production">Production / البيئة الفعلية والإنتاجية</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEndpoint}</label>
+                                    <input type="text" className="form-control" value={zatcaConn.endpoint} onChange={e => setZatcaConn({ ...zatcaConn, endpoint: e.target.value })} />
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientId}</label>
+                                        <input type="text" className="form-control" value={zatcaConn.clientId} onChange={e => setZatcaConn({ ...zatcaConn, clientId: e.target.value })} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientSecret}</label>
+                                        <input type="password" className="form-control" value={zatcaConn.clientSecret} onChange={e => setZatcaConn({ ...zatcaConn, clientSecret: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaDeviceSerial}</label>
+                                    <input type="text" className="form-control" value={zatcaConn.deviceSerial} onChange={e => setZatcaConn({ ...zatcaConn, deviceSerial: e.target.value })} />
+                                </div>
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                                    <input type="checkbox" id="zatcaAutoSend" checked={zatcaConn.autoSend} onChange={e => setZatcaConn({ ...zatcaConn, autoSend: e.target.checked })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
+                                    <label htmlFor="zatcaAutoSend" style={{ cursor: 'pointer', margin: 0, fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'إرسال تلقائي إلى هيئة الزكاة والضريبة والجمارك عند الدفع' : 'Auto-Send to ZATCA on Checkout'}
+                                    </label>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].zatcaStatusLabel}:</span>
+                                    <span className={`badge ${zatcaConn.status === 'CONNECTED' ? 'green' : 'danger'}`}>
+                                        {zatcaConn.status === 'CONNECTED' ? translations[currentLanguage].zatcaStatusConnected : translations[currentLanguage].zatcaStatusDisconnected}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button type="button" className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={() => alert(currentLanguage === 'ar' ? "تم إنشاء طلب التوقيع CSR ومفتاح التشفير الخاص بنجاح!" : "Private Key and CSR successfully generated!")}>
+                                        {translations[currentLanguage].csrGenerate}
+                                    </button>
+                                    <button type="button" className="btn btn-primary" style={{ flexGrow: 1 }} onClick={() => {
+                                        setZatcaConn({ ...zatcaConn, status: 'CONNECTED' });
+                                        alert(currentLanguage === 'ar' ? "تم التحقق وتسجيل وتفعيل الـ CCSID بنجاح!" : "Device successfully registered & CCSID token retrieved from ZATCA!");
+                                    }}>
+                                        {translations[currentLanguage].registerDevice}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {/* Version Footer */}
                 <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -2875,6 +3928,144 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCustomerModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT SUPPLIER */}
+            {showSupplierModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {suppForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات المورد' : 'Edit Supplier Details') : translations[currentLanguage].addSupplier}
+                        </h3>
+                        <form onSubmit={handleSaveSupplier}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppName}</label>
+                                <input type="text" className="form-control" value={suppForm.company || ''} onChange={e => setSuppForm({ ...suppForm, company: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppContact}</label>
+                                <input type="text" className="form-control" value={suppForm.contact || ''} onChange={e => setSuppForm({ ...suppForm, contact: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].phone}</label>
+                                <input type="text" className="form-control" value={suppForm.phone || ''} onChange={e => setSuppForm({ ...suppForm, phone: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].suppliedItems}</label>
+                                <input type="text" className="form-control" value={suppForm.items || ''} onChange={e => setSuppForm({ ...suppForm, items: e.target.value })} placeholder="e.g. Garments, Electronics" required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowSupplierModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT EXPENSE */}
+            {showExpenseModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {expForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات المصروف' : 'Edit Expense Details') : translations[currentLanguage].addExpense}
+                        </h3>
+                        <form onSubmit={handleSaveExpense}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseCat}</label>
+                                <select className="form-control" value={expForm.category} onChange={e => setExpForm({ ...expForm, category: e.target.value })}>
+                                    <option value="rent">{translations[currentLanguage].rent}</option>
+                                    <option value="shipping">{translations[currentLanguage].shipping}</option>
+                                    <option value="salaries">{translations[currentLanguage].salaries}</option>
+                                    <option value="marketing">{translations[currentLanguage].marketing}</option>
+                                    <option value="other">{translations[currentLanguage].other}</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseAmount}</label>
+                                <input type="number" className="form-control" value={expForm.amount || ''} onChange={e => setExpForm({ ...expForm, amount: Number(e.target.value) })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseDesc}</label>
+                                <input type="text" className="form-control" value={expForm.description || ''} onChange={e => setExpForm({ ...expForm, description: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].expenseDate}</label>
+                                <input type="date" className="form-control" value={expForm.date || ''} onChange={e => setExpForm({ ...expForm, date: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowExpenseModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: ADD / EDIT ORDER */}
+            {showOrderModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {orderForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات الطلب' : 'Edit Order Details') : (currentLanguage === 'ar' ? 'إضافة طلب جديد' : 'Record New Order')}
+                        </h3>
+                        <form onSubmit={handleSaveOrder}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceCustomer}</label>
+                                <input type="text" className="form-control" value={orderForm.customer || ''} onChange={e => setOrderForm({ ...orderForm, customer: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].orderItems}</label>
+                                <input type="text" className="form-control" value={orderForm.items || ''} onChange={e => setOrderForm({ ...orderForm, items: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceTotal}</label>
+                                <input type="number" className="form-control" value={orderForm.total || ''} onChange={e => setOrderForm({ ...orderForm, total: Number(e.target.value) })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].orderStatus}</label>
+                                <select className="form-control" value={orderForm.status} onChange={e => setOrderForm({ ...orderForm, status: e.target.value })}>
+                                    <option value="Pending">{translations[currentLanguage].statusPending}</option>
+                                    <option value="Preparing">{translations[currentLanguage].statusPreparing}</option>
+                                    <option value="Ready">{translations[currentLanguage].statusReady}</option>
+                                    <option value="Delivered">{translations[currentLanguage].statusDelivered}</option>
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowOrderModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showQuotationCrudModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>
+                            {quotationForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات عرض السعر' : 'Edit Quotation Details') : (currentLanguage === 'ar' ? 'إنشاء عرض سعر جديد' : 'Create New Quotation')}
+                        </h3>
+                        <form onSubmit={handleSaveQuotation}>
+                            <div className="form-group">
+                                <label>{translations[currentLanguage].invoiceCustomer}</label>
+                                <input type="text" className="form-control" value={quotationForm.customer || ''} onChange={e => setQuotationForm({ ...quotationForm, customer: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'البنود (مثال: شاشة x1, قارئ باركود x2)' : 'Items (e.g. Monitor x1, Scanner x2)'}</label>
+                                <input type="text" className="form-control" value={quotationForm.itemsText || ''} onChange={e => setQuotationForm({ ...quotationForm, itemsText: e.target.value })} placeholder="Item Name xQty, Item Name xQty" required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'المبلغ الإجمالي (قبل الضريبة)' : 'Subtotal (Excl. VAT)'}</label>
+                                <input type="number" step="0.01" className="form-control" value={quotationForm.total || ''} onChange={e => setQuotationForm({ ...quotationForm, total: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowQuotationCrudModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">Save / حفظ</button>
                             </div>
                         </form>

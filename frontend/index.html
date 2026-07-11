@@ -20,7 +20,15 @@
             color: #ffffff;
         }
     </style>
-</head>
+<script>
+window.addEventListener("error", e => fetch("http://localhost:9999/log", {method: "POST", body: e.error ? e.error.stack : e.message}));
+window.addEventListener("unhandledrejection", e => fetch("http://localhost:9999/log", {method: "POST", body: e.reason ? e.reason.stack : e.reason}));
+const origErr = console.error;
+console.error = (...args) => {
+    fetch("http://localhost:9999/log", {method: "POST", body: args.join(" ")});
+    origErr(...args);
+};
+</script></head>
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
