@@ -3,7 +3,7 @@ name: Build and Deploy KamySoft POS & ERP
 on:
   push:
     branches:
-      - main
+      - none-temporarily
 
 jobs:
   build-and-deploy:
