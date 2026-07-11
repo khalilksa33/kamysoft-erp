@@ -39,6 +39,13 @@ router.post('/api/auth/login', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+const getBaseDomain = (host) => {
+    host = host.toLowerCase();
+    if (host.endsWith('ssh-erp.26i.uk')) return 'ssh-erp.26i.uk';
+    if (host.endsWith('26i.uk')) return '26i.uk';
+    if (host.endsWith('localhost')) return 'localhost';
+    return host;
+};
 
 router.post('/api/auth/register-tenant', async (req, res) => {
     try {
