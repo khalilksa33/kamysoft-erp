@@ -1,0 +1,49 @@
+name: Diagnostics
+on:
+  push:
+    branches:
+      - main
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Cloudflare Tunnel Client
+        run: |
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          cat << 'KEY' > ~/.ssh/id_rsa
+          ${{ secrets.SSH_PRIVATE_KEY_HOST_C }}
+          KEY
+          chmod 600 ~/.ssh/id_rsa
+          cat <<CONFIG > ~/.ssh/config
+          Host ssh-cloud.26i.uk
+              HostName ssh-cloud.26i.uk
+              User cloud
+              IdentityFile ~/.ssh/id_rsa
+              StrictHostKeyChecking no
+              ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID_HOST_C }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET_HOST_C }}
+          CONFIG
+      - name: Run Diagnostics
+        run: |
+          ssh -v cloud@ssh-cloud.26i.uk 'echo "*/*cloud*/*" | sudo -S sh -c "
+            echo \"--- which kubectl ---\"
+            which kubectl
+            ls -l \$(which kubectl)
+            echo \"--- kubeconfig files ---\"
+            ls -la /etc/kubernetes/admin.conf || true
+            ls -la /etc/rancher/k3s/k3s.yaml || true
+            ls -la /root/.kube/config || true
+            ls -la /home/cloud/.kube/config || true
+            echo \"--- KUBECONFIG ENV ---\"
+            echo \$KUBECONFIG
+            echo \"--- nodes ---\"
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf get nodes || true
+            kubectl --kubeconfig=/root/.kube/config get nodes || true
+            kubectl --kubeconfig=/home/cloud/.kube/config get nodes || true
+            echo \"--- containerd/docker status ---\"
+            systemctl status containerd --no-pager || true
+            systemctl status kubelet --no-pager || true
+          "'
