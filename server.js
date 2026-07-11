@@ -686,6 +686,13 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);
 
+const path = require('path');
+const frontendBuild = path.join(__dirname, 'frontend', 'dist');
+app.use(express.static(frontendBuild));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendBuild, 'index.html'));
+});
 
 app.listen(PORT, () => {
     console.log(`KamySoft POS & ERP server running on http://localhost:${PORT}`);
