@@ -61,7 +61,11 @@ jobs:
             echo "    ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID_HOST_B }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET_HOST_B }}" >> ~/.ssh/config
           else
             echo "    ProxyCommand cloudflared access ssh --hostname %h" >> ~/.ssh/config
+            echo "WARNING: CF_CLIENT_ID_HOST_B or CF_CLIENT_SECRET_HOST_B is empty!"
           fi
+          
+          echo "Generated SSH Config:"
+          cat ~/.ssh/config
 
       - name: Transfer Kubernetes Manifests to Host B
         run: |
