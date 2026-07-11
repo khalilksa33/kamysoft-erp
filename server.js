@@ -83,14 +83,14 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // ----------------------------------------------------
 // DATABASE CONNECTION (Portability Mode)
 // ----------------------------------------------------
-let isMongoConnected = false;
+global.isMongoConnected = false;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (MONGO_URI) {
     mongoose.connect(MONGO_URI)
         .then(() => {
             console.log('Successfully connected to MongoDB.');
-            isMongoConnected = true;
+            global.isMongoConnected = true;
             seedDatabase();
         })
         .catch(err => {
@@ -382,7 +382,7 @@ function authenticateToken(req, res, next) {
         // --- License Validation Check ---
         if (tenantId !== 'default' && tenantId !== 'demo') {
             let tenantSettings;
-            if (isMongoConnected) {
+            if (global.isMongoConnected) {
                 tenantSettings = await Settings.findOne({ tenantId });
             } else {
                 tenantSettings = mockDb.settingsTenant[tenantId];
@@ -682,6 +682,9 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
     }
 }
 
+
+global.mockDb = mockDb;
+global.getTenantId = getTenantId;
 
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);
