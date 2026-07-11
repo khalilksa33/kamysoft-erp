@@ -720,11 +720,7 @@ export default function App() {
     const [activeInvoice, setActiveInvoice] = useState(null);
     const [invoiceFormat, setInvoiceFormat] = useState('thermal');
     const [invoiceSource, setInvoiceSource] = useState('pos'); // 'pos' = POS checkout (thermal locked) | 'sales' = Sales reprint (a4 default with toggle)
-    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-    
-    const [showProductModal, setShowProductModal] = useState(false);
-    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
-    
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);    
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [assetForm, setAssetForm] = useState({ name: '', cost: '', salvage: 0, life: 5, date: '', status: 'active', department: 'Operations', serial: '', supplier: '', assignedTo: 'unassigned' });
     const [activeAssetForQr, setActiveAssetForQr] = useState(null);
@@ -1401,29 +1397,6 @@ export default function App() {
     // ----------------------------------------------------
     // INVENTORY / ASSET / CRM CRUD HANDLERS
     // ----------------------------------------------------
-    const handleSaveProduct = (e) => {
-        e.preventDefault();
-        fetch('/api/products', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(prodForm)
-        })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            return res.json();
-        })
-        .then(data => {
-            setProducts([...products, data]);
-            setShowProductModal(false);
-        })
-        .catch(() => {
-            // Local fallback
-            const mock = { ...prodForm, id: (2000 + products.length).toString() };
-            setProducts([...products, mock]);
-            setShowProductModal(false);
-        });
-    };
-
     const handleSaveAsset = (e) => {
         e.preventDefault();
         fetch('/api/assets', {
@@ -1835,7 +1808,7 @@ export default function App() {
         );
     }
 
-    const props = { handleB2BAddItem, setHostname, products, settings, showProductModal, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, setShowProductModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, appendLog, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, prodForm, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, setProdForm, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, handleSaveProduct, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal };
+    const props = { handleB2BAddItem, setHostname, products, settings, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, appendLog, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal };
 
     return (
         <div className="app-container">
@@ -2763,54 +2736,7 @@ export default function App() {
                     </div>
                 </div>
             )}
-
             {/* MODAL: ADD PRODUCT */}
-            {showProductModal && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <h3 style={{ marginBottom: '20px' }}>{translations[currentLanguage].addProduct}</h3>
-                        <form onSubmit={handleSaveProduct}>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].prodNameAr}</label>
-                                <input type="text" className="form-control" value={prodForm.nameAR} onChange={e => setProdForm({ ...prodForm, nameAR: e.target.value })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].prodNameEn}</label>
-                                <input type="text" className="form-control" value={prodForm.nameEN} onChange={e => setProdForm({ ...prodForm, nameEN: e.target.value })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].prodCategory}</label>
-                                <select className="form-control" value={prodForm.category} onChange={e => setProdForm({ ...prodForm, category: e.target.value })}>
-                                    <option value="electronics">{translations[currentLanguage].electronics}</option>
-                                    <option value="apparel">{translations[currentLanguage].apparel}</option>
-                                    <option value="groceries">{translations[currentLanguage].groceries}</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</label>
-                                <input type="text" className="form-control" value={prodForm.barcode || ''} onChange={e => setProdForm({ ...prodForm, barcode: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].prodStock}</label>
-                                <input type="number" className="form-control" value={prodForm.stock} onChange={e => setProdForm({ ...prodForm, stock: Number(e.target.value) })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].purchaseCost}</label>
-                                <input type="number" className="form-control" value={prodForm.cost} onChange={e => setProdForm({ ...prodForm, cost: Number(e.target.value) })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{translations[currentLanguage].sellingPrice}</label>
-                                <input type="number" className="form-control" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: Number(e.target.value) })} required />
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowProductModal(false)}>{translations[currentLanguage].close}</button>
-                                <button type="submit" className="btn btn-primary">{translations[currentLanguage].saveProduct}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {/* MODAL: ADD ASSET */}
             {showAssetModal && (
                 <div className="modal-overlay">
