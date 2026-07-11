@@ -3,7 +3,8 @@ name: Deploy to Host C
 on:
   push:
     branches:
-      - main
+      - none-temporarily
+      #- main
 
 jobs:
   deploy-host-c:
