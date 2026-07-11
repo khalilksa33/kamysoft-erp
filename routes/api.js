@@ -24,7 +24,7 @@ router.post('/api/auth/login', async (req, res) => {
         const { username, password } = req.body;
         const tenantId = getTenantId(req);
         let user;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             user = await User.findOne({ username, tenantId });
         } else {
             user = mockDb.users.find(u => u.username === username && u.tenantId === tenantId);
@@ -64,7 +64,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         }
         
         // Check uniqueness of tenantId
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const existingSettings = await Settings.findOne({ tenantId: normalizedTenantId });
             if (existingSettings) {
                 return res.status(400).json({ error: 'Store subdomain is already registered' });
@@ -112,7 +112,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             licenseExpiresAt: expirationDate
         };
         
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             await Settings.create(settingsData);
         } else {
             if (!mockDb.settingsTenant) {
@@ -131,14 +131,14 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             tenantId: normalizedTenantId
         };
         
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             await User.create(adminUser);
         } else {
             mockDb.users.push(adminUser);
         }
         
         // 3. Seed initial products based on businessType
-        const productsToSeed = defaultProductsBySector[businessType] || defaultProductsBySector.retail;
+        const productsToSeed = global.defaultProductsBySector[businessType] || global.defaultProductsBySector.retail;
         const seedBase = Date.now();
         const seedProducts = productsToSeed.map((p, idx) => ({
             id: `${normalizedTenantId}-p${seedBase + idx}`,
@@ -153,7 +153,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             tenantId: normalizedTenantId
         }));
         
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             await Product.insertMany(seedProducts);
         } else {
             mockDb.products.push(...seedProducts);
@@ -202,7 +202,7 @@ router.post('/api/inquiries', async (req, res) => {
             createdAt: new Date()
         };
 
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const inquiry = new Inquiry(inquiryData);
             await inquiry.save();
         } else {
@@ -219,7 +219,7 @@ router.post('/api/inquiries', async (req, res) => {
 router.get('/api/inquiries', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const inquiries = await Inquiry.find({}).sort({ createdAt: -1 });
             res.json(inquiries);
         } else {
@@ -235,7 +235,7 @@ router.get('/api/inquiries', authenticateToken, async (req, res) => {
 router.get('/api/settings', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             let settings = await Settings.findOne({ tenantId });
             if (!settings) {
                 if (tenantId === 'default') {
@@ -289,7 +289,7 @@ router.post('/api/settings', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             let settings = await Settings.findOne({ tenantId });
             if (settings) {
                 Object.assign(settings, req.body);
@@ -315,7 +315,7 @@ router.post('/api/settings', authenticateToken, async (req, res) => {
 router.get('/api/products', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const products = await Product.find({ tenantId });
             res.json(products);
         } else {
@@ -331,7 +331,7 @@ router.post('/api/products', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const count = await Product.countDocuments({ tenantId });
             const product = new Product({
                 ...req.body,
@@ -354,7 +354,7 @@ router.put('/api/products/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const product = await Product.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!product) return res.status(404).json({ error: 'Product not found' });
             res.json(product);
@@ -373,7 +373,7 @@ router.delete('/api/products/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const result = await Product.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Product not found' });
             res.sendStatus(204);
@@ -392,7 +392,7 @@ router.delete('/api/products/:id', authenticateToken, async (req, res) => {
 router.get('/api/invoices', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const invoices = await Invoice.find({ tenantId });
             res.json(invoices);
         } else {
@@ -412,7 +412,7 @@ router.post('/api/invoices', authenticateToken, async (req, res) => {
     invoice.tenantId = tenantId;
     
     try {
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const count = await Invoice.countDocuments({ tenantId });
             invoice.csn = count + 1;
             
@@ -485,7 +485,7 @@ router.post('/api/invoices', authenticateToken, async (req, res) => {
 router.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const invoice = await Invoice.findOneAndUpdate({ id: req.params.id, tenantId }, { zatcaStatus: 'REPORTED' }, { new: true });
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             res.json(invoice);
@@ -503,7 +503,7 @@ router.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res
 router.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const invoice = await Invoice.findOne({ id: req.params.id, tenantId });
             if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
             if (invoice.zatcaStatus === 'REFUNDED') return res.status(400).json({ error: 'Invoice already refunded' });
@@ -543,7 +543,7 @@ router.post('/api/invoices/:id/refund', authenticateToken, async (req, res) => {
 router.get('/api/expenses', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const expenses = await Expense.find({ tenantId });
             res.json(expenses);
         } else {
@@ -560,7 +560,7 @@ router.post('/api/expenses', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const id = `EXP-${Date.now().toString().slice(-4)}`;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const expense = new Expense({ ...req.body, id, tenantId });
             await expense.save();
             res.json(expense);
@@ -578,7 +578,7 @@ router.post('/api/expenses', authenticateToken, async (req, res) => {
 router.get('/api/assets', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const assets = await Asset.find({ tenantId });
             res.json(assets);
         } else {
@@ -595,7 +595,7 @@ router.post('/api/assets', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const id = `AST-${Date.now().toString().slice(-4)}`;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const asset = new Asset({ ...req.body, id, tenantId });
             await asset.save();
             res.json(asset);
@@ -613,7 +613,7 @@ router.post('/api/assets', authenticateToken, async (req, res) => {
 router.get('/api/customers', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const customers = await Customer.find({ tenantId });
             res.json(customers);
         } else {
@@ -628,7 +628,7 @@ router.get('/api/customers', async (req, res) => {
 router.get('/api/employees', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const employees = await Employee.find({ tenantId });
             res.json(employees);
         } else {
@@ -643,7 +643,7 @@ router.get('/api/employees', async (req, res) => {
 router.get('/api/suppliers', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const suppliers = await Supplier.find({ tenantId });
             res.json(suppliers);
         } else {
@@ -658,7 +658,7 @@ router.get('/api/suppliers', async (req, res) => {
 router.get('/api/orders', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const orders = await Order.find({ tenantId });
             res.json(orders);
         } else {
@@ -674,7 +674,7 @@ router.post('/api/customers', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const id = `CUST-${Date.now().toString().slice(-4)}`;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const cust = new Customer({ ...req.body, id, points: 0, spent: 0, tenantId });
             await cust.save();
             res.json(cust);
@@ -692,7 +692,7 @@ router.post('/api/suppliers', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const id = `SUPP-${Date.now().toString().slice(-4)}`;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const supp = new Supplier({ ...req.body, id, tenantId });
             await supp.save();
             res.json(supp);
@@ -709,7 +709,7 @@ router.post('/api/suppliers', authenticateToken, async (req, res) => {
 router.put('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const ord = await Order.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!ord) return res.status(404).json({ error: 'Order not found' });
             res.json(ord);
@@ -728,7 +728,7 @@ router.post('/api/orders', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const id = `ORD-${Date.now().toString().slice(-4)}`;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const ord = new Order({ ...req.body, id, tenantId });
             await ord.save();
             res.json(ord);
@@ -745,7 +745,7 @@ router.post('/api/orders', authenticateToken, async (req, res) => {
 router.delete('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const result = await Order.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Order not found' });
             res.sendStatus(204);
@@ -765,7 +765,7 @@ router.put('/api/expenses/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const expense = await Expense.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!expense) return res.status(404).json({ error: 'Expense not found' });
             res.json(expense);
@@ -784,7 +784,7 @@ router.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const result = await Expense.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Expense not found' });
             res.sendStatus(204);
@@ -804,7 +804,7 @@ router.get('/api/users', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const users = await User.find({ tenantId });
             const cleanUsers = users.map(u => ({ id: u.id, username: u.username, role: u.role }));
             res.json(cleanUsers);
@@ -825,7 +825,7 @@ router.post('/api/users', authenticateToken, async (req, res) => {
         const passwordHash = bcrypt.hashSync(password || '123456', 10);
         const id = Date.now().toString();
         
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const user = new User({ id, username, passwordHash, role, tenantId });
             await user.save();
             res.json({ id: user.id, username: user.username, role: user.role });
@@ -849,7 +849,7 @@ router.put('/api/users/:id', authenticateToken, async (req, res) => {
         if (role) updates.role = role;
         if (password) updates.passwordHash = bcrypt.hashSync(password, 10);
 
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const user = await User.findOneAndUpdate({ id: req.params.id, tenantId }, updates, { new: true });
             if (!user) return res.status(404).json({ error: 'User not found' });
             res.json({ id: user.id, username: user.username, role: user.role });
@@ -872,7 +872,7 @@ router.delete('/api/users/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const result = await User.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'User not found' });
             res.sendStatus(204);
@@ -891,7 +891,7 @@ router.delete('/api/users/:id', authenticateToken, async (req, res) => {
 router.get('/api/quotations', async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const quotations = await Quotation.find({ tenantId });
             res.json(quotations);
         } else {
@@ -912,7 +912,7 @@ router.post('/api/quotations', authenticateToken, async (req, res) => {
             date: new Date().toLocaleString(),
             tenantId
         };
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const newQuote = new Quotation(quote);
             await newQuote.save();
             res.json(newQuote);
@@ -928,7 +928,7 @@ router.post('/api/quotations', authenticateToken, async (req, res) => {
 router.delete('/api/quotations/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const result = await Quotation.findOneAndDelete({ id: req.params.id, tenantId });
             if (!result) return res.status(404).json({ error: 'Quotation not found' });
             res.sendStatus(204);
@@ -946,7 +946,7 @@ router.delete('/api/quotations/:id', authenticateToken, async (req, res) => {
 router.put('/api/quotations/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const quotation = await Quotation.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
             res.json(quotation);
@@ -984,7 +984,7 @@ const requireSaasAdmin = (req, res, next) => {
 // GET all tenants with stats
 router.get('/api/saas/stores', requireSaasAdmin, async (req, res) => {
     try {
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const stores = await Settings.find({}).lean();
             const enriched = await Promise.all(stores.map(async (s) => {
                 const [invoiceCount, productCount, userCount] = await Promise.all([
@@ -1009,7 +1009,7 @@ router.delete('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) =
     try {
         const { tenantId } = req.params;
         if (tenantId === 'default') return res.status(400).json({ error: 'Cannot delete the default demo store' });
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             await Promise.all([
                 Settings.deleteOne({ tenantId }),
                 User.deleteMany({ tenantId }),
@@ -1037,7 +1037,7 @@ router.patch('/api/saas/stores/:tenantId/status', requireSaasAdmin, async (req, 
     try {
         const { tenantId } = req.params;
         const { suspended } = req.body;
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             await Settings.updateOne({ tenantId }, { $set: { suspended: !!suspended } });
         }
         res.json({ success: true, tenantId, suspended: !!suspended });
@@ -1049,7 +1049,7 @@ router.patch('/api/saas/stores/:tenantId/status', requireSaasAdmin, async (req, 
 // GET inquiries list
 router.get('/api/saas/inquiries', requireSaasAdmin, async (req, res) => {
     try {
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const inquiries = await Inquiry.find({}).sort({ createdAt: -1 }).lean();
             res.json(inquiries);
         } else {
@@ -1063,7 +1063,7 @@ router.get('/api/saas/inquiries', requireSaasAdmin, async (req, res) => {
 // GET platform-wide stats
 router.get('/api/saas/stats', requireSaasAdmin, async (req, res) => {
     try {
-        if (isMongoConnected) {
+        if (global.isMongoConnected) {
             const [storeCount, invoiceCount, userCount, inquiryCount] = await Promise.all([
                 Settings.countDocuments({}),
                 Invoice.countDocuments({}),

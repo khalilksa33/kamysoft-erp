@@ -7,7 +7,7 @@ yarn-error.log*
 
 # React build outputs
 frontend/node_modules/
-frontend/dist/
+# frontend/dist/
 
 # System temp files
 .DS_Store

@@ -540,7 +540,7 @@ if (mockDb.invoices.length === 0) {
 // ----------------------------------------------------
 
 // AUTHENTICATION
-const defaultProductsBySector = {
+global.defaultProductsBySector = {
     appliances: [
         { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },
         { nameEN: 'Double Door Refrigerator 450L', nameAR: 'ثلاجة دولابي 450 لتر', price: 3500, cost: 2600, stock: 5, category: 'appliances', emoji: '🎛️', barcode: '728100100011' },
