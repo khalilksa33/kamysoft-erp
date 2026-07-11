@@ -685,6 +685,8 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 
 global.mockDb = mockDb;
 global.getTenantId = getTenantId;
+global.defaultProductsBySector = defaultProductsBySector;
+global.sendLicenseEmail = sendLicenseEmail;
 
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);
