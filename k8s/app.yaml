@@ -104,6 +104,7 @@ spec:
   ports:
     - port: 8089
       targetPort: 8089
+      nodePort: 30184
       protocol: TCP
       name: http
   selector:
