@@ -59,8 +59,8 @@ jobs:
           EOF
           
           # Inject Cloudflare Access Service Token headers if they are provided as secrets
-          if [ -n "${{ secrets.CF_CLIENT_ID }}" ] && [ -n "${{ secrets.CF_CLIENT_SECRET }}" ]; then
-            echo "    ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET }}" >> ~/.ssh/config
+          if [ -n "${{ secrets.CF_CLIENT_ID_HOST_B }}" ] && [ -n "${{ secrets.CF_CLIENT_SECRET_HOST_B }}" ]; then
+            echo "    ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID_HOST_B }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET_HOST_B }}" >> ~/.ssh/config
           else
             echo "    ProxyCommand cloudflared access ssh --hostname %h" >> ~/.ssh/config
           fi
