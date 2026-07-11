@@ -68,13 +68,13 @@ jobs:
 
       - name: Deploy via Host C k8s Cluster
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk "kubectl create secret generic cloudflare-secrets \
+          ssh -v cloud@ssh-cloud.26i.uk "echo '*/*cloud*/*' | sudo -S kubectl create secret generic cloudflare-secrets \
             --from-literal=CF_API_TOKEN='${{ secrets.CF_API_TOKEN }}' \
             --from-literal=CF_ACCOUNT_ID='${{ secrets.CF_ACCOUNT_ID }}' \
             --from-literal=CF_TUNNEL_ID='${{ secrets.CF_TUNNEL_ID }}' \
-            --dry-run=client -o yaml | kubectl apply -f - && \
-          kubectl apply -f ~/kamysoft-erp/k8s/ && \
-          kubectl rollout restart deployment/kamysoft-erp"
+            --dry-run=client -o yaml | echo '*/*cloud*/*' | sudo -S kubectl apply -f - && \
+          echo '*/*cloud*/*' | sudo -S kubectl apply -f ~/kamysoft-erp/k8s/ && \
+          echo '*/*cloud*/*' | sudo -S kubectl rollout restart deployment/kamysoft-erp"
 
 
 
