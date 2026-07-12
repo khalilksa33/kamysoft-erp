@@ -1,3 +1,4 @@
+import html2pdf from 'html2pdf.js';
 import React, { useState, useEffect } from 'react';
 import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
@@ -783,7 +784,7 @@ export default function App() {
         // Fetch invoices
         fetch('/api/invoices')
             .then(res => { if (!res.ok) throw new Error(); return res.json(); })
-            .then(data => setInvoices(data))
+            .then(data => setInvoices(data.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i)))
             .catch(() => console.log("Failed to fetch invoices"));
 
         // Fetch expenses
@@ -804,7 +805,7 @@ export default function App() {
         fetch('/api/suppliers').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setSuppliers(data)).catch(() => {});
         fetch('/api/orders').then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setOrders(data)).catch(() => {});
         fetch('/api/users', { headers }).then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => { if (Array.isArray(data)) setUsersList(data); }).catch(() => {});
-        fetch('/api/quotations', { headers }).then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setQuotations(data)).catch(() => {});
+        fetch('/api/quotations', { headers }).then(res => { if (!res.ok) throw new Error(); return res.json(); }).then(data => setQuotations(data.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i))).catch(() => {});
     }, [token]);
 
     // Apply configurations on load
@@ -1897,11 +1898,7 @@ export default function App() {
                                 <button className="btn btn-secondary" onClick={() => setActiveTab('invoices')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <i className="ri-arrow-left-line"></i> {currentLanguage === 'ar' ? 'عودة للمبيعات' : 'Back to Sales'}
                                 </button>
-                                <button 
-                                    className="btn btn-primary glow-button" 
-                                    onClick={handleB2BSubmit}
-                                    disabled={b2bForm.items.length === 0 || !b2bForm.items[0].productId}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                <button className="btn btn-primary glow-button" onClick={handleB2BSubmit} disabled={b2bForm.items.length === 0 || !b2bForm.items[0].productId} style={{ display: "flex", alignItems: "center", gap: "6px", height: "60px", fontSize: "1.2rem", padding: "0 30px" }}
                                 >
                                     <i className="ri-check-double-line"></i> {
                                         currentLanguage === 'ar' 
@@ -2580,13 +2577,14 @@ export default function App() {
                                                         }}
                                                         onClick={() => {
                                                             const shareText = `Invoice INV-${activeInvoice.id}\nTotal: ${activeInvoice.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeInvoice.date}`;
-                                                            if (navigator.share) {
-                                                                navigator.share({
-                                                                    title: `Invoice INV-${activeInvoice.id}`,
-                                                                    text: shareText,
-                                                                    url: window.location.href
-                                                                }).catch(() => {});
-                                                            } else {
+                                                            const el = document.getElementById('invoicePrintArea');
+                  if (navigator.share && window.html2pdf && el) {
+                      const opt = { margin: 0, filename: `Invoice_${activeInvoice.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                      window.html2pdf().set(opt).from(el).output('blob').then(pdfBlob => {
+                          const file = new File([pdfBlob], `Invoice_${activeInvoice.id}.pdf`, { type: 'application/pdf' });
+                          navigator.share({ title: `Invoice INV-${activeInvoice.id}`, files: [file] }).catch(()=>{});
+                      });
+                  } else {
                                                                 navigator.clipboard.writeText(shareText);
                                                                 alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل الفاتورة إلى الحافظة!' : 'Invoice details copied to clipboard!');
                                                             }
@@ -2861,8 +2859,7 @@ export default function App() {
                     <div className="modal-overlay">
                         <div className="modal">
                             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
-                                <button className="btn btn-secondary" onClick={() => setInvoiceFormat('thermal')} style={{ flexGrow: 1 }}><i className="ri-ticket-line"></i> Thermal Receipt</button>
-                                <button className="btn btn-secondary" onClick={() => setInvoiceFormat('a4')} style={{ flexGrow: 1 }}><i className="ri-file-text-line"></i> A4 Document</button>
+                                
                             </div>
 
                             {/* Print Layout Area */}
@@ -2984,13 +2981,14 @@ export default function App() {
                                                     }}
                                                     onClick={() => {
                                                         const shareText = `Quotation QT-${activeQuotation.id}\nTotal: ${activeQuotation.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeQuotation.date}`;
-                                                        if (navigator.share) {
-                                                            navigator.share({
-                                                                title: `Quotation QT-${activeQuotation.id}`,
-                                                                text: shareText,
-                                                                url: window.location.href
-                                                            }).catch(() => {});
-                                                        } else {
+                                                        const el = document.getElementById('quotationPrintArea');
+                  if (navigator.share && window.html2pdf && el) {
+                      const opt = { margin: 0, filename: `Quotation_${activeQuotation.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                      window.html2pdf().set(opt).from(el).output('blob').then(pdfBlob => {
+                          const file = new File([pdfBlob], `Quotation_${activeQuotation.id}.pdf`, { type: 'application/pdf' });
+                          navigator.share({ title: `Quotation QT-${activeQuotation.id}`, files: [file] }).catch(()=>{});
+                      });
+                  } else {
                                                             navigator.clipboard.writeText(shareText);
                                                             alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل عرض السعر إلى الحافظة!' : 'Quotation details copied to clipboard!');
                                                         }
