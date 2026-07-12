@@ -2456,36 +2456,6 @@ export default function App() {
                 <div className="modal-overlay">
                     <div className="modal">
                         {/* Modal Header: format indicator / toggle */}
-                        <div className="no-print" style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', alignItems: 'center' }}>
-                            {invoiceSource === 'pos' ? (
-                                /* POS: locked to thermal — show read-only badge */
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.35)', borderRadius: '8px', flexGrow: 1 }}>
-                                    <i className="ri-receipt-line" style={{ fontSize: '18px', color: 'var(--accent-purple)' }}></i>
-                                    <span style={{ fontWeight: '600', fontSize: '14px' }}>{currentLanguage === 'ar' ? 'إيصال كاشير (طابعة حرارية)' : 'Cashier Thermal Receipt'}</span>
-                                </div>
-                            ) : (
-                                /* Sales Management: full A4 / Thermal toggle */
-                                <>
-                                    <button
-                                        className={`btn ${invoiceFormat === 'a4' ? 'btn-primary' : 'btn-secondary'}`}
-                                        onClick={() => setInvoiceFormat('a4')}
-                                        style={{ flexGrow: 1, border: invoiceFormat === 'a4' ? '1px solid var(--accent-purple)' : '1px solid var(--glass-border)' }}
-                                    >
-                                        <i className="ri-file-text-line"></i>
-                                        {currentLanguage === 'ar' ? 'فاتورة A4 ضريبية' : 'A4 Tax Invoice'}
-                                    </button>
-                                    <button
-                                        className={`btn ${invoiceFormat === 'thermal' ? 'btn-primary' : 'btn-secondary'}`}
-                                        onClick={() => setInvoiceFormat('thermal')}
-                                        style={{ flexGrow: 1, border: invoiceFormat === 'thermal' ? '1px solid var(--accent-cyan)' : '1px solid var(--glass-border)' }}
-                                    >
-                                        <i className="ri-ticket-line"></i>
-                                        {currentLanguage === 'ar' ? 'إيصال حراري' : 'Thermal Receipt'}
-                                    </button>
-                                </>
-                            )}
-                        </div>
-
                         {/* Print Layout Area */}
                         {(() => {
                             const activeVat = activeInvoice.vat !== undefined && activeInvoice.vat !== null ? activeInvoice.vat : (activeInvoice.total - (activeInvoice.total / 1.15));

@@ -450,6 +450,8 @@ body[dir="rtl"] .main-content {
 .table-container {
     width: 100%;
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 60vh;
     border-radius: var(--radius-md);
 }
 
@@ -669,7 +671,8 @@ tr:hover td {
     max-width: 800px;
     position: relative;
     max-height: 95vh;
-    min-height: 60vh;
+    height: 85vh;
+    min-height: 600px;
     overflow-y: auto;
 }
 

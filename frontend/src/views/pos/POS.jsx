@@ -238,9 +238,7 @@ const POS = (props) => {
 
                                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                                     <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
-                                    <button className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={handleSaveQuotationFromCart}>
-                                        <i className="ri-file-text-line"></i> {translations[currentLanguage].saveAsQuotation}
-                                    </button>
+                                    
                                 </div>
                             </div>
                         </div>
