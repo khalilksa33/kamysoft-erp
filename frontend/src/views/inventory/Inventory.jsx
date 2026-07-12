@@ -47,12 +47,80 @@ const Inventory = (props) => {
 
 
 
+    const handleExportCSV = () => {
+        if (!products.length) return;
+        const headers = ['id', 'barcode', 'nameAR', 'nameEN', 'category', 'stock', 'cost', 'price'];
+        const csvRows = [headers.join(',')];
+        products.forEach(p => {
+            const values = headers.map(header => {
+                const escaped = ('' + (p[header] || '')).replace(/"/g, '""');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'inventory_export.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    const handleImportCSV = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            const rows = text.split('\n');
+            if (rows.length < 2) return;
+            const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const newProducts = [];
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                // Basic CSV parse (does not handle commas inside quotes perfectly, but sufficient for simple data)
+                const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const product = {};
+                headers.forEach((header, index) => {
+                    product[header] = values[index];
+                });
+                product.id = product.id || Date.now().toString() + i;
+                product.stock = Number(product.stock) || 0;
+                product.cost = Number(product.cost) || 0;
+                product.price = Number(product.price) || 0;
+                newProducts.push(product);
+            }
+            if (newProducts.length > 0) {
+                setProducts([...products, ...newProducts]);
+                alert(currentLanguage === 'ar' ? `تم استيراد ${newProducts.length} منتج بنجاح` : `Successfully imported ${newProducts.length} products`);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
         
                     <div className="glass-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                             <h3 data-i18n="inventory">{translations[currentLanguage].inventory}</h3>
-                            <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>{translations[currentLanguage].addProduct}</button>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input type="file" id="csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCSV} />
+                                <button className="btn btn-secondary" onClick={() => document.getElementById('csv-upload').click()}>
+                                    <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
+                                    {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                                </button>
+                                <button className="btn btn-secondary" onClick={handleExportCSV}>
+                                    <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                                    {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                                </button>
+                                <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>
+                                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                                    {translations[currentLanguage].addProduct}
+                                </button>
+                            </div>
                         </div>
                         <div className="table-container">
                             <table>

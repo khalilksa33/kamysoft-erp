@@ -263,6 +263,48 @@ const Settings = (props) => {
                                 </div>
                             </form>
                         </div>
+
+                        {/* Cloudflare Tunnel Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-cloud-windy-line"></i> {currentLanguage === 'ar' ? 'إعدادات نفق كلاودفلير (Cloudflare Tunnel)' : 'Cloudflare Tunnel Settings'}
+                            </h3>
+                            <form onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                fetch('/api/settings', {
+                                    method: 'POST',
+                                    headers: props.headers,
+                                    body: JSON.stringify(settings)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    setSettings(data);
+                                    alert(currentLanguage === 'ar' ? "تم حفظ إعدادات كلاودفلير بنجاح" : "Cloudflare Tunnel settings saved successfully");
+                                })
+                                .catch(() => {
+                                    alert(currentLanguage === 'ar' ? "تم الحفظ محلياً" : "Settings saved locally");
+                                });
+                            }}>
+                                <div className="form-group">
+                                    <label>CF_ACCOUNT_ID</label>
+                                    <input type="text" className="form-control" placeholder="your_cloudflare_account_id" value={settings.cfAccountId || ''} onChange={e => setSettings({ ...settings, cfAccountId: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>CF_TUNNEL_ID</label>
+                                    <input type="text" className="form-control" placeholder="your_tunnel_uuid" value={settings.cfTunnelId || ''} onChange={e => setSettings({ ...settings, cfTunnelId: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>CF_API_TOKEN</label>
+                                    <input type="password" className="form-control" placeholder="your_api_token" value={settings.cfApiToken || ''} onChange={e => setSettings({ ...settings, cfApiToken: e.target.value })} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                                    <button type="submit" className="btn btn-primary" style={{ flexGrow: 1 }}>
+                                        <i className="ri-save-line" style={{ marginRight: '8px' }}></i>
+                                        {translations[currentLanguage].saveSettings}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
     );
 };

@@ -1866,16 +1866,16 @@ export default function App() {
                 </header>
 
                 {/* TAB: DASHBOARD */}
-                {activeTab === 'dashboard' && <Dashboard {...props} />}
+                {['dashboard'].includes(activeTab) && <Dashboard {...props} />}
 
-                {['addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
+                {['inventory', 'addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
                 {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
-                {['dailyJournal'].includes(activeTab) && <JournalEntries {...props} />}
+                {['financials', 'financialTrans', 'dailyJournal', 'chartAccounts', 'generalLedger'].includes(activeTab) && <JournalEntries {...props} />}
                 {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
-                {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
+                {['employees', 'employeesManagement', 'salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
                 {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
                 {['salesReturn', 'purchaseReturn'].includes(activeTab) && <Returns {...props} />}
-                {['salesInvoice', 'quotation'].includes(activeTab) && <Invoices {...props} />}
+                {['invoices', 'salesInvoice', 'quotation', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
                 {activeTab === 'pos' && <POS {...props} />}
@@ -2000,7 +2000,7 @@ export default function App() {
                 )}
 
                 {/* TAB: INVENTORY */}
-                {activeTab === 'inventory' && <Inventory {...props} />}
+                {['warehouses', 'inventory'].includes(activeTab) && <Inventory {...props} />}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (
@@ -2051,11 +2051,11 @@ export default function App() {
                 )}
 
                 {/* TAB: CUSTOMERS */}
-                {activeTab === 'customers' && <Customers {...props} />}
+                {['customers', 'customersManagement', 'customerStatement'].includes(activeTab) && <Customers {...props} />}
 
                 {/* TAB: SUPPLIERS */}
-                {activeTab === 'suppliers' && <Suppliers {...props} />}
-                {activeTab === 'employees' && <Employees {...props} />}
+                {['suppliers', 'suppliersManagement', 'supplierStatement'].includes(activeTab) && <Suppliers {...props} />}
+                {['employees'].includes(activeTab) && <Employees {...props} />}
                 {/* TAB: EXPENSES */}
                 {activeTab === 'expenses' && (
                     <div className="glass-card">
@@ -2190,7 +2190,7 @@ export default function App() {
 
                 {/* TAB: USER MANAGEMENT (PERMISSIONS) */}
                 {/* TAB: USER MANAGEMENT (PERMISSIONS) */}
-                {activeTab === 'permissions' && (
+                {['permissions', 'userPermissions'].includes(activeTab) && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                         {/* Users Accounts Control Card */}
                         <div className="glass-card">
@@ -2372,10 +2372,10 @@ export default function App() {
                 )}
 
                 {/* TAB: REPORTS */}
-                {activeTab === 'reports' && <Reports {...props} />}
+                {['reports', 'salesMovement', 'purchasesMovement', 'maintenanceReport', 'itemsMovement', 'financialMovement', 'salesAnalysis', 'accountsDebts', 'profitAnalysis', 'summaryReport', 'taxReport'].includes(activeTab) && <Reports {...props} />}
 
                 {/* TAB: ZATCA INTEGRATION AND CLEARANCE */}
-                {activeTab === 'zatca' && (
+                {['zatca', 'zatcaIntegration'].includes(activeTab) && (
                     <div className="glass-card">
                         <h3 style={{ marginBottom: '15px' }}>{translations[currentLanguage].zatcaPortal}</h3>
                         <div className="card-grid" style={{ marginBottom: '24px' }}>
@@ -2420,7 +2420,7 @@ export default function App() {
                 )}
 
                 {/* TAB: SETTINGS & CURRENCY CONFIG */}
-                {activeTab === 'settings' && <Settings {...props} />}
+                {['settings', 'basicData', 'generalSettings', 'programActivation', 'techSupport'].includes(activeTab) && <Settings {...props} />}
 
                 {/* Version Footer */}
                 <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
