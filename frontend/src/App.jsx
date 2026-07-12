@@ -1875,13 +1875,13 @@ export default function App() {
                 {['employees', 'employeesManagement', 'salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
                 {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
                 {['salesReturn', 'purchaseReturn'].includes(activeTab) && <Returns {...props} />}
-                {['invoices', 'salesInvoice', 'quotation', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
+                {['invoices', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
                 {activeTab === 'pos' && <POS {...props} />}
 
                 {/* TAB: B2B SALES PANEL */}
-                {activeTab === 'b2bsale' && (
+                {['b2bsale', 'salesInvoice'].includes(activeTab) && (
                     <div className="glass-card" style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <div>
@@ -2312,7 +2312,7 @@ export default function App() {
                 {activeTab === 'invoices' && <Invoices {...props} />}
                 
                 {/* TAB: QUOTATIONS */}
-                {activeTab === 'quotations' && (
+                {['quotations', 'quotation'].includes(activeTab) && (
                     <div className="glass-card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 data-i18n="quotations">{translations[currentLanguage].quotations}</h3>
