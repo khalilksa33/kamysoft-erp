@@ -688,6 +688,9 @@ export default function App() {
     // Database Models State
     const [products, setProducts] = useState([]);
     const [invoices, setInvoices] = useState([]);
+    useEffect(() => {
+        setInvoices(prev => prev.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i));
+    }, [invoices.length]);
     const [expenses, setExpenses] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [employees, setEmployees] = useState([]);
@@ -1884,7 +1887,7 @@ export default function App() {
 
                 {/* TAB: B2B SALES PANEL */}
                 {['b2bsale', 'salesInvoice'].includes(activeTab) && (
-                    <div className="glass-card" style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+                    <div className="glass-card" style={{ padding: "24px", width: "100%", margin: "0 auto" }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <div>
                                 <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2578,17 +2581,26 @@ export default function App() {
                                                         onClick={() => {
                                                             const shareText = `Invoice INV-${activeInvoice.id}\nTotal: ${activeInvoice.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeInvoice.date}`;
                                                             const el = document.getElementById('invoicePrintArea');
-                  if (navigator.share && window.html2pdf && el) {
-                      const opt = { margin: 0, filename: `Invoice_${activeInvoice.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-                      window.html2pdf().set(opt).from(el).output('blob').then(pdfBlob => {
-                          const file = new File([pdfBlob], `Invoice_${activeInvoice.id}.pdf`, { type: 'application/pdf' });
-                          navigator.share({ title: `Invoice INV-${activeInvoice.id}`, files: [file] }).catch(()=>{});
-                      });
-                  } else {
-                                                                navigator.clipboard.writeText(shareText);
-                                                                alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل الفاتورة إلى الحافظة!' : 'Invoice details copied to clipboard!');
-                                                            }
-                                                        }}
+                                                        const h2p = window.html2pdf || (typeof html2pdf !== 'undefined' ? html2pdf : null);
+                                                        if (h2p && el) {
+                                                            const opt = { margin: 0, filename: `Invoice_${activeInvoice.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                                                            h2p().set(opt).from(el).output('blob').then(pdfBlob => {
+                                                                const file = new File([pdfBlob], `Invoice_${activeInvoice.id}.pdf`, { type: 'application/pdf' });
+                                                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                                                    navigator.share({ title: `Invoice INV-${activeInvoice.id}`, files: [file] }).catch(()=>{});
+                                                                } else {
+                                                                    const url = URL.createObjectURL(pdfBlob);
+                                                                    const a = document.createElement('a');
+                                                                    a.href = url;
+                                                                    a.download = `Invoice_${activeInvoice.id}.pdf`;
+                                                                    a.click();
+                                                                    URL.revokeObjectURL(url);
+                                                                }
+                                                            });
+                                                        } else {
+                                                            navigator.clipboard.writeText(shareText);
+                                                            alert('Copied to clipboard as fallback!');
+                                                        }}}
                                                     >
                                                         <i className="ri-share-line"></i> {currentLanguage === 'ar' ? 'مشاركة الفاتورة' : 'Share Invoice'}
                                                     </button>
@@ -2982,17 +2994,26 @@ export default function App() {
                                                     onClick={() => {
                                                         const shareText = `Quotation QT-${activeQuotation.id}\nTotal: ${activeQuotation.total.toFixed(2)} SAR\nSeller: ${settings.businessName}\nDate: ${activeQuotation.date}`;
                                                         const el = document.getElementById('quotationPrintArea');
-                  if (navigator.share && window.html2pdf && el) {
-                      const opt = { margin: 0, filename: `Quotation_${activeQuotation.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-                      window.html2pdf().set(opt).from(el).output('blob').then(pdfBlob => {
-                          const file = new File([pdfBlob], `Quotation_${activeQuotation.id}.pdf`, { type: 'application/pdf' });
-                          navigator.share({ title: `Quotation QT-${activeQuotation.id}`, files: [file] }).catch(()=>{});
-                      });
-                  } else {
+                                                        const h2p = window.html2pdf || (typeof html2pdf !== 'undefined' ? html2pdf : null);
+                                                        if (h2p && el) {
+                                                            const opt = { margin: 0, filename: `Quotation_${activeQuotation.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                                                            h2p().set(opt).from(el).output('blob').then(pdfBlob => {
+                                                                const file = new File([pdfBlob], `Quotation_${activeQuotation.id}.pdf`, { type: 'application/pdf' });
+                                                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                                                    navigator.share({ title: `Quotation QT-${activeQuotation.id}`, files: [file] }).catch(()=>{});
+                                                                } else {
+                                                                    const url = URL.createObjectURL(pdfBlob);
+                                                                    const a = document.createElement('a');
+                                                                    a.href = url;
+                                                                    a.download = `Quotation_${activeQuotation.id}.pdf`;
+                                                                    a.click();
+                                                                    URL.revokeObjectURL(url);
+                                                                }
+                                                            });
+                                                        } else {
                                                             navigator.clipboard.writeText(shareText);
-                                                            alert(currentLanguage === 'ar' ? 'تم نسخ تفاصيل عرض السعر إلى الحافظة!' : 'Quotation details copied to clipboard!');
-                                                        }
-                                                    }}
+                                                            alert('Copied to clipboard as fallback!');
+                                                        }}}
                                                 >
                                                     <i className="ri-share-line"></i> {currentLanguage === 'ar' ? 'مشاركة عرض السعر' : 'Share Quotation'}
                                                 </button>
