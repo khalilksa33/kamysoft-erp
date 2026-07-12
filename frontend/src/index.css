@@ -669,6 +669,7 @@ tr:hover td {
     max-width: 800px;
     position: relative;
     max-height: 95vh;
+    min-height: 400px;
     overflow-y: auto;
 }
 

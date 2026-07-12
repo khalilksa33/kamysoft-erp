@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 
 const Inventory = (props) => {
-        const { 
-        products, setProducts, formatCurrency, currentLanguage, translations, headers
+    const { 
+        products, setProducts, formatCurrency, currentLanguage, translations, headers, activeTab 
     } = props;
 
-    
+    // Items
     const [showProductModal, setShowProductModal] = useState(false);
     const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
 
+    // Categories
+    const [categories, setCategories] = useState([
+        { id: '1', nameAR: 'إلكترونيات', nameEN: 'Electronics' },
+        { id: '2', nameAR: 'ملابس', nameEN: 'Apparel' },
+        { id: '3', nameAR: 'بقالة', nameEN: 'Groceries' }
+    ]);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [categoryForm, setCategoryForm] = useState({ id: '', nameAR: '', nameEN: '' });
+
+    // Units
+    const [units, setUnits] = useState([
+        { id: '1', nameAR: 'قطعة', nameEN: 'Piece' },
+        { id: '2', nameAR: 'كيلوجرام', nameEN: 'Kg' },
+        { id: '3', nameAR: 'كرتون', nameEN: 'Box' }
+    ]);
+    const [showUnitModal, setShowUnitModal] = useState(false);
+    const [unitForm, setUnitForm] = useState({ id: '', nameAR: '', nameEN: '' });
 
     const handleSaveProduct = (e) => {
         e.preventDefault();
@@ -26,33 +43,42 @@ const Inventory = (props) => {
             setShowProductModal(false);
         })
         .catch(() => {
-            // Local fallback
             const mock = { ...prodForm, id: (2000 + products.length).toString() };
             setProducts([...products, mock]);
             setShowProductModal(false);
         });
     };
 
-
-    const handleDeleteProduct = (id) => {
-        if (!confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المنتج؟' : 'Are you sure you want to delete this product?')) return;
-        fetch(`/api/products/${id}`, { method: 'DELETE', headers: headers })
-        .then(() => {
-            setProducts(products.filter(p => p.id !== id));
-        })
-        .catch(() => {
-            setProducts(products.filter(p => p.id !== id));
-        });
+    const handleSaveCategory = (e) => {
+        e.preventDefault();
+        const mock = { ...categoryForm, id: categoryForm.id || Date.now().toString() };
+        if (categoryForm.id) {
+            setCategories(categories.map(c => c.id === mock.id ? mock : c));
+        } else {
+            setCategories([...categories, mock]);
+        }
+        setShowCategoryModal(false);
+        setCategoryForm({ id: '', nameAR: '', nameEN: '' });
     };
 
-
+    const handleSaveUnit = (e) => {
+        e.preventDefault();
+        const mock = { ...unitForm, id: unitForm.id || Date.now().toString() };
+        if (unitForm.id) {
+            setUnits(units.map(u => u.id === mock.id ? mock : u));
+        } else {
+            setUnits([...units, mock]);
+        }
+        setShowUnitModal(false);
+        setUnitForm({ id: '', nameAR: '', nameEN: '' });
+    };
 
     const handleExportCSV = () => {
         if (!products.length) return;
-        const headers = ['id', 'barcode', 'nameAR', 'nameEN', 'category', 'stock', 'cost', 'price'];
-        const csvRows = [headers.join(',')];
+        const headersList = ['id', 'barcode', 'nameAR', 'nameEN', 'category', 'stock', 'cost', 'price'];
+        const csvRows = [headersList.join(',')];
         products.forEach(p => {
-            const values = headers.map(header => {
+            const values = headersList.map(header => {
                 const escaped = ('' + (p[header] || '')).replace(/"/g, '""');
                 return `"${escaped}"`;
             });
@@ -77,14 +103,13 @@ const Inventory = (props) => {
             const text = event.target.result;
             const rows = text.split('\n');
             if (rows.length < 2) return;
-            const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
             const newProducts = [];
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i].trim()) continue;
-                // Basic CSV parse (does not handle commas inside quotes perfectly, but sufficient for simple data)
                 const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
                 const product = {};
-                headers.forEach((header, index) => {
+                headersList.forEach((header, index) => {
                     product[header] = values[index];
                 });
                 product.id = product.id || Date.now().toString() + i;
@@ -101,56 +126,147 @@ const Inventory = (props) => {
         reader.readAsText(file);
     };
 
+    const renderProductsTable = (filteredProducts, title) => (
+        <div className="glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3>{title}</h3>
+                {activeTab !== 'itemsReorder' && (
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <input type="file" id="csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCSV} />
+                        <button className="btn btn-secondary" onClick={() => document.getElementById('csv-upload').click()}>
+                            <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
+                            {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                        </button>
+                        <button className="btn btn-secondary" onClick={handleExportCSV}>
+                            <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                            {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                        </button>
+                        <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>
+                            <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                            {translations[currentLanguage].addProduct}
+                        </button>
+                    </div>
+                )}
+            </div>
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{translations[currentLanguage].prodId}</th>
+                            <th>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</th>
+                            <th>{translations[currentLanguage].prodName}</th>
+                            <th>{translations[currentLanguage].prodCategory}</th>
+                            <th>{translations[currentLanguage].prodStock}</th>
+                            <th>{translations[currentLanguage].purchaseCost}</th>
+                            <th>{translations[currentLanguage].sellingPrice}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredProducts.map(p => (
+                            <tr key={p.id}>
+                                <td>{p.id}</td>
+                                <td>{p.barcode || '-'}</td>
+                                <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
+                                <td>{translations[currentLanguage][p.category] || p.category}</td>
+                                <td>
+                                    <span style={{ color: p.stock <= 10 ? 'var(--accent-danger)' : 'inherit', fontWeight: p.stock <= 10 ? 'bold' : 'normal' }}>
+                                        {p.stock}
+                                    </span>
+                                </td>
+                                <td>{formatCurrency(p.cost || 0)}</td>
+                                <td>{formatCurrency(p.price)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
+    const renderCategories = () => (
+        <div className="glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3>{currentLanguage === 'ar' ? 'فئات المنتجات' : 'Product Categories'}</h3>
+                <button className="btn btn-primary" onClick={() => setShowCategoryModal(true)}>
+                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                    {currentLanguage === 'ar' ? 'إضافة فئة' : 'Add Category'}
+                </button>
+            </div>
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{currentLanguage === 'ar' ? 'المعرف' : 'ID'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'إجراءات' : 'Actions'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {categories.map(c => (
+                            <tr key={c.id}>
+                                <td>{c.id}</td>
+                                <td>{c.nameAR}</td>
+                                <td>{c.nameEN}</td>
+                                <td>
+                                    <button className="btn btn-secondary" onClick={() => { setCategoryForm(c); setShowCategoryModal(true); }}>
+                                        <i className="ri-edit-line"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
+    const renderUnits = () => (
+        <div className="glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3>{currentLanguage === 'ar' ? 'وحدات القياس' : 'Measurement Units'}</h3>
+                <button className="btn btn-primary" onClick={() => setShowUnitModal(true)}>
+                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                    {currentLanguage === 'ar' ? 'إضافة وحدة' : 'Add Unit'}
+                </button>
+            </div>
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{currentLanguage === 'ar' ? 'المعرف' : 'ID'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'إجراءات' : 'Actions'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {units.map(u => (
+                            <tr key={u.id}>
+                                <td>{u.id}</td>
+                                <td>{u.nameAR}</td>
+                                <td>{u.nameEN}</td>
+                                <td>
+                                    <button className="btn btn-secondary" onClick={() => { setUnitForm(u); setShowUnitModal(true); }}>
+                                        <i className="ri-edit-line"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
     return (
-        
-                    <div className="glass-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                            <h3 data-i18n="inventory">{translations[currentLanguage].inventory}</h3>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <input type="file" id="csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCSV} />
-                                <button className="btn btn-secondary" onClick={() => document.getElementById('csv-upload').click()}>
-                                    <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
-                                    {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
-                                </button>
-                                <button className="btn btn-secondary" onClick={handleExportCSV}>
-                                    <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
-                                    {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
-                                </button>
-                                <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>
-                                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
-                                    {translations[currentLanguage].addProduct}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>{translations[currentLanguage].prodId}</th>
-                                        <th>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</th>
-                                        <th>{translations[currentLanguage].prodName}</th>
-                                        <th>{translations[currentLanguage].prodCategory}</th>
-                                        <th>{translations[currentLanguage].prodStock}</th>
-                                        <th>{translations[currentLanguage].purchaseCost}</th>
-                                        <th>{translations[currentLanguage].sellingPrice}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {products.map(p => (
-                                        <tr key={p.id}>
-                                            <td>{p.id}</td>
-                                            <td>{p.barcode || '-'}</td>
-                                            <td>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</td>
-                                            <td>{translations[currentLanguage][p.category] || p.category}</td>
-                                            <td>{p.stock}</td>
-                                            <td>{formatCurrency(p.cost || 0)}</td>
-                                            <td>{formatCurrency(p.price)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    
+        <div>
+            {['inventory', 'items'].includes(activeTab) && renderProductsTable(products, translations[currentLanguage].inventory)}
+            {activeTab === 'itemsReorder' && renderProductsTable(products.filter(p => p.stock <= 10), currentLanguage === 'ar' ? 'الأصناف تحت حد الطلب' : 'Items Below Reorder (Low Stock)')}
+            {activeTab === 'categories' && renderCategories()}
+            {activeTab === 'units' && renderUnits()}
+
+            {/* Product Modal */}
             {showProductModal && (
                 <div className="modal-overlay">
                     <div className="modal">
@@ -167,6 +283,7 @@ const Inventory = (props) => {
                             <div className="form-group">
                                 <label>{translations[currentLanguage].prodCategory}</label>
                                 <select className="form-control" value={prodForm.category} onChange={e => setProdForm({ ...prodForm, category: e.target.value })}>
+                                    {categories.map(c => <option key={c.id} value={c.id}>{currentLanguage === 'ar' ? c.nameAR : c.nameEN}</option>)}
                                     <option value="electronics">{translations[currentLanguage].electronics}</option>
                                     <option value="apparel">{translations[currentLanguage].apparel}</option>
                                     <option value="groceries">{translations[currentLanguage].groceries}</option>
@@ -196,8 +313,53 @@ const Inventory = (props) => {
                     </div>
                 </div>
             )}
+
+            {/* Category Modal */}
+            {showCategoryModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'فئة المنتج' : 'Product Category'}</h3>
+                        <form onSubmit={handleSaveCategory}>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</label>
+                                <input type="text" className="form-control" value={categoryForm.nameAR} onChange={e => setCategoryForm({ ...categoryForm, nameAR: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</label>
+                                <input type="text" className="form-control" value={categoryForm.nameEN} onChange={e => setCategoryForm({ ...categoryForm, nameEN: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">{currentLanguage === 'ar' ? 'حفظ' : 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Unit Modal */}
+            {showUnitModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'وحدة القياس' : 'Measurement Unit'}</h3>
+                        <form onSubmit={handleSaveUnit}>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</label>
+                                <input type="text" className="form-control" value={unitForm.nameAR} onChange={e => setUnitForm({ ...unitForm, nameAR: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</label>
+                                <input type="text" className="form-control" value={unitForm.nameEN} onChange={e => setUnitForm({ ...unitForm, nameEN: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowUnitModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">{currentLanguage === 'ar' ? 'حفظ' : 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
-                
     );
 };
 

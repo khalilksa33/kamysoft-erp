@@ -18,6 +18,7 @@ import Dashboard from './views/dashboard/Dashboard';
 import Employees from './views/people/Employees';
 import Sidebar from './components/Sidebar';
 import SaasAdmin from './SaasAdmin';
+import Maintenance from './views/services/Maintenance';
 
 // Automatically add x-tenant-id header to relative API calls
 const getBaseDomain = (host) => {
@@ -1892,9 +1893,23 @@ export default function App() {
                                     {currentLanguage === 'ar' ? 'إنشاء فاتورة ضريبية رسمية (A4) لقطاع الأعمال' : 'Create standard A4 Tax Invoice for B2B customers'}
                                 </p>
                             </div>
-                            <button className="btn btn-secondary" onClick={() => setActiveTab('invoices')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <i className="ri-arrow-left-line"></i> {currentLanguage === 'ar' ? 'عودة للمبيعات' : 'Back to Sales'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button className="btn btn-secondary" onClick={() => setActiveTab('invoices')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <i className="ri-arrow-left-line"></i> {currentLanguage === 'ar' ? 'عودة للمبيعات' : 'Back to Sales'}
+                                </button>
+                                <button 
+                                    className="btn btn-primary glow-button" 
+                                    onClick={handleB2BSubmit}
+                                    disabled={b2bForm.items.length === 0 || !b2bForm.items[0].productId}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <i className="ri-check-double-line"></i> {
+                                        currentLanguage === 'ar' 
+                                            ? (b2bForm.saveAs === 'Invoice' ? 'إنشاء فاتورة' : b2bForm.saveAs === 'Draft' ? 'حفظ مسودة' : 'إنشاء عرض سعر') 
+                                            : (b2bForm.saveAs === 'Invoice' ? 'Create Invoice' : b2bForm.saveAs === 'Draft' ? 'Save Draft' : 'Create Quotation')
+                                    }
+                                </button>
+                            </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -2004,7 +2019,10 @@ export default function App() {
                 )}
 
                 {/* TAB: INVENTORY */}
-                {['warehouses', 'inventory'].includes(activeTab) && <Inventory {...props} />}
+                {['warehouses', 'inventory', 'units', 'categories', 'items', 'itemsReorder'].includes(activeTab) && <Inventory {...props} />}
+
+                {/* TAB: MAINTENANCE */}
+                {['maintenance'].includes(activeTab) && <Maintenance {...props} />}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (
