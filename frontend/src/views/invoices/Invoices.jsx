@@ -134,6 +134,12 @@ const Invoices = (props) => {
 
                             {/* Invoices List Table */}
                             <div className="glass-card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                    <h3>{currentLanguage === 'ar' ? 'فواتير المبيعات' : 'Sales Invoices'}</h3>
+                                    <button className="btn btn-primary" onClick={() => setActiveTab('b2bsale')}>
+                                        <i className="ri-add-line"></i> {currentLanguage === 'ar' ? 'إنشاء فاتورة جديدة' : 'Create New Invoice'}
+                                    </button>
+                                </div>
                                 <div className="table-container">
                                     <table>
                                         <thead>
