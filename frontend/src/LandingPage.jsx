@@ -1259,9 +1259,9 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 </div>
                                 {generatedLicenseKey && (
                                     <div style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
-                                        <div style={{ fontSize: '12px', color: '#34d399', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{isRtl ? 'مفتاح الترخيص الخاص بك' : 'Your License Key'}</div>
-                                        <div style={{ fontFamily: 'monospace', fontSize: '18px', color: '#fff', fontWeight: 'bold', letterSpacing: '2px' }}>{generatedLicenseKey}</div>
-                                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>{isRtl ? 'تم إرسال نسخة إلى بريدك الإلكتروني.' : 'A copy has been sent to your email.'}</div>
+                                        <div style={{ fontSize: '12px', color: '#34d399', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{isRtl ? 'حالة المتجر' : 'Store Status'}</div>
+                                        <div style={{ fontFamily: 'sans-serif', fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{isRtl ? 'تجربة مجانية لمدة 14 يومًا' : '14-Day Free Trial Active'}</div>
+                                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>{isRtl ? 'تم إرسال تفاصيل الدخول إلى بريدك الإلكتروني.' : 'Login details have been sent to your email.'}</div>
                                     </div>
                                 )}
                                 <div style={{ display: 'flex', gap: '10px' }}>

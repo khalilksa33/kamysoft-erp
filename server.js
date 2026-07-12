@@ -42,16 +42,15 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
         await transporter.sendMail({
             from: '"SME Solutions" <no-reply@kamysofterp.com>',
             to: tenantEmail,
-            subject: 'Welcome to SME Solutions! Your License Key',
+            subject: 'Welcome to SME Solutions! Your 14-Day Free Trial',
             html: `
                 <h3>Welcome to SME Solutions, ${businessName}!</h3>
                 <p>Your store has been successfully created. You can access it at: <b>https://${tenantId}.${baseDomain}</b></p>
                 <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;">
-                    <p style="margin:0;font-size:14px;color:#6b7280;">Your License Key:</p>
-                    <p style="margin:8px 0 0 0;font-size:24px;font-weight:bold;color:#111827;letter-spacing:2px;">${licenseKey}</p>
+                    <p style="margin:0;font-size:16px;color:#10b981;font-weight:bold;">14-Day Free Trial Active</p>
                 </div>
-                <p>This license is valid until: <b>${new Date(expiresAt).toLocaleDateString()}</b>.</p>
-                <p>This key is automatically validated when you log in.</p>
+                <p>Your free trial is valid until: <b>${new Date(expiresAt).toLocaleDateString()}</b>.</p>
+                <p>Enjoy our premium features!</p>
             `
         });
         console.log(`License email sent to ${tenantEmail}`);
