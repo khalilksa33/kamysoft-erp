@@ -2583,7 +2583,7 @@ export default function App() {
                                                             const el = document.getElementById('invoicePrintArea');
                                                         const h2p = window.html2pdf || (typeof html2pdf !== 'undefined' ? html2pdf : null);
                                                         if (h2p && el) {
-                                                            const opt = { margin: 0, filename: `Invoice_${activeInvoice.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                                                            const opt = { margin: 0, filename: `Invoice_${activeInvoice.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
                                                             h2p().set(opt).from(el).output('blob').then(pdfBlob => {
                                                                 const file = new File([pdfBlob], `Invoice_${activeInvoice.id}.pdf`, { type: 'application/pdf' });
                                                                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -2996,7 +2996,7 @@ export default function App() {
                                                         const el = document.getElementById('quotationPrintArea');
                                                         const h2p = window.html2pdf || (typeof html2pdf !== 'undefined' ? html2pdf : null);
                                                         if (h2p && el) {
-                                                            const opt = { margin: 0, filename: `Quotation_${activeQuotation.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+                                                            const opt = { margin: 0, filename: `Quotation_${activeQuotation.id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
                                                             h2p().set(opt).from(el).output('blob').then(pdfBlob => {
                                                                 const file = new File([pdfBlob], `Quotation_${activeQuotation.id}.pdf`, { type: 'application/pdf' });
                                                                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
