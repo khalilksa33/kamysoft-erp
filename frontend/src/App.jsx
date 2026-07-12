@@ -2330,8 +2330,7 @@ export default function App() {
                     </div>
                 )}
 
-                {/* TAB: INVOICES & REPRINT (SALES MANAGEMENT) */}
-                {activeTab === 'invoices' && <Invoices {...props} />}
+                
                 
                 {/* TAB: QUOTATIONS */}
                 {['quotations', 'quotation'].includes(activeTab) && (
