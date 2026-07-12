@@ -48,27 +48,7 @@ const Invoices = (props) => {
 
                     return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                            {/* Quick Actions Bar */}
-                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                            <button
-                                className="btn btn-primary glow-button"
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '14px' }}
-                                onClick={() => setActiveTab('b2bsale')}
-                            >
-                                <i className="ri-building-line"></i>
-                                {currentLanguage === 'ar' ? 'بيع جديد B2B' : 'New B2B Sale'}
-                            </button>
-                            <button
-                                className="btn btn-secondary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '14px', background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)', color: 'var(--accent-cyan)' }}
-                                onClick={() => setActiveTab('quotations')}
-                            >
-                                <i className="ri-file-text-line"></i>
-                                {currentLanguage === 'ar' ? 'إنشاء عرض سعر' : 'Create Quotation'}
-                            </button>
-                        </div>
-
-                        {/* Stats Grid */}
+                            {/* Stats Grid */}
                             <div className="card-grid">
                                 <div className="glass-card purple">
                                     <div className="card-stat">

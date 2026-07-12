@@ -1991,7 +1991,11 @@ export default function App() {
                                         onClick={handleB2BSubmit}
                                         disabled={b2bForm.items.length === 0 || !b2bForm.items[0].productId}
                                     >
-                                        <i className="ri-check-double-line"></i> {currentLanguage === 'ar' ? 'تأكيد وحفظ' : 'Confirm & Save'}
+                                        <i className="ri-check-double-line"></i> {
+                                            currentLanguage === 'ar' 
+                                                ? (b2bForm.saveAs === 'Invoice' ? 'إنشاء فاتورة' : b2bForm.saveAs === 'Draft' ? 'حفظ مسودة' : 'إنشاء عرض سعر') 
+                                                : (b2bForm.saveAs === 'Invoice' ? 'Create Invoice' : b2bForm.saveAs === 'Draft' ? 'Save Draft' : 'Create Quotation')
+                                        }
                                     </button>
                                 </div>
                             </div>
