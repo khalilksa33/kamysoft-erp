@@ -858,7 +858,7 @@ export default function App() {
                 setSettings(prev => ({
                     ...prev,
                     businessType: activeSector,
-                    businessName: routeMode === 'customer' && tenantId ? `${tenantId.toUpperCase()} ERP` : `KAMYSOFT ${activeSector.toUpperCase()} POS`,
+                    businessName: routeMode === 'customer' && tenantId ? `${tenantId.toUpperCase()} ERP` : `26i ${activeSector.toUpperCase()} POS`,
                     enableTables: activeSector === 'restaurant',
                     enableServiceDuration: activeSector === 'services'
                 }));
@@ -1772,7 +1772,7 @@ export default function App() {
                     {routeMode === 'demo' && (
                         <div style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid var(--accent-cyan)', padding: '10px 14px', borderRadius: '4px', marginBottom: '20px', fontSize: '12px', lineHeight: '1.4' }}>
                             <i className="ri-information-line" style={{ marginRight: '6px', color: 'var(--accent-cyan)' }}></i>
-                            {currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي. تم ملء بيانات الدخول تلقائياً (demo / demo123).' : 'Welcome to KamySoft Demo. Credentials are pre-filled (demo / demo123).'}
+                            {currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي. تم ملء بيانات الدخول تلقائياً (demo / demo123).' : 'Welcome to 26i Demo. Credentials are pre-filled (demo / demo123).'}
                         </div>
                     )}
 
@@ -1848,7 +1848,7 @@ export default function App() {
                             ) : null}
                             <span>
                                 {routeMode === 'demo' ? (
-                                    currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي لـ KamySoft' : 'Welcome to KamySoft Demo Store'
+                                    currentLanguage === 'ar' ? 'مرحباً بك في النظام التجريبي لـ 26i' : 'Welcome to 26i Demo Store'
                                 ) : (
                                     settings && settings.fullName ? (
                                         currentLanguage === 'ar' ? `مرحباً بك، ${settings.fullName}` : `Welcome, ${settings.fullName}`

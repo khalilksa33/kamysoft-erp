@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 // Landing Page translations dictionary
 const landingTranslations = {
     en: {
-        brandName: "KamySoft ERP",
+        brandName: "26i ERP",
         heroTagline: "The Next-Generation POS & ERP for Smart Businesses",
         heroSubtagline: "Unify your cashier, sales, capital assets, ZATCA e-invoicing, and multi-branch inventory into a single state-of-the-art cloud dashboard.",
         launchDemo: "Launch Live Demo",
@@ -112,7 +112,7 @@ const landingTranslations = {
         // FAQs
         faqTitle: "Frequently Asked Questions",
         faqQ1: "Does the software support local offline operation?",
-        faqA1: "Yes! KamySoft ERP includes a local cache fallback. Cashiers can continue processing sales and printing receipts even if the internet connection is temporarily lost, syncing all data to the cloud once online.",
+        faqA1: "Yes! 26i ERP includes a local cache fallback. Cashiers can continue processing sales and printing receipts even if the internet connection is temporarily lost, syncing all data to the cloud once online.",
         faqQ2: "How does the multi-branch system work?",
         faqA2: "The system automatically aggregates inventory and sales data. A central manager can allocate stock to specific branches, run unified tax reports, and control individual permissions of cashiers based on location.",
         faqQ3: "Is the ZATCA compliance approved for Saudi Arabia?",
@@ -122,10 +122,10 @@ const landingTranslations = {
         faqQ5: "How are currency conversions and VAT managed?",
         faqA5: "The system uses SAR as base currency but includes real-time exchange rates (USD, EUR, AED, EGP). VAT is pre-configured to 15% but can be modified in settings to comply with other global tax laws.",
         
-        footerText: "© 2026 KamySoft Global Technologies. All rights reserved. Powering commerce worldwide."
+        footerText: "© 2026 26i Global Technologies. All rights reserved. Powering commerce worldwide."
     },
     ar: {
-        brandName: "كامي سوفت ERP",
+        brandName: "26i ERP",
         heroTagline: "نظام نقاط البيع وإدارة الموارد للجيل القادم من الأعمال",
         heroSubtagline: "وحد الكاشير، المبيعات، الأصول الثابتة، الفوترة الإلكترونية لهيئة الزكاة والدخل، ومخزون الفروع المتعددة في لوحة تحكم سحابية موحدة.",
         launchDemo: "إطلاق نسخة تجريبية",
@@ -234,7 +234,7 @@ const landingTranslations = {
         // FAQs
         faqTitle: "الأسئلة الشائعة",
         faqQ1: "هل يدعم البرنامج العمل بدون إنترنت؟",
-        faqA1: "نعم! يحتوي كامي سوفت ERP على ميزة التخزين المؤقت المحلي. يستطيع الكاشير إتمام المبيعات وطباعة الفواتير حتى في حال انقطاع الإنترنت، وسيقوم النظام بمزامنة المبيعات تلقائياً فور عودة الاتصال.",
+        faqA1: "نعم! يحتوي 26i ERP على ميزة التخزين المؤقت المحلي. يستطيع الكاشير إتمام المبيعات وطباعة الفواتير حتى في حال انقطاع الإنترنت، وسيقوم النظام بمزامنة المبيعات تلقائياً فور عودة الاتصال.",
         faqQ2: "كيف تعمل ميزة إدارة الفروع المتعددة؟",
         faqA2: "يقوم النظام بتجميع بيانات المخازن والمبيعات بشكل لحظي. يمكن للمدير الرئيسي تحويل البضائع بين الفروع، وإصدار تقارير الضريبة الموحدة، وتحديد صلاحيات موظفي الكاشير بناءً على فرعهم المحدد.",
         faqQ3: "هل الفواتير الإلكترونية متوافقة مع هيئة الزكاة والدخل بالسعودية؟",
@@ -244,7 +244,7 @@ const landingTranslations = {
         faqQ5: "كيف يتم حساب الضريبة وتغيير العملات؟",
         faqA5: "العملة الأساسية للنظام هي الريال السعودي (SAR)، ولكنه يدعم أسعار صرف متعددة ومباشرة (الدولار، اليورو، الدرهم الإماراتي، الجنيه المصري). الضريبة مهيأة مسبقاً بنسبة 15% ويمكن تعديلها من الإعدادات بسهولة لتناسب القوانين الضريبية الأخرى.",
         
-        footerText: "© 2026 كامي سوفت للحلول التقنية العالمية. جميع الحقوق محفوظة."
+        footerText: "© 2026 26i للحلول التقنية العالمية. جميع الحقوق محفوظة."
     }
 };
 
@@ -727,7 +727,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'قطع غيار السيارات والسباكة والتكييف والإلكترونيات' : 'Auto, Plumbing, HVAC & Electric Spare Parts')}
                         </h3>
                         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px', fontSize: '14px' }}>
-                            {activeSector === 'retail' && (currentLanguage === 'ar' ? 'يمنحك كامي سوفت السيطرة الكاملة على مخازنك، ومشترياتك، وإهلاك أصولك، ومتابعة مصروفاتك اليومية بطريقة سهلة ومبسطة.' : 'KamySoft provides complete control over your multi-category stocks, supplier purchase orders, capital asset depreciation, and daily cash expenses.')}
+                            {activeSector === 'retail' && (currentLanguage === 'ar' ? 'يمنحك 26i السيطرة الكاملة على مخازنك، ومشترياتك، وإهلاك أصولك، ومتابعة مصروفاتك اليومية بطريقة سهلة ومبسطة.' : '26i provides complete control over your multi-category stocks, supplier purchase orders, capital asset depreciation, and daily cash expenses.')}
                             {activeSector === 'grocery' && (currentLanguage === 'ar' ? 'مصمم للتعامل مع آلاف الأصناف والباركودات بسرعة متناهية مع دعم موازين الباركود الذكية وتنبيهات قرب انتهاء صلاحيات المنتجات والطلب التلقائي.' : 'Built to handle thousands of items with ultra-fast barcode scanning, weight-scale barcode integration, stock level alerts, and batch expiry tracking.')}
                             {activeSector === 'restaurant' && (currentLanguage === 'ar' ? 'نظام متكامل لتخطيط الطاولات وصالات الجلوس، ومتابعة طلبات المطبخ، وتأجيل الفواتير، وتقسيم الفواتير بين الضيوف بكل سهولة.' : 'Complete visual floor layout mapping, kitchen order ticket (KOT) workflows, hold receipts capability, and seamless bill splitting between customers.')}
                             {activeSector === 'apparel' && (currentLanguage === 'ar' ? 'يسمح لك النظام بتهيئة شبكة المنتجات ذات القياسات والألوان المختلفة، وتوليد باركودات مخصصة لكل حجم، وطباعة ملصقات الأسعار.' : 'Allows configuring matrix products with custom size/color variables, generating unique barcodes per SKU, and printing localized price labels.')}

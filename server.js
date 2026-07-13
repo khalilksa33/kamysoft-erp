@@ -1,4 +1,4 @@
-// KamySoft POS & ERP Express Server Backend
+// 26i POS & ERP Express Server Backend
 // Implements full MERN API server with ZATCA Phase 2 XML generator, Employee Asset Depreciation, and multi-currency options
 require('dotenv').config();
 const express = require('express');
@@ -40,7 +40,7 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
     }
     try {
         await transporter.sendMail({
-            from: '"SME Solutions" <no-reply@kamysofterp.com>',
+            from: '"SME Solutions" <no-reply@26i.uk>',
             to: tenantEmail,
             subject: 'Welcome to SME Solutions! Your 14-Day Free Trial',
             html: `
@@ -221,7 +221,7 @@ const mockDb = {
         { id: 'AST-2010', name: 'Kitchen Breakroom Refrigerator', cost: 2500, salvage: 100, life: 5, date: '2024-04-10', status: 'active', department: 'Administration', serial: 'SN-REF-01', supplier: 'Raw Food Distributors', assignedTo: 'EMP-3003' }
     ],
     settings: {
-        businessName: 'KamySoft ERP & POS',
+        businessName: '26i ERP & POS',
         fullName: 'خليل الغامدي / Khalil Al-Ghamdi',
         vatNumber: '310123456700003',
         taxRate: 15,
@@ -408,7 +408,7 @@ function sha256Node(text) {
     return crypto.createHash('sha256').update(text).digest('hex');
 }
 function signHashNode(hashHex) {
-    const hash = crypto.createHash('sha256').update(hashHex + 'KamySoftPrivateKeySecp256k1_2026').digest('base64');
+    const hash = crypto.createHash('sha256').update(hashHex + '26iPrivateKeySecp256k1_2026').digest('base64');
     return hash;
 }
 
@@ -699,5 +699,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`KamySoft POS & ERP server running on http://localhost:${PORT}`);
+    console.log(`26i POS & ERP server running on http://localhost:${PORT}`);
 });

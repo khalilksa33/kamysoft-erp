@@ -253,7 +253,7 @@ const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurren
                     <div className="brand-icon-wrapper">
                         <i className="ri-building-4-line"></i>
                     </div>
-                    <span className="brand-text">Roya ERP</span>
+                    <span className="brand-text">26i ERP</span>
                 </div>
                 
                 <div className="modern-nav-container">
