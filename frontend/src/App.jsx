@@ -1173,22 +1173,33 @@ const handleB2BSubmit = () => {
 
     const handleB2BItemChange = (index, field, value) => {
         const newItems = [...b2bForm.items];
-        const item = newItems[index];
+        
         if (field === 'productId') {
+            // Check if this product already exists in another row
+            const existingIndex = newItems.findIndex((item, idx) => idx !== index && item.productId === value && value !== '');
+            if (existingIndex >= 0) {
+                newItems[existingIndex].qty += 1;
+                newItems[existingIndex].total = newItems[existingIndex].qty * newItems[existingIndex].price;
+                // Reset the current row
+                newItems[index] = { id: newItems[index].id, productId: '', name: '', qty: 1, price: 0, vatRate: 15, total: 0 };
+                setB2bForm({ ...b2bForm, items: newItems });
+                return;
+            }
+
             const prod = products.find(p => p.id === value);
             if (prod) {
-                item.productId = prod.id;
-                item.name = currentLanguage === 'ar' ? prod.nameAR : prod.nameEN;
-                item.price = prod.price;
+                newItems[index].productId = prod.id;
+                newItems[index].name = currentLanguage === 'ar' ? prod.nameAR : prod.nameEN;
+                newItems[index].price = prod.price;
             }
         } else if (field === 'qty') {
-            item.qty = Number(value) || 1;
+            newItems[index].qty = Number(value) || 1;
         } else if (field === 'price') {
-            item.price = Number(value) || 0;
+            newItems[index].price = Number(value) || 0;
         } else if (field === 'vatRate') {
-            item.vatRate = Number(value) || 0;
+            newItems[index].vatRate = Number(value) || 0;
         }
-        item.total = item.qty * item.price;
+        newItems[index].total = newItems[index].qty * newItems[index].price;
         setB2bForm({ ...b2bForm, items: newItems });
     };
 
