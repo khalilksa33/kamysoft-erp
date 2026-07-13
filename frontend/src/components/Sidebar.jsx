@@ -198,7 +198,6 @@ const menuConfig = [
         ]
     },
 
-    { id: 'moduleSwitch', icon: 'ri-swap-line', labelKey: 'moduleSwitch' },
     {
         id: 'settings', icon: 'ri-settings-4-line', labelKey: 'settings',
         submenu: [
@@ -207,7 +206,8 @@ const menuConfig = [
             { id: 'programActivation', labelKey: 'programActivation' },
             { id: 'techSupport', labelKey: 'techSupport' },
             { id: 'zatcaIntegration', labelKey: 'zatcaIntegration' },
-            { id: 'basicData', labelKey: 'basicData' }
+            { id: 'basicData', labelKey: 'basicData' },
+            { id: 'moduleSwitch', labelKey: 'moduleSwitch' }
         ]
     }
 ];
