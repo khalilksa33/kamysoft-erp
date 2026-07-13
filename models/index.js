@@ -171,6 +171,15 @@ const settingsSchema = new mongoose.Schema({
     enableTables: { type: Boolean, default: false },
     enableServiceDuration: { type: Boolean, default: false },
     enabledModules: { type: Object, default: {} },
+    smtp: {
+        provider: { type: String, default: 'smtp' }, // 'smtp' or 'sendgrid'
+        host: { type: String },
+        port: { type: Number },
+        user: { type: String },
+        password: { type: String },
+        fromEmail: { type: String },
+        sendgridApiKey: { type: String }
+    },
     
     // SaaS Registration Details
     email: { type: String },

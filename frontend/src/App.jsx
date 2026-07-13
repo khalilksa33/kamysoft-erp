@@ -726,7 +726,11 @@ export default function App() {
     const [activeInvoice, setActiveInvoice] = useState(null);
     const [invoiceFormat, setInvoiceFormat] = useState('thermal');
     const [invoiceSource, setInvoiceSource] = useState('pos'); // 'pos' = POS checkout (thermal locked) | 'sales' = Sales reprint (a4 default with toggle)
-    const [showInvoiceModal, setShowInvoiceModal] = useState(false);    
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [emailAddress, setEmailAddress] = useState('');
+    const [isEmailSending, setIsEmailSending] = useState(false);
+    
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [assetForm, setAssetForm] = useState({ name: '', cost: '', salvage: 0, life: 5, date: '', status: 'active', department: 'Operations', serial: '', supplier: '', assignedTo: 'unassigned' });
     const [activeAssetForQr, setActiveAssetForQr] = useState(null);
@@ -1075,7 +1079,48 @@ export default function App() {
         });
     };
     
-    const handleB2BSubmit = () => {
+    
+    const handleSendEmail = async () => {
+        if (!emailAddress) {
+            alert(currentLanguage === 'ar' ? 'الرجاء إدخال البريد الإلكتروني' : 'Please enter an email address');
+            return;
+        }
+        setIsEmailSending(true);
+        try {
+            const invoiceHtml = document.getElementById('invoicePrintArea').outerHTML;
+            const res = await fetch(`${getBaseDomain()}/api/send-email`, {
+                method: 'POST',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: emailAddress,
+                    subject: `Invoice ${activeInvoice.id} from ${settings.businessName}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px;">
+                            <h2>Hello,</h2>
+                            <p>Please find your invoice details below from <strong>${settings.businessName}</strong>.</p>
+                            <hr />
+                            ${invoiceHtml}
+                            <hr />
+                            <p>Thank you for your business!</p>
+                        </div>
+                    `
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(currentLanguage === 'ar' ? 'تم إرسال البريد الإلكتروني بنجاح!' : 'Email sent successfully!');
+                setShowEmailModal(false);
+                setEmailAddress('');
+            } else {
+                alert((currentLanguage === 'ar' ? 'فشل إرسال البريد: ' : 'Failed to send email: ') + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            alert((currentLanguage === 'ar' ? 'حدث خطأ أثناء الإرسال: ' : 'Error sending email: ') + err.message);
+        } finally {
+            setIsEmailSending(false);
+        }
+    };
+const handleB2BSubmit = () => {
         if (b2bForm.items.length === 0 || !b2bForm.items[0].productId) return;
         
         const validItems = b2bForm.items.filter(i => i.productId);
@@ -1818,7 +1863,7 @@ export default function App() {
 
     return (
         <div className="app-container">
-            <Sidebar 
+            <Sidebar settings={settings} 
                 handleLogout={handleLogout}
                 mobileMenuOpen={mobileMenuOpen} 
                 setMobileMenuOpen={setMobileMenuOpen} 
@@ -2443,7 +2488,23 @@ export default function App() {
                 )}
 
                 {/* TAB: SETTINGS & CURRENCY CONFIG */}
-                {['settings', 'basicData', 'generalSettings', 'programActivation', 'techSupport'].includes(activeTab) && <Settings {...props} />}
+                {['settings', 'basicData', 'generalSettings'].includes(activeTab) && <Settings {...props} />}
+                    {activeTab === 'programActivation' && (
+                        <div className="glass-card" style={{textAlign: 'center', padding: '50px'}}>
+                            <h2>{currentLanguage === 'ar' ? 'تفعيل البرنامج' : 'Program Activation'}</h2>
+                            <p style={{color: 'var(--text-secondary)', marginTop: '10px'}}>
+                                {currentLanguage === 'ar' ? 'يتم تفعيل البرنامج من خلال منصة ساس.' : 'Program activation is managed via the SaaS platform.'}
+                            </p>
+                        </div>
+                    )}
+                    {activeTab === 'techSupport' && (
+                        <div className="glass-card" style={{textAlign: 'center', padding: '50px'}}>
+                            <h2>{currentLanguage === 'ar' ? 'الدعم الفني' : 'Technical Support'}</h2>
+                            <p style={{color: 'var(--text-secondary)', marginTop: '10px'}}>
+                                {currentLanguage === 'ar' ? 'للتواصل مع الدعم الفني، يرجى إرسال بريد إلكتروني إلى support@kamysoft.com' : 'To contact technical support, please email support@kamysoft.com'}
+                            </p>
+                        </div>
+                    )}
 
                 {/* Version Footer */}
                 <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -2734,14 +2795,60 @@ export default function App() {
 
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                             <button className="btn btn-secondary" onClick={() => setShowInvoiceModal(false)}>{translations[currentLanguage].close}</button>
-                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                            
+                        <button className="btn btn-secondary" onClick={() => setShowEmailModal(true)} style={{ background: '#f59e0b', color: '#fff', borderColor: '#f59e0b' }}>
+                            <i className="ri-mail-send-line"></i> {currentLanguage === 'ar' ? 'إرسال بالبريد' : 'Email Invoice'}
+                        </button>
+<button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
                         </div>
+                        {showEmailModal && (
+                            <div style={{ marginTop: '20px', padding: '15px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                                <h4 style={{ marginBottom: '10px' }}>{currentLanguage === 'ar' ? 'إرسال الفاتورة بالبريد الإلكتروني' : 'Email Invoice'}</h4>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input type="email" className="form-control" placeholder={currentLanguage === 'ar' ? 'البريد الإلكتروني للعميل' : 'Customer Email Address'} value={emailAddress} onChange={e => setEmailAddress(e.target.value)} />
+                                    <button className="btn btn-primary" onClick={handleSendEmail} disabled={isEmailSending}>
+                                        {isEmailSending ? (currentLanguage === 'ar' ? 'جاري الإرسال...' : 'Sending...') : (currentLanguage === 'ar' ? 'إرسال' : 'Send')}
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => setShowEmailModal(false)}>{translations[currentLanguage].close}</button>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
                 </div>
             )}
             {/* MODAL: ADD PRODUCT */}
             {/* MODAL: ADD ASSET */}
-            {showAssetModal && (
+            
+            {/* MODAL: CREATE QUOTATION CRUD */}
+            {showQuotationCrudModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px', color: 'var(--accent-primary)' }}>
+                            <i className="ri-file-list-3-line"></i> {currentLanguage === 'ar' ? 'إنشاء عرض سعر جديد' : 'Create New Quotation'}
+                        </h3>
+                        <form onSubmit={handleSaveQuotation}>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'اسم العميل' : 'Customer Name'}</label>
+                                <input type="text" className="form-control" value={quotationForm.customer} onChange={e => setQuotationForm({ ...quotationForm, customer: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'المنتجات (مثال: لابتوب x2, ماوس x1)' : 'Items (e.g. Laptop x2, Mouse x1)'}</label>
+                                <input type="text" className="form-control" value={quotationForm.itemsText || ''} onChange={e => setQuotationForm({ ...quotationForm, itemsText: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الإجمالي (غير شامل الضريبة)' : 'Total (Excl. VAT)'}</label>
+                                <input type="number" className="form-control" value={quotationForm.total} onChange={e => setQuotationForm({ ...quotationForm, total: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '30px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowQuotationCrudModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">{translations[currentLanguage].saveSettings || 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+{showAssetModal && (
                 <div className="modal-overlay">
                     <div className="modal">
                         <h3 style={{ marginBottom: '20px' }}>{translations[currentLanguage].addAsset}</h3>
