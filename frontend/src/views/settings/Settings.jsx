@@ -86,6 +86,64 @@ const Settings = (props) => {
                             </form>
                         </div>
 
+                        {/* Modules Configuration Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-layout-grid-line"></i> {currentLanguage === 'ar' ? 'إعدادات الوحدات' : 'Modules Configuration'}
+                            </h3>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                fetch('/api/settings', {
+                                    method: 'POST',
+                                    headers: headers,
+                                    body: JSON.stringify(settings)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    setSettings(data);
+                                    alert(currentLanguage === 'ar' ? "تم حفظ إعدادات الوحدات بنجاح" : "Modules configuration saved successfully");
+                                })
+                                .catch(() => {
+                                    alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات محلياً" : "Settings saved locally");
+                                });
+                            }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                                    {[
+                                        { id: 'invoices', label: currentLanguage === 'ar' ? 'الفواتير' : 'Invoices' },
+                                        { id: 'pos', label: currentLanguage === 'ar' ? 'نقطة بيع' : 'POS / Cashier' },
+                                        { id: 'maintenance', label: currentLanguage === 'ar' ? 'الصيانة' : 'Maintenance' },
+                                        { id: 'inventory', label: currentLanguage === 'ar' ? 'المخزون' : 'Inventory' },
+                                        { id: 'customers', label: currentLanguage === 'ar' ? 'العملاء' : 'Customers' },
+                                        { id: 'employees', label: currentLanguage === 'ar' ? 'الموظفين' : 'Employees' },
+                                        { id: 'suppliers', label: currentLanguage === 'ar' ? 'الموردين' : 'Suppliers' },
+                                        { id: 'warehouses', label: currentLanguage === 'ar' ? 'المخازن' : 'Warehouses' },
+                                        { id: 'financials', label: currentLanguage === 'ar' ? 'المالية' : 'Financials' },
+                                        { id: 'reports', label: currentLanguage === 'ar' ? 'تقارير' : 'Reports' }
+                                    ].map(module => (
+                                        <div key={module.id} className="form-group" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', margin: 0 }}>
+                                            <input 
+                                                type="checkbox" 
+                                                id={`mod-${module.id}`}
+                                                checked={settings.enabledModules?.[module.id] !== false} 
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    enabledModules: {
+                                                        ...(settings.enabledModules || {}),
+                                                        [module.id]: e.target.checked
+                                                    }
+                                                })} 
+                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
+                                            />
+                                            <label htmlFor={`mod-${module.id}`} style={{ cursor: 'pointer', margin: 0, fontSize: '14px' }}>{module.label}</label>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                                    <i className="ri-save-line"></i> {currentLanguage === 'ar' ? 'حفظ الوحدات' : 'Save Modules'}
+                                </button>
+                            </form>
+                        </div>
+
                         {/* Branch & Business Configuration Card */}
                         <div className="glass-card">
                             <h3 style={{ marginBottom: '20px', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>

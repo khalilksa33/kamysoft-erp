@@ -209,7 +209,7 @@ const menuConfig = [
     }
 ];
 
-const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurrentLanguage, theme, setTheme, activeTab, setActiveTab }) => {
+const Sidebar = ({ settings, mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurrentLanguage, theme, setTheme, activeTab, setActiveTab }) => {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const t = sidebarTranslations[currentLanguage];
 
@@ -259,6 +259,7 @@ const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurren
                 <div className="modern-nav-container">
                     <ul className="modern-nav-links">
                         {menuConfig.map((item) => {
+                            if (item.id !== 'dashboard' && item.id !== 'settings' && settings?.enabledModules && settings.enabledModules[item.id] === false) return null;
                             const isExpanded = expandedMenu === item.id;
                             const isActive = activeTab === item.id || (item.submenu && item.submenu.some(sub => sub.id === activeTab));
                             

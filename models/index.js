@@ -170,6 +170,7 @@ const settingsSchema = new mongoose.Schema({
     businessType: { type: String, default: 'retail' },
     enableTables: { type: Boolean, default: false },
     enableServiceDuration: { type: Boolean, default: false },
+    enabledModules: { type: Object, default: {} },
     
     // SaaS Registration Details
     email: { type: String },

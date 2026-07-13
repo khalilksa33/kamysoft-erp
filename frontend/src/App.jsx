@@ -665,7 +665,8 @@ export default function App() {
         currentBranch: 'Main Branch - Riyadh',
         businessType: 'retail',
         enableTables: false,
-        enableServiceDuration: false
+        enableServiceDuration: false,
+        enabledModules: { invoices: true, pos: true, maintenance: true, inventory: true, customers: true, employees: true, suppliers: true, warehouses: true, financials: true, reports: true, settings: true }
     });
 
     const [zatcaConn, setZatcaConn] = useState({
