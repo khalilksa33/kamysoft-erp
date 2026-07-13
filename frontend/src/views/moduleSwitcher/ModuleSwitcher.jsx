@@ -15,13 +15,17 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
     ];
 
     const handleToggle = (moduleId) => {
-        setSettings(prev => ({
-            ...prev,
-            enabledModules: {
-                ...prev.enabledModules,
-                [moduleId]: !prev.enabledModules[moduleId]
-            }
-        }));
+        setSettings(prev => {
+            const currentModules = prev.enabledModules || {};
+            const isCurrentlyEnabled = currentModules[moduleId] ?? true;
+            return {
+                ...prev,
+                enabledModules: {
+                    ...currentModules,
+                    [moduleId]: !isCurrentlyEnabled
+                }
+            };
+        });
     };
 
     return (
