@@ -36,11 +36,11 @@ const getBaseDomain = (host) => {
 const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk') => {
     if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
         console.log(`[Mock Email] License key for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${licenseKey}`);
-        return;
+        return true;
     }
     try {
         await transporter.sendMail({
-            from: process.env.EMAIL_FROM || '"SME Solutions" <no-reply@26i.uk>',
+            from: process.env.EMAIL_FROM || "SME Solutions <no-reply@26i.uk>",
             to: tenantEmail,
             subject: 'Welcome to SME Solutions! Your 14-Day Free Trial',
             html: `
@@ -54,8 +54,10 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
             `
         });
         console.log(`License email sent to ${tenantEmail}`);
+        return true;
     } catch (err) {
         console.error('Failed to send license email:', err.message);
+        return false;
     }
 };
 

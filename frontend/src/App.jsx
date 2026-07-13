@@ -4,6 +4,7 @@ import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
 import Reports from './views/reports/Reports';
+import ModuleSwitcher from './views/moduleSwitcher/ModuleSwitcher';
 import Warehouses from './views/inventory/Warehouses';
 import InventoryTransactions from './views/inventory/InventoryTransactions';
 import JournalEntries from './views/financials/JournalEntries';
@@ -1941,6 +1942,7 @@ const handleB2BSubmit = () => {
                 {['invoices', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
+                {activeTab === 'moduleSwitch' && <ModuleSwitcher {...props} />}
                 {activeTab === 'pos' && <POS {...props} />}
 
                 {/* TAB: B2B SALES PANEL */}
@@ -2450,6 +2452,7 @@ const handleB2BSubmit = () => {
 
                 {/* TAB: REPORTS */}
                 {['reports', 'salesMovement', 'purchasesMovement', 'maintenanceReport', 'itemsMovement', 'financialMovement', 'salesAnalysis', 'accountsDebts', 'profitAnalysis', 'summaryReport', 'taxReport'].includes(activeTab) && <Reports {...props} />}
+{activeTab === 'moduleSwitch' && <ModuleSwitcher {...props} />}
 
                 {/* TAB: ZATCA INTEGRATION AND CLEARANCE */}
                 {['zatca', 'zatcaIntegration'].includes(activeTab) && (

@@ -56,7 +56,8 @@ const sidebarTranslations = {
         zatcaIntegration: "ZATCA Integration",
         basicData: "Basic Data",
         light: "Light",
-        dark: "Dark"
+        dark: "Dark",
+        moduleSwitch: "Module Switcher"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -196,6 +197,8 @@ const menuConfig = [
             { id: 'taxReport', labelKey: 'taxReport' }
         ]
     },
+
+    { id: 'moduleSwitch', icon: 'ri-swap-line', labelKey: 'moduleSwitch' },
     {
         id: 'settings', icon: 'ri-settings-4-line', labelKey: 'settings',
         submenu: [

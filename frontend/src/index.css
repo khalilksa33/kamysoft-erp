@@ -852,12 +852,12 @@ tr:hover td {
     }
     
     .modal {
-        position: fixed !important;
+        position: static !important;
         width: 100% !important;
         max-width: none !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        overflow-y: auto !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important; overflow-y: visible !important;
         background: var(--bg-primary) !important;
         color: var(--text-primary) !important;
         border: none !important;
