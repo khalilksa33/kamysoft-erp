@@ -3,7 +3,8 @@ import React from 'react';
 const Customers = (props) => {
     const { 
         customers, currentLanguage, translations,
-        newCustomer, setNewCustomer, handleAddCustomer, handleDeleteCustomer
+        newCustomer, setNewCustomer, handleAddCustomer, handleDeleteCustomer,
+        setShowCustomerModal, setCustForm
     } = props;
 
     return (

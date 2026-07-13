@@ -8,7 +8,7 @@ const Maintenance = (props) => {
         { id: 'TKT-002', customer: 'Jane Smith', device: 'iPhone 13 Pro', status: 'In Progress', cost: 0, date: '2026-07-11' }
     ]);
     const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState({ id: '', customer: '', device: '', status: 'Pending', cost: 0, date: new Date().toISOString().split('T')[0] });
+    const [form, setForm] = useState({ id: '', customer: '', device: '', issue: '', status: 'Pending', cost: 0, date: new Date().toISOString().split('T')[0] });
 
     const handleSave = (e) => {
         e.preventDefault();
@@ -19,7 +19,7 @@ const Maintenance = (props) => {
             setTickets([...tickets, mock]);
         }
         setShowModal(false);
-        setForm({ id: '', customer: '', device: '', status: 'Pending', cost: 0, date: new Date().toISOString().split('T')[0] });
+        setForm({ id: '', customer: '', device: '', issue: '', status: 'Pending', cost: 0, date: new Date().toISOString().split('T')[0] });
     };
 
     const handleDelete = (id) => {
@@ -34,7 +34,7 @@ const Maintenance = (props) => {
                 <h3>{currentLanguage === 'ar' ? 'الصيانة وإصلاح الأجهزة' : 'Maintenance & Repairs'}</h3>
                 <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                     <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
-                    {currentLanguage === 'ar' ? 'تذكرة صيانة جديدة' : 'New Ticket'}
+                    {currentLanguage === 'ar' ? 'حجز جهاز للصيانة' : 'Device Booking'}
                 </button>
             </div>
             <div className="table-container">
@@ -44,6 +44,7 @@ const Maintenance = (props) => {
                             <th>{currentLanguage === 'ar' ? 'رقم التذكرة' : 'Ticket ID'}</th>
                             <th>{currentLanguage === 'ar' ? 'العميل' : 'Customer'}</th>
                             <th>{currentLanguage === 'ar' ? 'الجهاز' : 'Device/Item'}</th>
+                            <th>{currentLanguage === 'ar' ? 'المشكلة' : 'Issue'}</th>
                             <th>{currentLanguage === 'ar' ? 'التاريخ' : 'Date'}</th>
                             <th>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</th>
                             <th>{currentLanguage === 'ar' ? 'التكلفة' : 'Cost'}</th>
@@ -59,6 +60,7 @@ const Maintenance = (props) => {
                                     <td>{t.id}</td>
                                     <td>{t.customer}</td>
                                     <td>{t.device}</td>
+                                    <td>{t.issue || '-'}</td>
                                     <td>{t.date}</td>
                                     <td>
                                         <span style={{ 
@@ -99,6 +101,10 @@ const Maintenance = (props) => {
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'الجهاز / القطعة' : 'Device / Item'}</label>
                                 <input type="text" className="form-control" value={form.device} onChange={e => setForm({ ...form, device: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'وصف المشكلة' : 'Issue Description'}</label>
+                                <textarea className="form-control" value={form.issue} onChange={e => setForm({ ...form, issue: e.target.value })} required rows="3"></textarea>
                             </div>
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'تاريخ الاستلام' : 'Date'}</label>

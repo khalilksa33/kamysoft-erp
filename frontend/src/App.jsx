@@ -1924,7 +1924,7 @@ const handleB2BSubmit = () => {
                 {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
                 {['financials', 'financialTrans', 'dailyJournal', 'chartAccounts', 'generalLedger'].includes(activeTab) && <JournalEntries {...props} />}
                 {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
-                {['employees', 'employeesManagement', 'salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
+                {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
                 {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
                 {['salesReturn', 'purchaseReturn'].includes(activeTab) && <Returns {...props} />}
                 {['invoices', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
@@ -2384,9 +2384,7 @@ const handleB2BSubmit = () => {
                     <div className="glass-card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 data-i18n="quotations">{translations[currentLanguage].quotations}</h3>
-                            <button className="btn btn-primary" onClick={() => { setQuotationForm({ customer: '', itemsText: '', total: '' }); setShowQuotationCrudModal(true); }}>
-                                {translations[currentLanguage].addQuotation}
-                            </button>
+
                         </div>
                         <div className="table-container">
                             <table>
