@@ -4,7 +4,9 @@ const Invoices = (props) => {
     const { 
         invoices, salesSearch, setSalesSearch, salesStartDate, setSalesStartDate, 
         salesEndDate, setSalesEndDate, formatCurrency, setActiveTab, currentLanguage, translations,
-        handlePrintInvoice, handleDeleteInvoice, setInvoices
+        handlePrintInvoice, handleDeleteInvoice, setInvoices,
+        setInvoiceFormat, setInvoiceSource, setActiveInvoice, setShowInvoiceModal,
+        simulateZATCAReporting, handleRefundInvoice
     } = props;
 
     {/* TAB: INVOICES & REPRINT (SALES MANAGEMENT) */}

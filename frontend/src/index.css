@@ -678,6 +678,7 @@ tr:hover td {
     max-width: 800px;
     position: relative;
     height: auto;
+    min-height: 500px;
     margin: auto;
 }
 
