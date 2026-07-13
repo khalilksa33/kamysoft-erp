@@ -2536,7 +2536,7 @@ const handleB2BSubmit = () => {
                                     {invoiceFormat === 'a4' ? (
                                         <div style={{ padding: '16px 24px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
                                             {/* Standard A4 Header Grid: L: English Details, C: Logo, R: Arabic Details */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 100px 1.2fr', gap: '10px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '8px' }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 100px 1.2fr', gap: '10px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '8px', pageBreakInside: 'avoid' }}>
                                                 {/* Left Side: English Info (LTR) */}
                                                 <div style={{ textAlign: 'left', fontSize: '10px', direction: 'ltr', lineHeight: '1.3' }}>
                                                     <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
@@ -2566,7 +2566,7 @@ const handleB2BSubmit = () => {
                                             </div>
 
                                             {/* Invoice Metadata Row (Second Line) */}
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '6px 12px', marginTop: '10px', background: '#f8fafc', fontSize: '10px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '6px 12px', marginTop: '10px', background: '#f8fafc', fontSize: '10px', pageBreakInside: 'avoid' }}>
                                                 <div style={{ textAlign: 'left', direction: 'ltr', lineHeight: '1.4' }}>
                                                     <p style={{ margin: '1px 0', fontSize: '12px', fontWeight: 'bold', color: '#8b5cf6' }}>Simplified Tax Invoice / فاتورة ضريبية مبسطة</p>
                                                     <p style={{ margin: '1px 0', color: '#555' }}><strong>Invoice ID:</strong> {activeInvoice.id}</p>
@@ -2606,7 +2606,7 @@ const handleB2BSubmit = () => {
                                                         const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
                                                         const itemSubtotal = itemTaxableAmount + itemTaxAmount;
                                                         return (
-                                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', pageBreakInside: 'avoid' }}>
                                                                 <td style={{ padding: '4px 6px', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>{item.name}</td>
                                                                 <td style={{ padding: '4px 6px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
                                                                 <td style={{ padding: '4px 6px', textAlign: 'center' }}>{itemQty}</td>
@@ -2622,7 +2622,7 @@ const handleB2BSubmit = () => {
                                             </table>
 
                                             {/* Financial Summary Totals and Side-by-Side QR Code */}
-                                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px' }}>
+                                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px', pageBreakInside: 'avoid' }}>
                                                 {/* Left Side: ZATCA Compliant QR Code and Share Button */}
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', width: '160px', textAlign: 'center', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', width: '100px', height: '100px' }}>
@@ -2996,7 +2996,7 @@ const handleB2BSubmit = () => {
                                 {invoiceFormat === 'a4' ? (
                                     <div style={{ padding: '16px 24px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
                                         {/* Standard A4 Header Grid: L: English Details, C: Logo, R: Arabic Details */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 100px 1.2fr', gap: '10px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '8px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 100px 1.2fr', gap: '10px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '8px', pageBreakInside: 'avoid' }}>
                                             {/* Left Side: English Info (LTR) */}
                                             <div style={{ textAlign: 'left', fontSize: '10px', direction: 'ltr', lineHeight: '1.3' }}>
                                                 <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
@@ -3026,7 +3026,7 @@ const handleB2BSubmit = () => {
                                         </div>
 
                                         {/* Quotation Metadata Row (Second Line) */}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '6px 12px', marginTop: '10px', background: '#f8fafc', fontSize: '10px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '6px 12px', marginTop: '10px', background: '#f8fafc', fontSize: '10px', pageBreakInside: 'avoid' }}>
                                             <div style={{ textAlign: 'left', direction: 'ltr', lineHeight: '1.4' }}>
                                                 <p style={{ margin: '1px 0', fontSize: '12px', fontWeight: 'bold', color: '#8b5cf6' }}>Quotation Document / عرض سعر</p>
                                                 <p style={{ margin: '1px 0', color: '#555' }}><strong>Quotation ID:</strong> {activeQuotation.id}</p>
@@ -3065,7 +3065,7 @@ const handleB2BSubmit = () => {
                                                     const itemTaxAmount = itemTaxableAmount * (itemTaxRate / 100);
                                                     const itemSubtotal = itemTaxableAmount + itemTaxAmount;
                                                     return (
-                                                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', pageBreakInside: 'avoid' }}>
                                                             <td style={{ padding: '4px 6px', textAlign: currentLanguage === 'ar' ? 'right' : 'left' }}>{item.name}</td>
                                                             <td style={{ padding: '4px 6px', textAlign: 'right' }}>{formatCurrency(itemPrice)}</td>
                                                             <td style={{ padding: '4px 6px', textAlign: 'center' }}>{itemQty}</td>
@@ -3081,7 +3081,7 @@ const handleB2BSubmit = () => {
                                         </table>
 
                                         {/* Financial Summary Totals and Side-by-Side QR Code */}
-                                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px' }}>
+                                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px', pageBreakInside: 'avoid' }}>
                                             {/* Left Side: Quotation QR Code and Share Button */}
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', width: '160px', textAlign: 'center', flexShrink: 0 }}>
                                                 <div style={{ position: 'relative', width: '100px', height: '100px' }}>
