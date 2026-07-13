@@ -289,6 +289,9 @@ body[dir="rtl"] .main-content {
     transition: border-color 0.15s ease;
     position: relative;
     overflow: hidden;
+}
+
+.main-content > .glass-card {
     min-height: calc(100vh - 100px);
 }
 
