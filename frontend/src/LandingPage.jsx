@@ -1224,7 +1224,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             {/* Store Registration Onboarding Modal */}
             {showRegisterModal && (
                 <div className="modal-overlay" onClick={() => registerStatus !== 'submitting' && setShowRegisterModal(false)}>
-                    <div className="modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+                    <div className="modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px', borderRadius: '12px', border: '1px solid var(--glass-border)', maxHeight: '90vh', overflowY: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
                             <h3 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>
                                 {registerStatus === 'success' 
