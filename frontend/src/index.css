@@ -502,7 +502,7 @@ tr:hover td {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
-    padding-right: 8px;
+    padding: 0 8px;
 }
 
 .pos-cart {

@@ -209,7 +209,7 @@ const menuConfig = [
     }
 ];
 
-const Sidebar = ({ settings, mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurrentLanguage, theme, setTheme, activeTab, setActiveTab }) => {
+const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, currentLanguage, setCurrentLanguage, theme, setTheme, activeTab, setActiveTab }) => {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const t = sidebarTranslations[currentLanguage];
 
@@ -307,7 +307,7 @@ const Sidebar = ({ settings, mobileMenuOpen, setMobileMenuOpen, currentLanguage,
                             <span className="user-role">Super Admin</span>
                         </div>
                     </div>
-                    <button className="logout-btn">
+                    <button className="logout-btn" onClick={handleLogout}>
                         <i className="ri-logout-circle-r-line"></i>
                     </button>
                 </div>

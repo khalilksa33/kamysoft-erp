@@ -2,7 +2,7 @@ import React from 'react';
 
 const Settings = (props) => {
     const { 
-        settings, setSettings, handleSaveSettings, settingsLoading, currentLanguage, translations
+        settings, setSettings, handleSaveSettings, settingsLoading, currentLanguage, translations, zatcaConn, setZatcaConn
     } = props;
 
     return (
@@ -17,7 +17,7 @@ const Settings = (props) => {
                                 e.preventDefault();
                                 fetch('/api/settings', {
                                     method: 'POST',
-                                    headers: headers,
+                                    headers: props.headers,
                                     body: JSON.stringify(settings)
                                 })
                                 .then(res => res.json())
@@ -95,7 +95,7 @@ const Settings = (props) => {
                                 e.preventDefault();
                                 fetch('/api/settings', {
                                     method: 'POST',
-                                    headers: headers,
+                                    headers: props.headers,
                                     body: JSON.stringify(settings)
                                 })
                                 .then(res => res.json())
@@ -153,7 +153,7 @@ const Settings = (props) => {
                                 e.preventDefault();
                                 fetch('/api/settings', {
                                     method: 'POST',
-                                    headers: headers,
+                                    headers: props.headers,
                                     body: JSON.stringify(settings)
                                 })
                                 .then(res => res.json())

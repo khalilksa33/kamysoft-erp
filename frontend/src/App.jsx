@@ -1819,6 +1819,7 @@ export default function App() {
     return (
         <div className="app-container">
             <Sidebar 
+                handleLogout={handleLogout}
                 mobileMenuOpen={mobileMenuOpen} 
                 setMobileMenuOpen={setMobileMenuOpen} 
                 currentLanguage={currentLanguage} 
