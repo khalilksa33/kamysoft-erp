@@ -14,14 +14,14 @@ const PORT = process.env.PORT || 8089;
 const JWT_SECRET = process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026';
 
 // ----------------------------------------------------
-// EMAIL SERVICE CONFIGURATION (SendGrid)
+// EMAIL SERVICE CONFIGURATION (SMTP)
 // ----------------------------------------------------
 const transporter = nodemailer.createTransport({
-    host: 'smtp.sendgrid.net',
-    port: 587,
+    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+    port: process.env.SMTP_PORT || 587,
     auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY || 'SG.mock-key-for-development' // Replace with real key in production .env
+        user: process.env.SMTP_USER || 'apikey',
+        pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY || 'SG.mock-key-for-development'
     }
 });
 
@@ -34,13 +34,13 @@ const getBaseDomain = (host) => {
 };
 
 const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk') => {
-    if (!process.env.SENDGRID_API_KEY) {
+    if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
         console.log(`[Mock Email] License key for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${licenseKey}`);
         return;
     }
     try {
         await transporter.sendMail({
-            from: '"SME Solutions" <no-reply@26i.uk>',
+            from: process.env.EMAIL_FROM || '"SME Solutions" <no-reply@26i.uk>',
             to: tenantEmail,
             subject: 'Welcome to SME Solutions! Your 14-Day Free Trial',
             html: `
