@@ -676,6 +676,201 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
         if (updateData.success) {
             console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
         } else {
+                    <cbc:IdentificationCode>SA</cbc:IdentificationCode>
+                </cac:Country>
+            </cac:PostalAddress>
+            <cac:PartyTaxScheme>
+                <cbc:CompanyID>${settings.vatNumber}</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>${settings.businessName}</cbc:RegistrationName>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>${invoice.customer}</cbc:RegistrationName>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="SAR">${invoice.vat.toFixed(2)}</cbc:TaxAmount>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="SAR">${(invoice.total - invoice.vat).toFixed(2)}</cbc:LineExtensionAmount>
+        <cbc:TaxExclusiveAmount currencyID="SAR">${(invoice.total - invoice.vat).toFixed(2)}</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="SAR">${invoice.total.toFixed(2)}</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="SAR">${invoice.total.toFixed(2)}</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+${itemsXML}</Invoice>`;
+
+    return xml.trim();
+}
+
+// Initialize seed invoices with ZATCA metadata
+if (mockDb.invoices.length === 0) {
+    const seed1 = { id: 'INV-1001', date: '2026-06-24 10:30', customer: 'Walk-in Customer / عميل نقدي', items: [{ id: '1001', name: 'شاشة ذكية فاخرة 27 بوصة', price: 950, qty: 1 }], total: 1092.5, vat: 142.5, discount: 0 };
+    const seed2 = { id: 'INV-1002', date: '2026-06-24 11:15', customer: 'Khalil Al-Ghamdi', items: [{ id: '1002', name: 'قارئ باركود لاسلكي ليزري', price: 250, qty: 2 }], total: 575, vat: 75, discount: 0 };
+    
+    [seed1, seed2].forEach((inv, index) => {
+        inv.uuid = crypto.randomUUID();
+        inv.csn = index + 1;
+        inv.pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
+        inv.xml = generateZATCAXML(inv, mockDb.settings);
+        inv.xmlHash = sha256Node(inv.xml);
+        inv.xmlHashBase64 = Buffer.from(inv.xmlHash, 'hex').toString('base64');
+        inv.signature = signHashNode(inv.xmlHash);
+        inv.publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbE08C8wK7zH6r2wR3pS1a1gD4o6H4L8T1F3E2W1Q2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z==";
+        inv.certSignature = "MEQCIDz/R+x6T/T42/yvF1w67r81m4F/X27+z36/S/23s/Y1AiAC/S/z8E8r6Q81/t23/9+x7r23/X71/+1287/r+x612w==";
+        inv.zatcaStatus = 'PENDING';
+        mockDb.invoices.push(inv);
+    });
+}
+
+// ----------------------------------------------------
+// API ROUTES
+// ----------------------------------------------------
+
+// AUTHENTICATION
+global.defaultProductsBySector = {
+    appliances: [
+        { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },
+        { nameEN: 'Double Door Refrigerator 450L', nameAR: 'ثلاجة دولابي 450 لتر', price: 3500, cost: 2600, stock: 5, category: 'appliances', emoji: '🎛️', barcode: '728100100011' },
+        { nameEN: 'Fully Automatic Washing Machine', nameAR: 'غسالة ملابس أوتوماتيكية بالكامل', price: 1800, cost: 1300, stock: 8, category: 'appliances', emoji: '🧺', barcode: '728100100012' },
+        { nameEN: 'Digital Microwave Oven 30L', nameAR: 'ميكروويف رقمي 30 لتر', price: 450, cost: 310, stock: 15, category: 'appliances', emoji: '🍳', barcode: '728100100013' }
+    ],
+    furniture: [
+        { nameEN: 'Luxury L-Shape Sofa Set', nameAR: 'طقم كنب فاخر على شكل حرف L', price: 4500, cost: 3200, stock: 4, category: 'furniture', emoji: '🛋️', barcode: '728200100020' },
+        { nameEN: 'King Size Bed Frame with Headboard', nameAR: 'سرير مقاس كينج خشبي فخم', price: 2800, cost: 1900, stock: 6, category: 'furniture', emoji: '🛏️', barcode: '728200100021' },
+        { nameEN: 'Solid Oak Dining Table (6 Chairs)', nameAR: 'طاولة طعام خشب بلوط مع 6 كراسي', price: 3200, cost: 2200, stock: 3, category: 'furniture', emoji: '🪑', barcode: '728200100022' },
+        { nameEN: 'Modern Wooden Coffee Table', nameAR: 'طاولة قهوة خشبية مودرن', price: 650, cost: 420, stock: 12, category: 'furniture', emoji: '☕', barcode: '728200100023' }
+    ],
+    spareparts: [
+        { nameEN: 'Brake Pad Set (Front)', nameAR: 'قماش فرامل أمامي', price: 180, cost: 120, stock: 25, category: 'spareparts', emoji: '🚗', barcode: '728300100030' },
+        { nameEN: 'Engine Oil Filter (Synthetic)', nameAR: 'فلتر زيت محرك تخليقي', price: 35, cost: 20, stock: 60, category: 'spareparts', emoji: '🛢️', barcode: '728300100031' },
+        { nameEN: 'Copper Plumbing Elbow 1/2"', nameAR: 'كوع نحاس للسباكة 1/2 بوصة', price: 12, cost: 7, stock: 150, category: 'spareparts', emoji: '🔧', barcode: '728300100032' },
+        { nameEN: 'Heavy Duty HVAC Capacitor 45uF', nameAR: 'كابستور مكيف شديد التحمل 45 ميكرو', price: 45, cost: 25, stock: 40, category: 'spareparts', emoji: '⚡', barcode: '728300100033' },
+        { nameEN: 'LED Circuit Board Panel', nameAR: 'لوحة دارة إلكترونية LED', price: 95, cost: 60, stock: 20, category: 'spareparts', emoji: '🔌', barcode: '728300100034' }
+    ],
+    retail: [
+        { nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
+        { nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, cost: 170, stock: 8, category: 'electronics', emoji: '🔦', barcode: '628100200020' },
+        { nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺', barcode: '628100400040' }
+    ]
+};
+
+// Function to update Cloudflare Zero Trust Tunnel configuration dynamically
+async function updateCloudflareTunnelConfig(tenantDomain) {
+    const cfAccountId = process.env.CF_ACCOUNT_ID;
+    const cfTunnelId = process.env.CF_TUNNEL_ID;
+    const cfApiToken = process.env.CF_API_TOKEN;
+
+    if (!cfAccountId || !cfTunnelId || !cfApiToken) {
+        console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
+        return;
+    }
+
+    try {
+        const headers = {
+            'Authorization': `Bearer ${cfApiToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        // 1. Get Zone ID for the base domain
+        const baseDomain = tenantDomain.split('.').slice(1).join('.');
+        let cfZoneId = null;
+        
+        const zoneRes = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
+        const zoneData = await zoneRes.json();
+        
+        if (zoneData.success && zoneData.result.length > 0) {
+            cfZoneId = zoneData.result[0].id;
+        } else {
+            console.error('Failed to fetch Zone ID for', baseDomain, zoneData.errors);
+        }
+
+        // 2. Create DNS CNAME record for the tenant
+        if (cfZoneId) {
+            const dnsPayload = {
+                type: 'CNAME',
+                name: tenantDomain,
+                content: `${cfTunnelId}.cfargotunnel.com`,
+                ttl: 1, // Auto
+                proxied: true
+            };
+            
+            const dnsRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(dnsPayload)
+            });
+            const dnsData = await dnsRes.json();
+            
+            if (dnsData.success) {
+                console.log(`Successfully created CNAME record for ${tenantDomain}`);
+            } else {
+                // If it already exists, that's fine (code 81053)
+                const exists = dnsData.errors.some(e => e.code === 81053 || e.message.includes('already exists'));
+                if (exists) {
+                    console.log(`CNAME record for ${tenantDomain} already exists.`);
+                } else {
+                    console.error('Failed to create CNAME record:', dnsData.errors);
+                }
+            }
+        }
+
+        // 3. Fetch existing Tunnel configuration
+        const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
+        const fetchResponse = await fetch(url, { headers });
+        const fetchData = await fetchResponse.json();
+
+        if (!fetchData.success) {
+            console.error('Failed to fetch CF Tunnel config:', fetchData.errors);
+            return;
+        }
+
+        const config = fetchData.result.config;
+        if (!config || !config.ingress) {
+            console.error('CF Tunnel config is malformed.');
+            return;
+        }
+
+        // 4. Check if route already exists in Tunnel
+        const routeExists = config.ingress.some(route => route.hostname === tenantDomain);
+        if (routeExists) {
+            console.log(`Route for ${tenantDomain} already exists in Cloudflare Tunnel.`);
+            return;
+        }
+
+        // 5. Add new route to Tunnel
+        const newRoute = {
+            hostname: tenantDomain,
+            service: "http://127.0.0.1:30184"
+        };
+        
+        // Find index of catch-all rule to insert before it
+        const catchAllIndex = config.ingress.findIndex(route => !route.hostname || route.service === 'http_status:404');
+        if (catchAllIndex !== -1) {
+            config.ingress.splice(catchAllIndex, 0, newRoute);
+        } else {
+            config.ingress.push(newRoute);
+        }
+
+        // 6. Update the Tunnel configuration
+        const updateResponse = await fetch(url, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ config })
+        });
+        const updateData = await updateResponse.json();
+
+        if (updateData.success) {
+            console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
+        } else {
             console.error('Failed to update CF Tunnel config:', updateData.errors);
         }
     } catch (err) {
@@ -683,12 +878,70 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
     }
 }
 
+async function removeCloudflareTunnelConfig(tenantDomain) {
+    const cfAccountId = process.env.CF_ACCOUNT_ID;
+    const cfTunnelId = process.env.CF_TUNNEL_ID;
+    const cfApiToken = process.env.CF_API_TOKEN;
+
+    if (!cfAccountId || !cfTunnelId || !cfApiToken) {
+        console.warn('Cloudflare credentials missing. Skipping Tunnel removal.');
+        return;
+    }
+
+    try {
+        const headers = {
+            'Authorization': `Bearer ${cfApiToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        const baseDomain = tenantDomain.split('.').slice(1).join('.');
+        let cfZoneId = null;
+        
+        const zoneRes = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
+        const zoneData = await zoneRes.json();
+        
+        if (zoneData.success && zoneData.result.length > 0) {
+            cfZoneId = zoneData.result[0].id;
+        }
+
+        if (cfZoneId) {
+            // Find the DNS record ID
+            const dnsListRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records?name=${tenantDomain}`, { headers });
+            const dnsListData = await dnsListRes.json();
+            
+            if (dnsListData.success && dnsListData.result.length > 0) {
+                const recordId = dnsListData.result[0].id;
+                // Delete the DNS record
+                const delRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records/${recordId}`, {
+                    method: 'DELETE',
+                    headers
+                });
+                const delData = await delRes.json();
+                if (delData.success) {
+                    console.log(`Successfully removed Cloudflare DNS record for ${tenantDomain}`);
+                } else {
+                    console.error('Failed to remove DNS record:', delData.errors);
+                }
+            } else {
+                console.log(`No DNS record found for ${tenantDomain} to remove.`);
+            }
+        }
+        
+        // Note: We don't necessarily need to remove the route from the Tunnel config JSON 
+        // since it just maps to a local service that doesn't exist anymore, but we could 
+        // fetch and update it if needed. Removing the DNS record is sufficient to stop traffic.
+        
+    } catch (err) {
+        console.error('Error removing Cloudflare Tunnel config:', err);
+    }
+}
 
 global.mockDb = mockDb;
 global.getTenantId = getTenantId;
 global.defaultProductsBySector = defaultProductsBySector;
 global.sendLicenseEmail = sendLicenseEmail;
 global.updateCloudflareTunnelConfig = updateCloudflareTunnelConfig;
+global.removeCloudflareTunnelConfig = removeCloudflareTunnelConfig;
 
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);

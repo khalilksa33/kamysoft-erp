@@ -34,6 +34,14 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
     const [confirmDelete, setConfirmDelete] = useState(null); // tenantId pending delete
     const [expandedStore, setExpandedStore] = useState(null);
 
+    // Payments
+    const [payments, setPayments] = useState([]);
+
+    // Modules Modal
+    const [showModulesModal, setShowModulesModal] = useState(false);
+    const [selectedTenantForModules, setSelectedTenantForModules] = useState('');
+    const [selectedModules, setSelectedModules] = useState({});
+
     const apiHeaders = useCallback(() => ({
         'Content-Type': 'application/json',
         'x-saas-admin-key': adminKey
@@ -70,13 +78,21 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
         } catch { /* ignore */ }
     }, [apiHeaders]);
 
+    const loadPayments = useCallback(async () => {
+        try {
+            const res = await fetch('/api/saas/payments', { headers: apiHeaders() });
+            setPayments(await res.json());
+        } catch { /* ignore */ }
+    }, [apiHeaders]);
+
     useEffect(() => {
         if (adminKey) loadData();
     }, [adminKey, loadData]);
 
     useEffect(() => {
         if (authenticated && tab === 'inquiries') loadInquiries();
-    }, [authenticated, tab, loadInquiries]);
+        if (authenticated && tab === 'payments') loadPayments();
+    }, [authenticated, tab, loadInquiries, loadPayments]);
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -105,6 +121,33 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
         setActionMsg(data.message || data.error || 'Done.');
         setTimeout(() => setActionMsg(''), 4000);
         loadData();
+    };
+
+    const openModulesModal = async (tenantId) => {
+        try {
+            const res = await fetch(`/api/saas/stores/${tenantId}/modules`, { headers: apiHeaders() });
+            const data = await res.json();
+            setSelectedModules(data || {});
+            setSelectedTenantForModules(tenantId);
+            setShowModulesModal(true);
+        } catch {
+            setActionMsg('Error loading modules');
+        }
+    };
+
+    const handleSaveModules = async () => {
+        try {
+            await fetch(`/api/saas/stores/${selectedTenantForModules}/modules`, {
+                method: 'PATCH',
+                headers: apiHeaders(),
+                body: JSON.stringify({ modules: selectedModules })
+            });
+            setShowModulesModal(false);
+            setActionMsg(`Modules updated for ${selectedTenantForModules}`);
+            setTimeout(() => setActionMsg(''), 3000);
+        } catch {
+            setActionMsg('Error saving modules');
+        }
     };
 
     const filteredStores = stores.filter(s =>
@@ -191,7 +234,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
 
                 {/* Tabs */}
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
-                    {[['stores', 'ri-store-2-line', 'Stores'], ['inquiries', 'ri-mail-open-line', 'Inquiries']].map(([t, icon, label]) => (
+                    {[['stores', 'ri-store-2-line', 'Stores'], ['inquiries', 'ri-mail-open-line', 'Inquiries'], ['payments', 'ri-bank-card-line', 'Payments']].map(([t, icon, label]) => (
                         <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? '#7c3aed' : 'transparent', border: 'none', borderRadius: '7px', padding: '8px 20px', color: tab === t ? '#fff' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <i className={icon} />{label}
                         </button>
@@ -270,6 +313,10 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                             style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#38bdf8', fontSize: '12px', cursor: 'pointer' }}>
                                                             <i className="ri-information-line" />
                                                         </button>
+                                                        <button onClick={() => openModulesModal(store.tenantId)}
+                                                            style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#a78bfa', fontSize: '12px', cursor: 'pointer' }}>
+                                                            <i className="ri-apps-2-line" /> Modules
+                                                        </button>
                                                         {store.tenantId !== 'default' && (
                                                             <button onClick={() => setConfirmDelete(store.tenantId)}
                                                                 style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '5px 8px', color: '#f87171', fontSize: '12px', cursor: 'pointer' }}>
@@ -346,6 +393,41 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                         </table>
                     </div>
                 )}
+
+                {/* ======= PAYMENTS TAB ======= */}
+                {tab === 'payments' && (
+                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                                    {['Date', 'Store / Tenant', 'Amount', 'Status', 'Method', 'Reference'].map(h => (
+                                        <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.4)', fontWeight: '600', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {payments.length === 0 ? (
+                                    <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)' }}>No payments found.</td></tr>
+                                ) : payments.map((pay, i) => (
+                                    <tr key={pay._id} style={{ borderBottom: i < payments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                        <td style={{ padding: '12px 16px', color: 'rgba(255,255,255,0.5)' }}>{new Date(pay.date).toLocaleDateString()}</td>
+                                        <td style={{ padding: '12px 16px', fontWeight: '600', color: '#a78bfa' }}>{pay.tenantId}</td>
+                                        <td style={{ padding: '12px 16px', color: '#10b981', fontWeight: '600' }}>SAR {fmt(pay.amount)}</td>
+                                        <td style={{ padding: '12px 16px' }}>
+                                            <span style={{ background: pay.status === 'Paid' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)', color: pay.status === 'Paid' ? '#34d399' : '#fbbf24', padding: '3px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                                                {pay.status}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '12px 16px', color: '#d1d5db' }}>{pay.method}</td>
+                                        <td style={{ padding: '12px 16px', color: '#d1d5db' }}>{pay.reference || '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {/* Delete Confirmation Modal */}
@@ -361,6 +443,31 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                             <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
                             <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '8px', padding: '10px', color: '#f87171', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
                                 <i className="ri-delete-bin-6-line" /> Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modules Modal */}
+            {showModulesModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '32px 36px', width: '400px' }}>
+                        <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '16px' }}>Modules for {selectedTenantForModules}</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                            {['pos', 'inventory', 'financials', 'hrm', 'ecommerce', 'b2b'].map(mod => (
+                                <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={selectedModules[mod] || false}
+                                        onChange={e => setSelectedModules({ ...selectedModules, [mod]: e.target.checked })}
+                                        style={{ width: '18px', height: '18px', accentColor: '#7c3aed' }} />
+                                    <span style={{ color: '#fff', textTransform: 'capitalize' }}>{mod}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setShowModulesModal(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
+                            <button onClick={handleSaveModules} style={{ flex: 1, background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', border: 'none', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
+                                Save Modules
                             </button>
                         </div>
                     </div>

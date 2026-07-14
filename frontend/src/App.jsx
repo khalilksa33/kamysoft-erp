@@ -8,6 +8,9 @@ import ModuleSwitcher from './views/moduleSwitcher/ModuleSwitcher';
 import Warehouses from './views/inventory/Warehouses';
 import InventoryTransactions from './views/inventory/InventoryTransactions';
 import JournalEntries from './views/financials/JournalEntries';
+import FinancialTransactions from './views/financials/FinancialTransactions';
+import ChartOfAccounts from './views/financials/ChartOfAccounts';
+import GeneralLedger from './views/financials/GeneralLedger';
 import Vouchers from './views/financials/Vouchers';
 import Salaries from './views/people/Salaries';
 import Purchases from './views/invoices/Purchases';
@@ -1601,12 +1604,18 @@ const handleB2BSubmit = () => {
 
     const handleSaveUser = (e) => {
         e.preventDefault();
+        
+        if (!userForm.id && usersList.length >= 3) {
+            alert(currentLanguage === 'ar' ? 'لقد وصلت للحد الأقصى لعدد المستخدمين (3 مستخدمين).' : 'You have reached the maximum limit of 3 users for this store.');
+            return;
+        }
+
         const method = userForm.id ? 'PUT' : 'POST';
         const url = userForm.id ? `/api/users/${userForm.id}` : '/api/users';
         fetch(url, {
             method: method,
             headers: headers,
-            body: JSON.stringify(userForm)
+            body: JSON.stringify({ ...userForm, isActive: userForm.isActive !== false })
         })
         .then(res => {
             if (!res.ok) throw new Error();
@@ -1961,7 +1970,10 @@ const handleB2BSubmit = () => {
 
                 {['warehouses', 'addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
                 {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
-                {['financials', 'financialTrans', 'dailyJournal', 'chartAccounts', 'generalLedger'].includes(activeTab) && <JournalEntries {...props} />}
+                {['financials', 'dailyJournal'].includes(activeTab) && <JournalEntries {...props} />}
+                {activeTab === 'financialTrans' && <FinancialTransactions {...props} />}
+                {activeTab === 'chartAccounts' && <ChartOfAccounts {...props} />}
+                {activeTab === 'generalLedger' && <GeneralLedger {...props} />}
                 {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
                 {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
                 {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
@@ -2331,6 +2343,11 @@ const handleB2BSubmit = () => {
                                                     <span className={`badge ${u.role === 'Admin' ? 'purple' : u.role === 'Manager' ? 'cyan' : 'gold'}`}>
                                                         {u.role === 'Admin' ? translations[currentLanguage].roleAdmin : u.role === 'Manager' ? translations[currentLanguage].roleManager : translations[currentLanguage].roleCashier}
                                                     </span>
+                                                    {u.isActive === false && (
+                                                        <span className="badge" style={{ background: '#f87171', color: '#fff', marginLeft: '8px' }}>
+                                                            {currentLanguage === 'ar' ? 'معطل' : 'Inactive'}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     {user && user.role === 'Admin' && (
@@ -2538,8 +2555,8 @@ const handleB2BSubmit = () => {
                     {activeTab === 'techSupport' && (
                         <div className="glass-card" style={{textAlign: 'center', padding: '50px'}}>
                             <h2>{currentLanguage === 'ar' ? 'الدعم الفني' : 'Technical Support'}</h2>
-                            <p style={{color: 'var(--text-secondary)', marginTop: '10px'}}>
-                                {currentLanguage === 'ar' ? 'للتواصل مع الدعم الفني، يرجى إرسال بريد إلكتروني إلى support@kamysoft.com' : 'To contact technical support, please email support@kamysoft.com'}
+                            <p>
+                                {currentLanguage === 'ar' ? 'للتواصل مع الدعم الفني، يرجى إرسال بريد إلكتروني إلى support@26i.uk' : 'To contact technical support, please email support@26i.uk'}
                             </p>
                         </div>
                     )}
@@ -2999,6 +3016,12 @@ const handleB2BSubmit = () => {
                                     <option value="Cashier">{translations[currentLanguage].roleCashier}</option>
                                 </select>
                             </div>
+                            {userForm.id && userForm.id !== user?.id && (
+                                <div className="form-group" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', marginTop: '10px' }}>
+                                    <input type="checkbox" id="userIsActive" checked={userForm.isActive !== false} onChange={e => setUserForm({ ...userForm, isActive: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                                    <label htmlFor="userIsActive" style={{ cursor: 'pointer', margin: 0 }}>{currentLanguage === 'ar' ? 'الحساب نشط (يمكنه تسجيل الدخول)' : 'Account is Active (can login)'}</label>
+                                </div>
+                            )}
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowUserModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">Save / حفظ</button>

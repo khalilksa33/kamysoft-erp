@@ -1,31 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const JournalEntries = ({ currentLanguage, translations, formatCurrency, activeTab }) => {
+const JournalEntries = ({ currentLanguage, translations, formatCurrency, headers, activeTab }) => {
     const [entries, setEntries] = useState([]);
+    const [accounts, setAccounts] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], account: '', type: 'Debit', amount: '', description: '' });
+
+    const loadData = () => {
+        setLoading(true);
+        Promise.all([
+            fetch('/api/journal', { headers }).then(res => res.json()),
+            fetch('/api/accounts', { headers }).then(res => res.json())
+        ])
+        .then(([journalData, accountsData]) => {
+            setEntries(Array.isArray(journalData) ? journalData : []);
+            setAccounts(Array.isArray(accountsData) ? accountsData : []);
+            if (accountsData.length > 0 && !form.account) {
+                setForm(f => ({ ...f, account: accountsData[0].code }));
+            }
+            setLoading(false);
+        })
+        .catch(err => {
+            console.error(err);
+            setLoading(false);
+        });
+    };
+
+    useEffect(() => {
+        if (activeTab === 'dailyJournal' || activeTab === 'financials') {
+            loadData();
+        }
+    }, [headers, activeTab]);
 
     const handleSave = (e) => {
         e.preventDefault();
-        const newEntry = {
-            id: `JE-${Date.now().toString().slice(-6)}`,
+        
+        const payload = {
             date: form.date,
             account: form.account,
-            type: form.type,
-            amount: parseFloat(form.amount) || 0,
-            description: form.description
+            description: form.description,
+            debit: form.type === 'Debit' ? parseFloat(form.amount) : 0,
+            credit: form.type === 'Credit' ? parseFloat(form.amount) : 0
         };
-        setEntries([...entries, newEntry]);
-        setShowModal(false);
-        setForm({ date: new Date().toISOString().split('T')[0], account: '', type: 'Debit', amount: '', description: '' });
+
+        fetch('/api/journal', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(() => {
+            setShowModal(false);
+            setForm({ date: new Date().toISOString().split('T')[0], account: accounts[0]?.code || '', type: 'Debit', amount: '', description: '' });
+            loadData();
+        })
+        .catch(err => alert('Error saving entry: ' + err.message));
     };
 
-    if (activeTab && activeTab !== 'dailyJournal') {
+    if (activeTab && activeTab !== 'dailyJournal' && activeTab !== 'financials') {
         const placeholderTitles = {
-            financialTrans: currentLanguage === 'ar' ? 'حركات المالية' : 'Financial Transactions',
-            chartAccounts: currentLanguage === 'ar' ? 'شجرة الحسابات' : 'Chart of Accounts',
-            generalLedger: currentLanguage === 'ar' ? 'دفتر الاستاذ' : 'General Ledger',
-            financials: currentLanguage === 'ar' ? 'المالية' : 'Financials'
+            generalLedger: currentLanguage === 'ar' ? 'دفتر الاستاذ' : 'General Ledger'
         };
         if (placeholderTitles[activeTab]) {
             return (
@@ -46,36 +81,48 @@ const JournalEntries = ({ currentLanguage, translations, formatCurrency, activeT
                 </button>
             </div>
             
-            <div className="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>{currentLanguage === 'ar' ? 'رقم القيد' : 'Entry #'}</th>
-                            <th>{currentLanguage === 'ar' ? 'التاريخ' : 'Date'}</th>
-                            <th>{currentLanguage === 'ar' ? 'الحساب' : 'Account'}</th>
-                            <th>{currentLanguage === 'ar' ? 'النوع' : 'Type'}</th>
-                            <th>{currentLanguage === 'ar' ? 'المبلغ' : 'Amount'}</th>
-                            <th>{currentLanguage === 'ar' ? 'البيان' : 'Description'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {entries.length === 0 ? (
-                            <tr><td colSpan="6" style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'لا توجد قيود' : 'No entries found'}</td></tr>
-                        ) : (
-                            entries.map(e => (
-                                <tr key={e.id}>
-                                    <td>{e.id}</td>
-                                    <td>{e.date}</td>
-                                    <td>{e.account}</td>
-                                    <td><span className={`badge ${e.type === 'Debit' ? 'blue' : 'gold'}`}>{currentLanguage === 'ar' && e.type === 'Debit' ? 'مدين' : currentLanguage === 'ar' ? 'دائن' : e.type}</span></td>
-                                    <td style={{ fontWeight: 'bold' }}>{formatCurrency(e.amount)}</td>
-                                    <td>{e.description}</td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>
+            ) : (
+                <div className="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{currentLanguage === 'ar' ? 'رقم القيد' : 'Entry #'}</th>
+                                <th>{currentLanguage === 'ar' ? 'التاريخ' : 'Date'}</th>
+                                <th>{currentLanguage === 'ar' ? 'الحساب' : 'Account'}</th>
+                                <th>{currentLanguage === 'ar' ? 'مدين' : 'Debit'}</th>
+                                <th>{currentLanguage === 'ar' ? 'دائن' : 'Credit'}</th>
+                                <th>{currentLanguage === 'ar' ? 'البيان' : 'Description'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {entries.length === 0 ? (
+                                <tr><td colSpan="6" style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'لا توجد قيود' : 'No entries found'}</td></tr>
+                            ) : (
+                                entries.map(e => {
+                                    const acc = accounts.find(a => a.code === e.account);
+                                    const accName = acc ? (currentLanguage === 'ar' ? acc.nameAR : acc.nameEN) : e.account;
+                                    return (
+                                        <tr key={e.entryId}>
+                                            <td>{e.entryId}</td>
+                                            <td>{new Date(e.date).toLocaleDateString()}</td>
+                                            <td>{e.account} - {accName}</td>
+                                            <td style={{ fontWeight: e.debit > 0 ? 'bold' : 'normal', color: e.debit > 0 ? '#3b82f6' : 'inherit' }}>
+                                                {e.debit > 0 ? formatCurrency(e.debit) : '-'}
+                                            </td>
+                                            <td style={{ fontWeight: e.credit > 0 ? 'bold' : 'normal', color: e.credit > 0 ? '#eab308' : 'inherit' }}>
+                                                {e.credit > 0 ? formatCurrency(e.credit) : '-'}
+                                            </td>
+                                            <td>{e.description}</td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {showModal && (
                 <div className="modal-overlay">
@@ -88,7 +135,13 @@ const JournalEntries = ({ currentLanguage, translations, formatCurrency, activeT
                             </div>
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'الحساب' : 'Account'}</label>
-                                <input type="text" className="form-control" required value={form.account} onChange={e => setForm({ ...form, account: e.target.value })} />
+                                <select className="form-control" required value={form.account} onChange={e => setForm({ ...form, account: e.target.value })}>
+                                    {accounts.map(a => (
+                                        <option key={a.code} value={a.code}>
+                                            {a.code} - {currentLanguage === 'ar' ? a.nameAR : a.nameEN} ({a.type})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'النوع' : 'Type'}</label>

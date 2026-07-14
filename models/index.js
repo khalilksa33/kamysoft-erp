@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -6,7 +5,8 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true },
     passwordHash: { type: String, required: true },
     role: { type: String, required: true },
-    tenantId: { type: String, default: 'default', index: true }
+    tenantId: { type: String, default: 'default', index: true },
+    isActive: { type: Boolean, default: true }
 });
 userSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 userSchema.index({ username: 1, tenantId: 1 }, { unique: true });
@@ -206,6 +206,16 @@ const inquirySchema = new mongoose.Schema({
 });
 const Inquiry = mongoose.model('Inquiry', inquirySchema);
 
+const subscriptionPaymentSchema = new mongoose.Schema({
+    tenantId: { type: String, required: true, index: true },
+    amount: { type: Number, required: true },
+    date: { type: Date, default: Date.now },
+    status: { type: String, enum: ['Paid', 'Pending', 'Failed'], default: 'Paid' },
+    method: { type: String, default: 'Bank Transfer' },
+    reference: { type: String }
+});
+const SubscriptionPayment = mongoose.model('SubscriptionPayment', subscriptionPaymentSchema);
+
 // --- NEW SCHEMAS FOR MODERNIZATION ---
 
 const warehouseSchema = new mongoose.Schema({
@@ -239,6 +249,18 @@ const journalEntrySchema = new mongoose.Schema({
     tenantId: { type: String, default: 'default', index: true }
 });
 const JournalEntry = mongoose.model('JournalEntry', journalEntrySchema);
+
+const accountSchema = new mongoose.Schema({
+    code: { type: String, required: true },
+    nameEN: { type: String, required: true },
+    nameAR: { type: String, required: true },
+    type: { type: String, enum: ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'], required: true },
+    balance: { type: Number, default: 0 },
+    tenantId: { type: String, default: 'default', index: true }
+});
+accountSchema.index({ code: 1, tenantId: 1 }, { unique: true });
+const Account = mongoose.model('Account', accountSchema);
+
 
 const voucherSchema = new mongoose.Schema({
     voucherId: { type: String, required: true },
@@ -303,5 +325,13 @@ const ReturnInvoice = mongoose.model('ReturnInvoice', returnInvoiceSchema);
 
 module.exports = {
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
-    Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice
+    Warehouse,
+    InventoryTx,
+    JournalEntry,
+    Voucher,
+    Salary,
+    PurchaseInvoice,
+    ReturnInvoice,
+    SubscriptionPayment,
+    Account
 };

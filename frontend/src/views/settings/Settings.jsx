@@ -284,6 +284,36 @@ const Settings = (props) => {
                         </form>
                     </div>
 
+                    {/* DANGER ZONE - CLOSE ACCOUNT */}
+                    <div className="glass-card" style={{ border: '1px solid rgba(239,68,68,0.3)' }}>
+                        <h3 style={{ marginBottom: '20px', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ri-error-warning-line"></i> {currentLanguage === 'ar' ? 'منطقة الخطر - إغلاق الحساب' : 'Danger Zone - Close Account'}
+                        </h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '13px' }}>
+                            {currentLanguage === 'ar' ? 'تنبيه: إغلاق الحساب سيؤدي إلى حذف متجرك وبياناتك بشكل دائم ولا يمكن التراجع عن هذا الإجراء.' : 'Warning: Closing your account will permanently delete your store, products, invoices, and all associated data. This action cannot be undone.'}
+                        </p>
+                        <button className="btn btn-danger" onClick={() => {
+                            if (window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد تماماً من إغلاق حسابك وحذف جميع بياناتك؟' : 'Are you absolutely sure you want to close your account and delete all data?')) {
+                                fetch('/api/tenant/close', {
+                                    method: 'DELETE',
+                                    headers: props.headers
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.error) alert(data.error);
+                                    else {
+                                        alert(currentLanguage === 'ar' ? 'تم إغلاق الحساب بنجاح. سيتم تسجيل خروجك.' : 'Account closed successfully. You will be logged out.');
+                                        window.location.href = '/';
+                                    }
+                                })
+                                .catch(() => alert('Error closing account.'));
+                            }
+                        }}>
+                            <i className="ri-delete-bin-6-line" style={{ marginRight: '8px' }}></i>
+                            {currentLanguage === 'ar' ? 'إغلاق الحساب نهائياً' : 'Permanently Close Account'}
+                        </button>
+                    </div>
+
                     </div>
     );
 };

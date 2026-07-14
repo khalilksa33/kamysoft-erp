@@ -6,7 +6,15 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account } = require('../models');
+
+// Mock in-memory DB fallback for serverless environments (if MongoDB is disconnected)
+const mockDb = {
+    users: [], products: [], invoices: [], quotations: [], expenses: [], assets: [],
+    customers: [], employees: [], suppliers: [], orders: [], settings: [],
+    warehouses: [], inventoryTxs: [], journalEntries: [], vouchers: [],
+    salaries: [], purchaseInvoices: [], returnInvoices: [], accounts: []
+};
 
 // Middleware from server.js for auth
 const authenticateToken = (req, res, next) => {
@@ -34,8 +42,11 @@ router.post('/api/auth/login', async (req, res) => {
         if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
             return res.status(401).json({ error: 'Invalid username or password' });
         }
+        if (user.isActive === false) {
+            return res.status(403).json({ error: 'Your account has been deactivated. Please contact support.' });
+        }
         const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, JWT_SECRET, { expiresIn: '12h' });
-        res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+        res.json({ token, user: { id: user.id, username: user.username, role: user.role, isActive: user.isActive } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -608,6 +619,161 @@ router.get('/api/expenses', async (req, res) => {
     }
 });
 
+// FINANCIAL TRANSACTIONS (COMBINED INVOICES & EXPENSES)
+router.get('/api/transactions', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        let invoices = [];
+        let expenses = [];
+        
+        if (mongoose.connection.readyState === 1) {
+            invoices = await Invoice.find({ tenantId });
+            expenses = await Expense.find({ tenantId });
+        } else {
+            invoices = mockDb.invoices.filter(i => i.tenantId === tenantId);
+            expenses = mockDb.expenses.filter(e => e.tenantId === tenantId);
+        }
+        
+        const transactions = [
+            ...invoices.map(inv => ({
+                id: inv.id,
+                date: inv.date,
+                type: 'Sale',
+                ref: inv.id,
+                description: `Customer: ${inv.customer}`,
+                income: inv.total,
+                expense: 0
+            })),
+            ...expenses.map(exp => ({
+                id: exp.id,
+                date: exp.date,
+                type: 'Expense',
+                ref: exp.id,
+                description: `Category: ${exp.category} - ${exp.description || ''}`,
+                income: 0,
+                expense: exp.amount
+            }))
+        ];
+        
+        // Sort chronologically
+        transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Calculate running balance
+        let balance = 0;
+        transactions.forEach(t => {
+            balance += t.income - t.expense;
+            t.balance = balance;
+        });
+        
+        res.json(transactions);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// CHART OF ACCOUNTS
+router.get('/api/accounts', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const accounts = await Account.find({ tenantId });
+            res.json(accounts);
+        } else {
+            const accounts = mockDb.accounts.filter(a => a.tenantId === tenantId);
+            res.json(accounts);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/accounts', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const account = new Account({ ...req.body, tenantId });
+            await account.save();
+            res.json(account);
+        } else {
+            const account = { ...req.body, tenantId };
+            mockDb.accounts.push(account);
+            res.json(account);
+        }
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+router.put('/api/accounts/:code', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const account = await Account.findOneAndUpdate({ code: req.params.code, tenantId }, req.body, { new: true });
+            if (!account) return res.status(404).json({ error: 'Account not found' });
+            res.json(account);
+        } else {
+            const idx = mockDb.accounts.findIndex(a => a.code === req.params.code && a.tenantId === tenantId);
+            if (idx === -1) return res.status(404).json({ error: 'Account not found' });
+            mockDb.accounts[idx] = { ...mockDb.accounts[idx], ...req.body, tenantId };
+            res.json(mockDb.accounts[idx]);
+        }
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+router.delete('/api/accounts/:code', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const result = await Account.findOneAndDelete({ code: req.params.code, tenantId });
+            if (!result) return res.status(404).json({ error: 'Account not found' });
+            res.json({ message: 'Deleted' });
+        } else {
+            const originalLength = mockDb.accounts.length;
+            mockDb.accounts = mockDb.accounts.filter(a => !(a.code === req.params.code && a.tenantId === tenantId));
+            if (mockDb.accounts.length === originalLength) return res.status(404).json({ error: 'Account not found' });
+            res.json({ message: 'Deleted' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// JOURNAL ENTRIES
+router.get('/api/journal', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const entries = await JournalEntry.find({ tenantId }).sort({ date: -1 });
+            res.json(entries);
+        } else {
+            const entries = mockDb.journalEntries.filter(e => e.tenantId === tenantId).sort((a, b) => new Date(b.date) - new Date(a.date));
+            res.json(entries);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/journal', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        const entryId = `JE-${Date.now().toString().slice(-6)}`;
+        if (mongoose.connection.readyState === 1) {
+            const entry = new JournalEntry({ ...req.body, entryId, tenantId });
+            await entry.save();
+            res.json(entry);
+        } else {
+            const entry = { ...req.body, entryId, tenantId };
+            mockDb.journalEntries.push(entry);
+            res.json(entry);
+        }
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 router.post('/api/expenses', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
@@ -1079,6 +1245,9 @@ router.delete('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) =
         } else {
             if (mockDb.settingsTenant) delete mockDb.settingsTenant[tenantId];
         }
+        if (global.removeCloudflareTunnelConfig) {
+            await global.removeCloudflareTunnelConfig(tenantId);
+        }
         res.json({ success: true, message: `Store ${tenantId} deleted.` });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1133,4 +1302,92 @@ router.get('/api/saas/stats', requireSaasAdmin, async (req, res) => {
 });
 
 // ----------------------------------------------------
+router.get('/api/saas/stores/:tenantId/modules', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        const storeSettings = await Settings.findOne({ tenantId });
+        if (!storeSettings) return res.status(404).json({ error: 'Store not found' });
+        res.json(storeSettings.enabledModules || {});
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.patch('/api/saas/stores/:tenantId/modules', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        const { modules } = req.body; // e.g., { pos: true, inventory: false }
+        if (global.isMongoConnected) {
+            await Settings.updateOne({ tenantId }, { $set: { enabledModules: modules } });
+        } else {
+            if (mockDb.settingsTenant[tenantId]) mockDb.settingsTenant[tenantId].enabledModules = modules;
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/saas/payments', requireSaasAdmin, async (req, res) => {
+    try {
+        if (global.isMongoConnected) {
+            const payments = await SubscriptionPayment.find().sort({ date: -1 });
+            res.json(payments);
+        } else {
+            res.json([]); // Mock db payments not fully implemented
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/saas/payments', requireSaasAdmin, async (req, res) => {
+    try {
+        if (global.isMongoConnected) {
+            const payment = new SubscriptionPayment(req.body);
+            await payment.save();
+            res.json(payment);
+        } else {
+            res.json({ ...req.body, _id: Date.now().toString() });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/api/tenant/close', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Only Admins can close the account.' });
+        }
+        const tenantId = req.user.tenantId;
+        if (tenantId === 'default' || tenantId === 'demo.kamysoft.com') {
+            return res.status(400).json({ error: 'Cannot delete the demo store.' });
+        }
+        if (global.isMongoConnected) {
+            await Promise.all([
+                Settings.deleteOne({ tenantId }),
+                User.deleteMany({ tenantId }),
+                Product.deleteMany({ tenantId }),
+                Invoice.deleteMany({ tenantId }),
+                Quotation.deleteMany({ tenantId }),
+                Expense.deleteMany({ tenantId }),
+                Asset.deleteMany({ tenantId }),
+                Customer.deleteMany({ tenantId }),
+                Employee.deleteMany({ tenantId }),
+                Supplier.deleteMany({ tenantId }),
+                Order.deleteMany({ tenantId })
+            ]);
+        } else {
+            if (mockDb.settingsTenant) delete mockDb.settingsTenant[tenantId];
+        }
+        if (global.removeCloudflareTunnelConfig) {
+            await global.removeCloudflareTunnelConfig(tenantId);
+        }
+        res.json({ success: true, message: `Account closed successfully.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

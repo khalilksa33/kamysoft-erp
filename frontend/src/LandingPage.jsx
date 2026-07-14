@@ -430,7 +430,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 borderRadius: '8px'
             }}>
                 <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <i className="ri-store-2-line"></i>
+                    <img src="/logo.png" alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
                     <span>{t.brandName}</span>
                 </div>
                 
