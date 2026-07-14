@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const JournalEntries = ({ currentLanguage, translations, formatCurrency }) => {
+const JournalEntries = ({ currentLanguage, translations, formatCurrency, activeTab }) => {
     const [entries, setEntries] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], account: '', type: 'Debit', amount: '', description: '' });
@@ -19,6 +19,23 @@ const JournalEntries = ({ currentLanguage, translations, formatCurrency }) => {
         setShowModal(false);
         setForm({ date: new Date().toISOString().split('T')[0], account: '', type: 'Debit', amount: '', description: '' });
     };
+
+    if (activeTab && activeTab !== 'dailyJournal') {
+        const placeholderTitles = {
+            financialTrans: currentLanguage === 'ar' ? 'حركات المالية' : 'Financial Transactions',
+            chartAccounts: currentLanguage === 'ar' ? 'شجرة الحسابات' : 'Chart of Accounts',
+            generalLedger: currentLanguage === 'ar' ? 'دفتر الاستاذ' : 'General Ledger',
+            financials: currentLanguage === 'ar' ? 'المالية' : 'Financials'
+        };
+        if (placeholderTitles[activeTab]) {
+            return (
+                <div className="glass-card" style={{ textAlign: 'center', padding: '50px' }}>
+                    <h3>{placeholderTitles[activeTab]}</h3>
+                    <p>{currentLanguage === 'ar' ? 'قيد التطوير' : 'Under development'}</p>
+                </div>
+            );
+        }
+    }
 
     return (
         <div className="glass-card">

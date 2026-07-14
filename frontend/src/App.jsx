@@ -1932,7 +1932,7 @@ const handleB2BSubmit = () => {
                 {/* TAB: DASHBOARD */}
                 {['dashboard'].includes(activeTab) && <Dashboard {...props} />}
 
-                {['inventory', 'addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
+                {['warehouses', 'addWarehouse', 'stocktaking'].includes(activeTab) && <Warehouses {...props} />}
                 {['transferQty'].includes(activeTab) && <InventoryTransactions {...props} />}
                 {['financials', 'financialTrans', 'dailyJournal', 'chartAccounts', 'generalLedger'].includes(activeTab) && <JournalEntries {...props} />}
                 {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
@@ -1942,7 +1942,6 @@ const handleB2BSubmit = () => {
                 {['invoices', 'unpaidInvoices'].includes(activeTab) && <Invoices {...props} />}
 
                 {/* TAB: POS CASHIER & B2B SALE */}
-                {activeTab === 'moduleSwitch' && <ModuleSwitcher {...props} />}
                 {activeTab === 'pos' && <POS {...props} />}
 
                 {/* TAB: B2B SALES PANEL */}
@@ -2079,7 +2078,7 @@ const handleB2BSubmit = () => {
                 )}
 
                 {/* TAB: INVENTORY */}
-                {['warehouses', 'inventory', 'units', 'categories', 'items', 'itemsReorder'].includes(activeTab) && <Inventory {...props} />}
+                {['inventory', 'units', 'categories', 'items', 'itemsReorder'].includes(activeTab) && <Inventory {...props} />}
 
                 {/* TAB: MAINTENANCE */}
                 {['maintenance'].includes(activeTab) && <Maintenance {...props} />}
@@ -2678,6 +2677,28 @@ const handleB2BSubmit = () => {
                                                     >
                                                         <i className="ri-share-line"></i> {currentLanguage === 'ar' ? 'مشاركة الفاتورة' : 'Share Invoice'}
                                                     </button>
+                                                    {invoiceSource === 'sales' && (
+                                                        <button 
+                                                            className="btn btn-secondary no-print" 
+                                                            onClick={() => setShowEmailModal(true)} 
+                                                            style={{ 
+                                                                marginTop: '6px', 
+                                                                width: '100%', 
+                                                                fontSize: '11px', 
+                                                                padding: '6px 10px', 
+                                                                background: '#f59e0b', 
+                                                                color: 'white', 
+                                                                border: 'none', 
+                                                                borderRadius: '5px', 
+                                                                cursor: 'pointer', 
+                                                                display: 'flex', 
+                                                                alignItems: 'center', 
+                                                                justifyContent: 'center', 
+                                                                gap: '6px' 
+                                                            }}>
+                                                            <i className="ri-mail-send-line"></i> {currentLanguage === 'ar' ? 'إرسال بالبريد' : 'Email Invoice'}
+                                                        </button>
+                                                    )}
                                                 </div>
 
                                                 {/* Financial Totals Table */}
@@ -2808,10 +2829,7 @@ const handleB2BSubmit = () => {
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                             <button className="btn btn-secondary" onClick={() => setShowInvoiceModal(false)}>{translations[currentLanguage].close}</button>
                             
-                        <button className="btn btn-secondary" onClick={() => setShowEmailModal(true)} style={{ background: '#f59e0b', color: '#fff', borderColor: '#f59e0b' }}>
-                            <i className="ri-mail-send-line"></i> {currentLanguage === 'ar' ? 'إرسال بالبريد' : 'Email Invoice'}
-                        </button>
-<button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
                         </div>
                         {showEmailModal && (
                             <div style={{ marginTop: '20px', padding: '15px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
@@ -2995,8 +3013,8 @@ const handleB2BSubmit = () => {
                             </div>
 
                             {/* Print Layout Area */}
-                            <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'} style={{ direction: 'ltr', background: 'white', color: 'black' }}>
-                                {invoiceFormat === 'a4' ? (
+                            <div id="quotationPrintArea" className="invoice-a4-layout" style={{ direction: 'ltr', background: 'white', color: 'black' }}>
+                                {true ? (
                                     <div style={{ padding: '16px 24px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
                                         {/* Standard A4 Header Grid: L: English Details, C: Logo, R: Arabic Details */}
                                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 100px 1.2fr', gap: '10px', alignItems: 'start', borderBottom: '2px solid #8b5cf6', paddingBottom: '8px', pageBreakInside: 'avoid' }}>
