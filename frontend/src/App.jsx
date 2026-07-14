@@ -946,6 +946,33 @@ export default function App() {
         return `${converted.toFixed(2)} ${symbol}`;
     };
 
+    const generateZatcaQR = (sellerName, vatNumber, dateString, totalWithVat, vatTotal) => {
+        try {
+            const encoder = new TextEncoder();
+            const getTagBytes = (tag, value) => {
+                const valBytes = encoder.encode(String(value));
+                return [tag, valBytes.length, ...valBytes];
+            };
+            const timestamp = dateString.includes('T') ? dateString : `${dateString}T00:00:00Z`;
+            const tags = [
+                getTagBytes(1, sellerName || 'Unknown'),
+                getTagBytes(2, vatNumber || '000000000000000'),
+                getTagBytes(3, timestamp),
+                getTagBytes(4, parseFloat(totalWithVat).toFixed(2)),
+                getTagBytes(5, parseFloat(vatTotal).toFixed(2))
+            ];
+            const flattened = tags.reduce((acc, val) => acc.concat(val), []);
+            const uint8Array = new Uint8Array(flattened);
+            let binary = '';
+            for (let i = 0; i < uint8Array.byteLength; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            return btoa(binary);
+        } catch(e) {
+            return '';
+        }
+    };
+
     // ----------------------------------------------------
     // POS CART & CHECKOUT MECHANICS
     // ----------------------------------------------------
@@ -2551,7 +2578,7 @@ const handleB2BSubmit = () => {
                                                 {/* Center Side: Logo */}
                                                 <div style={{ textAlign: 'center' }}>
                                                     {settings.logo ? (
-                                                        <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '50px', maxWidth: '90px', objectFit: 'contain' }} />
+                                                        <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                                     ) : (
                                                         <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#94a3b8' }}>LOGO</div>
                                                     )}
@@ -2628,7 +2655,7 @@ const handleB2BSubmit = () => {
                                                 {/* Left Side: ZATCA Compliant QR Code and Share Button */}
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', width: '160px', textAlign: 'center', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', width: '100px', height: '100px' }}>
-                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '100px', height: '100px', display: 'block' }} />
+                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(generateZatcaQR(settings.businessName, settings.vatNumber, activeInvoice.date, activeInvoice.total, activeVat))}`} alt="ZATCA QR" style={{ width: '100px', height: '100px', display: 'block' }} />
                                                     </div>
                                                     <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#333' }}>فاتورة ضريبية مبسطة رقمية</span>
                                                     <span style={{ fontSize: '8px', color: '#666' }}>ZATCA Compliant E-Invoice QR Code</span>
@@ -2736,7 +2763,7 @@ const handleB2BSubmit = () => {
                                         <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
                                             {settings.logo && (
                                                 <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '48px', maxWidth: '90px', objectFit: 'contain' }} />
+                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
                                                 </div>
                                             )}
                                             <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
@@ -2806,7 +2833,7 @@ const handleB2BSubmit = () => {
                                             
                                             {/* QR Code (Centered) */}
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px', textAlign: 'center' }}>
-                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Seller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeInvoice.date}\nTotal: ${activeInvoice.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="ZATCA QR" style={{ width: '110px', height: '110px' }} />
+                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(generateZatcaQR(settings.businessName, settings.vatNumber, activeInvoice.date, activeInvoice.total, activeVat))}`} alt="ZATCA QR" style={{ width: '110px', height: '110px' }} />
                                                 <span style={{ fontSize: '10px', fontWeight: 'bold' }}>فاتورة ضريبية مبسطة رقمية</span>
                                                 <span style={{ fontSize: '9px', color: '#666' }}>ZATCA Compliant QR Code</span>
                                             </div>
@@ -3030,7 +3057,7 @@ const handleB2BSubmit = () => {
                                             {/* Center Side: Logo */}
                                             <div style={{ textAlign: 'center' }}>
                                                 {settings.logo ? (
-                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '50px', maxWidth: '90px', objectFit: 'contain' }} />
+                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                                 ) : (
                                                     <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#94a3b8' }}>LOGO</div>
                                                 )}
@@ -3106,7 +3133,7 @@ const handleB2BSubmit = () => {
                                             {/* Left Side: Quotation QR Code and Share Button */}
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', width: '160px', textAlign: 'center', flexShrink: 0 }}>
                                                 <div style={{ position: 'relative', width: '100px', height: '100px' }}>
-                                                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '100px', height: '100px', display: 'block' }} />
+                                                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(generateZatcaQR(settings.businessName, settings.vatNumber, activeQuotation.date, activeQuotation.total, activeVat))}`} alt="Quotation QR" style={{ width: '100px', height: '100px', display: 'block' }} />
                                                 </div>
                                                 <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#333' }}>عرض سعر رقمي مبسط</span>
                                                 <span style={{ fontSize: '8px', color: '#666' }}>Digital Quotation QR Code</span>
@@ -3186,7 +3213,7 @@ const handleB2BSubmit = () => {
                                     <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
                                         {settings.logo && (
                                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '48px', maxWidth: '90px', objectFit: 'contain' }} />
+                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
                                             </div>
                                         )}
                                         <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
@@ -3250,7 +3277,7 @@ const handleB2BSubmit = () => {
                                         {/* QR Code (Centered with logo overlay) */}
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', gap: '4px', textAlign: 'center' }}>
                                             <div style={{ position: 'relative', width: '110px', height: '110px' }}>
-                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(`Quotation: ${activeQuotation.id}\nSeller: ${settings.businessName}\nVAT: ${settings.vatNumber}\nDate: ${activeQuotation.date}\nTotal: ${activeQuotation.total.toFixed(2)}\nVAT: ${activeVat.toFixed(2)}`)}`} alt="Quotation QR" style={{ width: '110px', height: '110px', display: 'block' }} />
+                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(generateZatcaQR(settings.businessName, settings.vatNumber, activeQuotation.date, activeQuotation.total, activeVat))}`} alt="Quotation QR" style={{ width: '110px', height: '110px', display: 'block' }} />
 
                                             </div>
                                             <span style={{ fontSize: '10px', fontWeight: 'bold' }}>عرض سعر مبسط</span>
