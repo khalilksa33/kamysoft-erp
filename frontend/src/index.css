@@ -124,10 +124,10 @@ body[dir="rtl"] .sidebar {
 }
 
 body[dir="rtl"] .main-content {
-    padding: 32px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 16px;
     grid-column: 2;
     grid-row: 1;
 }
@@ -191,10 +191,10 @@ body[dir="rtl"] .main-content {
 
 /* Main Content Styling */
 .main-content {
-    padding: 32px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 16px;
     overflow-y: auto;
     max-height: 100vh;
     grid-column: 1;
@@ -277,14 +277,14 @@ body[dir="rtl"] .main-content {
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 24px;
+    gap: 16px;
 }
 
 .glass-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    padding: 24px;
+    padding: 16px;
     backdrop-filter: blur(16px);
     transition: border-color 0.15s ease;
     position: relative;

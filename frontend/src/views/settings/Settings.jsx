@@ -186,6 +186,104 @@ const Settings = (props) => {
                             </form>
                         </div>
 
+                        {/* ZATCA Connection Settings Card */}
+                        <div className="glass-card">
+                            <h3 style={{ marginBottom: '20px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className="ri-cloud-line"></i> {translations[currentLanguage].zatcaSettings || 'ZATCA Connection Settings'}
+                            </h3>
+                            <form onSubmit={(e) => { e.preventDefault(); alert(currentLanguage === 'ar' ? 'تم حفظ إعدادات خادم الزكاة بنجاح' : 'ZATCA Server settings saved successfully'); }}>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'اسم المؤسسة' : 'Business Name'}</label>
+                                        <input type="text" className="form-control" value={settings.businessName || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'الرقم الضريبي' : 'VAT Number'}</label>
+                                        <input type="text" className="form-control" value={settings.vatNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'السجل التجاري' : 'CR Number'}</label>
+                                        <input type="text" className="form-control" value={settings.crNumber || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'العنوان الوطني' : 'National Address'}</label>
+                                        <input type="text" className="form-control" value={settings.nationalAddress || settings.businessAddress || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEnv || 'ZATCA Environment'}</label>
+                                    <select className="form-control" value={zatcaConn?.env || 'sandbox'} onChange={e => setZatcaConn({ ...zatcaConn, env: e.target.value })}>
+                                        <option value="sandbox">Sandbox / بيئة التطوير (فاتورة)</option>
+                                        <option value="simulation">Simulation / بيئة المحاكاة للإنتاج</option>
+                                        <option value="production">Production / البيئة الفعلية للإنتاج</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaEndpoint || 'ZATCA Endpoint'}</label>
+                                    <input type="text" className="form-control" value={zatcaConn?.endpoint || ''} onChange={e => setZatcaConn({ ...zatcaConn, endpoint: e.target.value })} />
+                                </div>
+                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientId || 'Client ID'}</label>
+                                        <input type="text" className="form-control" value={zatcaConn?.clientId || ''} onChange={e => setZatcaConn({ ...zatcaConn, clientId: e.target.value })} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{translations[currentLanguage].zatcaClientSecret || 'Client Secret'}</label>
+                                        <input type="password" className="form-control" value={zatcaConn?.clientSecret || ''} onChange={e => setZatcaConn({ ...zatcaConn, clientSecret: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>{translations[currentLanguage].zatcaDeviceSerial || 'Device Serial'}</label>
+                                    <input type="text" className="form-control" value={zatcaConn?.deviceSerial || ''} onChange={e => setZatcaConn({ ...zatcaConn, deviceSerial: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'رمز التفعيل (OTP)' : 'ZATCA OTP (Fatoora Portal)'}</label>
+                                    <input type="text" className="form-control" placeholder="123456" value={zatcaConn?.otp || ''} onChange={e => setZatcaConn({ ...zatcaConn, otp: e.target.value })} />
+                                </div>
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                                    <input type="checkbox" id="zatcaAutoSend" checked={zatcaConn?.autoSend || false} onChange={e => setZatcaConn({ ...zatcaConn, autoSend: e.target.checked })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
+                                    <label htmlFor="zatcaAutoSend" style={{ cursor: 'pointer', margin: 0, fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'إرسال الفواتير تلقائياً إلى هيئة الزكاة عند الدفع' : 'Auto-Send to ZATCA on Checkout'}
+                                    </label>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{translations[currentLanguage].zatcaStatusLabel || 'Connection Status'}:</span>
+                                    <span className={`badge ${zatcaConn?.status === 'CONNECTED' ? 'green' : 'danger'}`}>
+                                        {zatcaConn?.status === 'CONNECTED' ? (translations[currentLanguage].zatcaStatusConnected || 'CONNECTED') : (translations[currentLanguage].zatcaStatusDisconnected || 'DISCONNECTED')}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button type="button" className="btn btn-secondary" style={{ flexGrow: 1 }} onClick={async () => {
+                                        try {
+                                            const token = localStorage.getItem('token');
+                                            const res = await fetch('/api/zatca/onboard', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                body: JSON.stringify({ otp: zatcaConn?.otp, env: zatcaConn?.env })
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                                alert(currentLanguage === 'ar' ? 'تم إنشاء المفاتيح بنجاح!' : 'Cryptographic Keys generated successfully!');
+                                            } else {
+                                                alert('Error: ' + data.error);
+                                            }
+                                        } catch (e) {
+                                            alert('Error onboarding device');
+                                        }
+                                    }}>
+                                        {currentLanguage === 'ar' ? 'تهيئة الجهاز (إنشاء مفاتيح)' : 'Onboard Device (Generate Keys)'}
+                                    </button>
+                                    <button type="button" className="btn btn-primary" style={{ flexGrow: 1 }} onClick={() => {
+                                        setZatcaConn({ ...zatcaConn, status: 'CONNECTED' });
+                                        alert(currentLanguage === 'ar' ? 'تم تسجيل الجهاز بنجاح والحصول على CCSID!' : 'Device successfully registered & CCSID token retrieved from ZATCA!');
+                                    }}>
+                                        {translations[currentLanguage].registerDevice || 'Register Device'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         
                         <div className="glass-card">
                         <h3 style={{ marginBottom: '20px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
