@@ -2040,7 +2040,7 @@ const handleB2BSubmit = () => {
                             </div>
                         </div>
 
-                        <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                        <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'visible', maxHeight: 'none' }}>
                             <table>
                                 <thead>
                                     <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
@@ -2087,8 +2087,8 @@ const handleB2BSubmit = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                            <div style={{ flex: '1 1 50%' }}>
+                        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                            <div style={{ flex: '1 1 300px' }}>
                                 <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'ملاحظات إضافية' : 'Additional Notes / Terms'}</label>
                                 <textarea className="form-control" rows="4" value={b2bForm.notes} onChange={(e) => setB2bForm({ ...b2bForm, notes: e.target.value })} placeholder={currentLanguage === 'ar' ? 'اكتب شروط الدفع أو أي تفاصيل أخرى هنا...' : 'Enter payment terms or additional info...'}></textarea>
                             </div>
