@@ -265,8 +265,7 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                 </div>
                 
                 <div className="modern-brand">
-                    <img src="/logo.png" alt="26i ERP" style={{ height: '32px', width: 'auto', marginRight: '8px' }} />
-                    <span className="brand-text">26i ERP</span>
+                    <img src="/logo.png" alt="26i ERP" style={{ height: '32px', width: 'auto', marginRight: '8px', mixBlendMode: 'screen', filter: 'brightness(0) invert(1)' }} />
                 </div>
                 
                 <div className="modern-nav-container">

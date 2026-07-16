@@ -406,9 +406,9 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {payments.length === 0 ? (
+                                {Array.isArray(payments) && payments.length === 0 ? (
                                     <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)' }}>No payments found.</td></tr>
-                                ) : payments.map((pay, i) => (
+                                ) : Array.isArray(payments) ? payments.map((pay, i) => (
                                     <tr key={pay._id} style={{ borderBottom: i < payments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
                                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
                                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>

@@ -8,14 +8,15 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment } = require('../models');
 
 // Mock in-memory DB fallback for serverless environments (if MongoDB is disconnected)
 const mockDb = {
     users: [], products: [], invoices: [], quotations: [], expenses: [], assets: [],
     customers: [], employees: [], suppliers: [], orders: [], settings: [],
     warehouses: [], inventoryTxs: [], journalEntries: [], vouchers: [],
-    salaries: [], purchaseInvoices: [], returnInvoices: [], accounts: []
+    salaries: [], purchaseInvoices: [], returnInvoices: [], accounts: [],
+    subscriptionPayments: []
 };
 
 // Middleware from server.js for auth
@@ -23,7 +24,7 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (token == null) return res.sendStatus(401);
-    jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', (err, user) => {
         if (err) return res.sendStatus(403);
         req.user = user;
         next();
@@ -1401,7 +1402,7 @@ router.get('/api/saas/payments', requireSaasAdmin, async (req, res) => {
             const payments = await SubscriptionPayment.find().sort({ date: -1 });
             res.json(payments);
         } else {
-            res.json([]); // Mock db payments not fully implemented
+            res.json(mockDb.subscriptionPayments || []);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1415,7 +1416,10 @@ router.post('/api/saas/payments', requireSaasAdmin, async (req, res) => {
             await payment.save();
             res.json(payment);
         } else {
-            res.json({ ...req.body, _id: Date.now().toString() });
+            const payment = { ...req.body, _id: Date.now().toString(), date: new Date() };
+            if (!mockDb.subscriptionPayments) mockDb.subscriptionPayments = [];
+            mockDb.subscriptionPayments.push(payment);
+            res.json(payment);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
