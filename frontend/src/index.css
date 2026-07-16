@@ -1022,6 +1022,27 @@ tr:hover td {
         margin-top: 40px !important;
     }
     
+    .landing-nav {
+        flex-wrap: wrap;
+        justify-content: center !important;
+        gap: 12px;
+        padding: 12px !important;
+    }
+    
+    .nav-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .btn-mobile-icon-only span {
+        display: none;
+    }
+    
     .hero-heading {
         font-size: 34px !important;
         line-height: 1.25 !important;
