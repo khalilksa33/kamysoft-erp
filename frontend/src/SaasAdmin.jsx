@@ -423,7 +423,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                         <td style={{ padding: '12px 16px', color: '#d1d5db' }}>{pay.method}</td>
                                         <td style={{ padding: '12px 16px', color: '#d1d5db' }}>{pay.reference || '—'}</td>
                                     </tr>
-                                ))}
+                                )) : null}
                             </tbody>
                         </table>
                     </div>
