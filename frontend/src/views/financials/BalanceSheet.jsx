@@ -17,7 +17,7 @@ const BalanceSheet = ({ currentLanguage, formatCurrency, headers }) => {
             });
     }, [headers]);
 
-    if (loading || !data) {
+    if (loading || (!data && !data?.error)) {
         return (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 {currentLanguage === 'ar' ? 'جاري التحميل...' : 'Loading...'}
@@ -25,7 +25,7 @@ const BalanceSheet = ({ currentLanguage, formatCurrency, headers }) => {
         );
     }
 
-    const { assets, liabilities, equity, totalAssets, totalLiabilities, totalEquity, netIncome } = data;
+    const { assets = [], liabilities = [], equity = [], totalAssets = 0, totalLiabilities = 0, totalEquity = 0, netIncome = 0 } = data || {};
 
     const renderAccountRow = (acc) => (
         <div key={acc.code} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

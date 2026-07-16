@@ -29,7 +29,7 @@ const CashFlow = ({ currentLanguage, formatCurrency, headers }) => {
         // eslint-disable-next-line
     }, [headers]);
 
-    if (loading && !data) {
+    if (loading && (!data && !data?.error)) {
         return (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 {currentLanguage === 'ar' ? 'جاري التحميل...' : 'Loading...'}
@@ -37,7 +37,7 @@ const CashFlow = ({ currentLanguage, formatCurrency, headers }) => {
         );
     }
 
-    const { cashInflows, cashOutflows, totalInflows, totalOutflows, netChange } = data || {};
+    const { cashInflows = [], cashOutflows = [], totalInflows = 0, totalOutflows = 0, netChange = 0 } = data || {};
 
     const renderJournalRow = (entry, index) => (
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }} key={entry.entryId || index}>

@@ -29,7 +29,7 @@ const IncomeStatement = ({ currentLanguage, formatCurrency, headers }) => {
         // eslint-disable-next-line
     }, [headers]);
 
-    if (loading && !data) {
+    if (loading && (!data && !data?.error)) {
         return (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 {currentLanguage === 'ar' ? 'جاري التحميل...' : 'Loading...'}
@@ -37,7 +37,7 @@ const IncomeStatement = ({ currentLanguage, formatCurrency, headers }) => {
         );
     }
 
-    const { revenues, cogs, operatingExpenses, totalRevenue, totalCogs, grossProfit, totalOperatingExpenses, netIncome } = data || {};
+    const { revenues = [], cogs = [], operatingExpenses = [], totalRevenue = 0, totalCogs = 0, grossProfit = 0, totalOperatingExpenses = 0, netIncome = 0 } = data || {};
 
     const renderAccountRow = (acc) => (
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }} key={acc.code}>

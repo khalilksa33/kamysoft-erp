@@ -1467,8 +1467,8 @@ router.get('/api/reports/trial-balance', authenticateToken, async (req, res) => 
             accounts = await Account.find({ tenantId }).lean();
             journals = await JournalEntry.find({ tenantId }).lean();
         } else {
-            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId);
-            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            accounts = (mockDb.accounts || []).filter(a => a.tenantId === tenantId);
+            journals = (mockDb.journalEntries || []).filter(j => j.tenantId === tenantId);
         }
 
         let tb = accounts.map(a => ({ code: a.code, nameEN: a.nameEN, nameAR: a.nameAR, type: a.type, debit: 0, credit: 0 }));
@@ -1506,8 +1506,8 @@ router.get('/api/reports/balance-sheet', authenticateToken, async (req, res) => 
             accounts = await Account.find({ tenantId }).lean();
             journals = await JournalEntry.find({ tenantId }).lean();
         } else {
-            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId);
-            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            accounts = (mockDb.accounts || []).filter(a => a.tenantId === tenantId);
+            journals = (mockDb.journalEntries || []).filter(j => j.tenantId === tenantId);
         }
 
         let balances = {};
@@ -1558,8 +1558,8 @@ router.get('/api/reports/income-statement', authenticateToken, async (req, res) 
             accounts = await Account.find({ tenantId, type: { $in: ['Revenue', 'Expense'] } }).lean();
             journals = await JournalEntry.find(dateFilter).lean();
         } else {
-            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId && ['Revenue', 'Expense'].includes(a.type));
-            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            accounts = (mockDb.accounts || []).filter(a => a.tenantId === tenantId && ['Revenue', 'Expense'].includes(a.type));
+            journals = (mockDb.journalEntries || []).filter(j => j.tenantId === tenantId);
             if (startDate && endDate) {
                 const s = new Date(startDate);
                 const e = new Date(endDate);
@@ -1615,8 +1615,8 @@ router.get('/api/reports/cash-flow', authenticateToken, async (req, res) => {
             accounts = await Account.find({ tenantId, type: 'Asset' }).lean(); // Cash and Bank are assets
             journals = await JournalEntry.find(dateFilter).lean();
         } else {
-            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId && a.type === 'Asset');
-            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            accounts = (mockDb.accounts || []).filter(a => a.tenantId === tenantId && a.type === 'Asset');
+            journals = (mockDb.journalEntries || []).filter(j => j.tenantId === tenantId);
             if (startDate && endDate) {
                 const s = new Date(startDate);
                 const e = new Date(endDate);

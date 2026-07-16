@@ -124,10 +124,10 @@ body[dir="rtl"] .sidebar {
 }
 
 body[dir="rtl"] .main-content {
-    padding: 16px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
     grid-column: 2;
     grid-row: 1;
 }
@@ -191,10 +191,10 @@ body[dir="rtl"] .main-content {
 
 /* Main Content Styling */
 .main-content {
-    padding: 16px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
     overflow-y: auto;
     max-height: 100vh;
     grid-column: 1;
@@ -398,7 +398,7 @@ body[dir="rtl"] .main-content {
     .main-content {
         grid-column: 1 !important;
         grid-row: 1 !important;
-        padding: 16px;
+        padding: 8px;
     }
     body[dir="rtl"] .main-content {
         grid-column: 1 !important;

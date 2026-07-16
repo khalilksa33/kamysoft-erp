@@ -17,8 +17,9 @@ const TrialBalance = ({ currentLanguage, formatCurrency, headers }) => {
             });
     }, [headers]);
 
-    const totalDebit = data.reduce((sum, item) => sum + (item.debit || 0), 0);
-    const totalCredit = data.reduce((sum, item) => sum + (item.credit || 0), 0);
+    const validData = Array.isArray(data) ? data : [];
+    const totalDebit = validData.reduce((sum, item) => sum + (item.debit || 0), 0);
+    const totalCredit = validData.reduce((sum, item) => sum + (item.credit || 0), 0);
 
     return (
         <div className="glass-card" style={{ padding: '24px' }}>
@@ -48,7 +49,7 @@ const TrialBalance = ({ currentLanguage, formatCurrency, headers }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.filter(a => a.debit > 0 || a.credit > 0).map((acc, idx) => (
+                            {validData.filter(a => a.debit > 0 || a.credit > 0).map((acc, idx) => (
                                 <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                                     <td style={{ padding: '12px' }}>{acc.code}</td>
                                     <td style={{ padding: '12px' }}>{currentLanguage === 'ar' ? acc.nameAR : acc.nameEN}</td>
