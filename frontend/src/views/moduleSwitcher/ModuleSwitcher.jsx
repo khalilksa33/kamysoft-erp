@@ -37,7 +37,7 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
                     : 'Enable or disable system modules according to your business needs.'}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {modulesList.map(mod => {
                     const isEnabled = settings?.enabledModules?.[mod.id] ?? true;
                     return (
