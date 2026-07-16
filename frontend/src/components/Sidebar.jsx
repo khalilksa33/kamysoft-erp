@@ -34,6 +34,10 @@ const sidebarTranslations = {
         dailyJournal: "Daily Journal Entry",
         chartAccounts: "Chart of Accounts",
         generalLedger: "General Ledger",
+        trialBalance: "Trial Balance",
+        balanceSheet: "Balance Sheet",
+        incomeStatement: "Income Statement",
+        cashFlow: "Cash Flow",
         reports: "Reports",
         salesMovement: "Sales Movement",
         unpaidInvoices: "Unpaid Invoices",
@@ -91,6 +95,10 @@ const sidebarTranslations = {
         dailyJournal: "القيد اليومي",
         chartAccounts: "شجرة الحسابات",
         generalLedger: "دفتر الاستاذ",
+        trialBalance: "ميزان المراجعة",
+        balanceSheet: "الميزانية العمومية",
+        incomeStatement: "قائمة الدخل",
+        cashFlow: "التدفقات النقدية",
         reports: "تقارير",
         salesMovement: "حركة المبيعات",
         unpaidInvoices: "الفواتير غير مدفوعة",
@@ -176,7 +184,11 @@ const menuConfig = [
             { id: 'financialTrans', labelKey: 'financialTrans' },
             { id: 'dailyJournal', labelKey: 'dailyJournal' },
             { id: 'chartAccounts', labelKey: 'chartAccounts' },
-            { id: 'generalLedger', labelKey: 'generalLedger' }
+            { id: 'generalLedger', labelKey: 'generalLedger' },
+            { id: 'trialBalance', labelKey: 'trialBalance' },
+            { id: 'balanceSheet', labelKey: 'balanceSheet' },
+            { id: 'incomeStatement', labelKey: 'incomeStatement' },
+            { id: 'cashFlow', labelKey: 'cashFlow' }
         ]
     },
     {

@@ -173,6 +173,30 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             mockDb.products.push(...seedProducts);
         }
         
+        // 4. Seed Standard Chart of Accounts
+        const standardAccounts = [
+            { code: '1000', nameEN: 'Cash', nameAR: 'نقد', type: 'Asset' },
+            { code: '1010', nameEN: 'Bank Account', nameAR: 'حساب بنكي', type: 'Asset' },
+            { code: '1200', nameEN: 'Accounts Receivable', nameAR: 'الذمم المدينة', type: 'Asset' },
+            { code: '1300', nameEN: 'Inventory', nameAR: 'المخزون', type: 'Asset' },
+            { code: '2000', nameEN: 'Accounts Payable', nameAR: 'الذمم الدائنة', type: 'Liability' },
+            { code: '2100', nameEN: 'VAT Payable', nameAR: 'ضريبة القيمة المضافة المستحقة', type: 'Liability' },
+            { code: '3000', nameEN: 'Owner Equity', nameAR: 'حقوق المالك', type: 'Equity' },
+            { code: '4000', nameEN: 'Sales Revenue', nameAR: 'إيرادات المبيعات', type: 'Revenue' },
+            { code: '5000', nameEN: 'Cost of Goods Sold', nameAR: 'تكلفة البضاعة المباعة', type: 'Expense' },
+            { code: '5100', nameEN: 'Salaries Expense', nameAR: 'مصروفات الرواتب', type: 'Expense' },
+            { code: '5200', nameEN: 'Rent Expense', nameAR: 'مصروفات الإيجار', type: 'Expense' },
+            { code: '5300', nameEN: 'Utilities Expense', nameAR: 'مصروفات المنافع', type: 'Expense' },
+            { code: '5400', nameEN: 'Miscellaneous Expense', nameAR: 'مصروفات متنوعة', type: 'Expense' }
+        ].map(acc => ({ ...acc, tenantId: normalizedTenantId, balance: 0 }));
+
+        if (global.isMongoConnected) {
+            await Account.insertMany(standardAccounts);
+        } else {
+            mockDb.accounts = mockDb.accounts || [];
+            mockDb.accounts.push(...standardAccounts);
+        }
+        
         // Send email asynchronously (don't block the response)
         if (email) {
             sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain);
@@ -1428,6 +1452,203 @@ router.delete('/api/tenant/close', authenticateToken, async (req, res) => {
             await global.removeCloudflareTunnelConfig(tenantId);
         }
         res.json({ success: true, message: `Account closed successfully.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/reports/trial-balance', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        let accounts = [];
+        let journals = [];
+        
+        if (mongoose.connection.readyState === 1) {
+            accounts = await Account.find({ tenantId }).lean();
+            journals = await JournalEntry.find({ tenantId }).lean();
+        } else {
+            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId);
+            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+        }
+
+        let tb = accounts.map(a => ({ code: a.code, nameEN: a.nameEN, nameAR: a.nameAR, type: a.type, debit: 0, credit: 0 }));
+        
+        journals.forEach(j => {
+            let acc = tb.find(a => a.code === j.account);
+            if (acc) {
+                if (j.debit > 0) acc.debit += j.debit;
+                if (j.credit > 0) acc.credit += j.credit;
+            }
+        });
+
+        tb = tb.map(a => {
+            let net = a.debit - a.credit;
+            if (['Asset', 'Expense'].includes(a.type)) {
+                return { ...a, balance: net };
+            } else {
+                return { ...a, balance: -net }; 
+            }
+        });
+
+        res.json(tb);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/reports/balance-sheet', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        let accounts = [];
+        let journals = [];
+        
+        if (mongoose.connection.readyState === 1) {
+            accounts = await Account.find({ tenantId }).lean();
+            journals = await JournalEntry.find({ tenantId }).lean();
+        } else {
+            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId);
+            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+        }
+
+        let balances = {};
+        accounts.forEach(a => balances[a.code] = { ...a, balance: 0, _id: undefined });
+
+        journals.forEach(j => {
+            if (balances[j.account]) {
+                if (['Asset', 'Expense'].includes(balances[j.account].type)) {
+                    balances[j.account].balance += (j.debit || 0) - (j.credit || 0);
+                } else {
+                    balances[j.account].balance += (j.credit || 0) - (j.debit || 0);
+                }
+            }
+        });
+
+        let assets = Object.values(balances).filter(a => a.type === 'Asset');
+        let liabilities = Object.values(balances).filter(a => a.type === 'Liability');
+        let equity = Object.values(balances).filter(a => a.type === 'Equity');
+
+        let totalAssets = assets.reduce((sum, a) => sum + a.balance, 0);
+        let totalLiabilities = liabilities.reduce((sum, a) => sum + a.balance, 0);
+        let totalEquity = equity.reduce((sum, a) => sum + a.balance, 0);
+
+        let revenue = Object.values(balances).filter(a => a.type === 'Revenue').reduce((sum, a) => sum + a.balance, 0);
+        let expenses = Object.values(balances).filter(a => a.type === 'Expense').reduce((sum, a) => sum + a.balance, 0);
+        let netIncome = revenue - expenses;
+        totalEquity += netIncome;
+
+        res.json({ assets, liabilities, equity, totalAssets, totalLiabilities, totalEquity, netIncome });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/reports/income-statement', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { startDate, endDate } = req.query;
+        let accounts = [];
+        let journals = [];
+        
+        let dateFilter = { tenantId };
+        if (startDate && endDate) {
+            dateFilter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+        
+        if (mongoose.connection.readyState === 1) {
+            accounts = await Account.find({ tenantId, type: { $in: ['Revenue', 'Expense'] } }).lean();
+            journals = await JournalEntry.find(dateFilter).lean();
+        } else {
+            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId && ['Revenue', 'Expense'].includes(a.type));
+            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            if (startDate && endDate) {
+                const s = new Date(startDate);
+                const e = new Date(endDate);
+                journals = journals.filter(j => new Date(j.date) >= s && new Date(j.date) <= e);
+            }
+        }
+
+        let balances = {};
+        accounts.forEach(a => balances[a.code] = { ...a, balance: 0, _id: undefined });
+
+        journals.forEach(j => {
+            if (balances[j.account]) {
+                if (balances[j.account].type === 'Expense') {
+                    balances[j.account].balance += (j.debit || 0) - (j.credit || 0);
+                } else if (balances[j.account].type === 'Revenue') {
+                    balances[j.account].balance += (j.credit || 0) - (j.debit || 0);
+                }
+            }
+        });
+
+        let revenues = Object.values(balances).filter(a => a.type === 'Revenue' && a.balance !== 0);
+        let expenses = Object.values(balances).filter(a => a.type === 'Expense' && a.balance !== 0);
+        
+        let cogs = expenses.filter(a => a.nameEN.toLowerCase().includes('cost of goods') || a.code === '5000');
+        let operatingExpenses = expenses.filter(a => !a.nameEN.toLowerCase().includes('cost of goods') && a.code !== '5000');
+
+        let totalRevenue = revenues.reduce((sum, a) => sum + a.balance, 0);
+        let totalCogs = cogs.reduce((sum, a) => sum + a.balance, 0);
+        let grossProfit = totalRevenue - totalCogs;
+        
+        let totalOperatingExpenses = operatingExpenses.reduce((sum, a) => sum + a.balance, 0);
+        let netIncome = grossProfit - totalOperatingExpenses;
+
+        res.json({ revenues, cogs, operatingExpenses, totalRevenue, totalCogs, grossProfit, totalOperatingExpenses, netIncome });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/reports/cash-flow', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { startDate, endDate } = req.query;
+        let accounts = [];
+        let journals = [];
+        
+        let dateFilter = { tenantId };
+        if (startDate && endDate) {
+            dateFilter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+        
+        if (mongoose.connection.readyState === 1) {
+            accounts = await Account.find({ tenantId, type: 'Asset' }).lean(); // Cash and Bank are assets
+            journals = await JournalEntry.find(dateFilter).lean();
+        } else {
+            accounts = mockDb.accounts.filter(a => a.tenantId === tenantId && a.type === 'Asset');
+            journals = mockDb.journalEntries.filter(j => j.tenantId === tenantId);
+            if (startDate && endDate) {
+                const s = new Date(startDate);
+                const e = new Date(endDate);
+                journals = journals.filter(j => new Date(j.date) >= s && new Date(j.date) <= e);
+            }
+        }
+
+        // Identify cash-equivalent accounts
+        const cashAccounts = accounts.filter(a => a.code === '1000' || a.code === '1010' || a.nameEN.toLowerCase().includes('cash') || a.nameEN.toLowerCase().includes('bank'));
+        const cashAccountCodes = cashAccounts.map(a => a.code);
+
+        let cashInflows = [];
+        let cashOutflows = [];
+        let netChange = 0;
+
+        journals.forEach(j => {
+            if (cashAccountCodes.includes(j.account)) {
+                if (j.debit > 0) {
+                    cashInflows.push(j);
+                    netChange += j.debit;
+                }
+                if (j.credit > 0) {
+                    cashOutflows.push(j);
+                    netChange -= j.credit;
+                }
+            }
+        });
+
+        const totalInflows = cashInflows.reduce((sum, j) => sum + j.debit, 0);
+        const totalOutflows = cashOutflows.reduce((sum, j) => sum + j.credit, 0);
+
+        res.json({ cashInflows, cashOutflows, totalInflows, totalOutflows, netChange });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

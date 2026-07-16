@@ -11,6 +11,10 @@ import JournalEntries from './views/financials/JournalEntries';
 import FinancialTransactions from './views/financials/FinancialTransactions';
 import ChartOfAccounts from './views/financials/ChartOfAccounts';
 import GeneralLedger from './views/financials/GeneralLedger';
+import TrialBalance from './views/financials/TrialBalance';
+import BalanceSheet from './views/financials/BalanceSheet';
+import IncomeStatement from './views/financials/IncomeStatement';
+import CashFlow from './views/financials/CashFlow';
 import Vouchers from './views/financials/Vouchers';
 import Salaries from './views/people/Salaries';
 import Purchases from './views/invoices/Purchases';
@@ -1974,6 +1978,10 @@ const handleB2BSubmit = () => {
                 {activeTab === 'financialTrans' && <FinancialTransactions {...props} />}
                 {activeTab === 'chartAccounts' && <ChartOfAccounts {...props} />}
                 {activeTab === 'generalLedger' && <GeneralLedger {...props} />}
+                {activeTab === 'trialBalance' && <TrialBalance {...props} />}
+                {activeTab === 'balanceSheet' && <BalanceSheet {...props} />}
+                {activeTab === 'incomeStatement' && <IncomeStatement {...props} />}
+                {activeTab === 'cashFlow' && <CashFlow {...props} />}
                 {['receiptVoucher', 'paymentVoucher'].includes(activeTab) && <Vouchers {...props} />}
                 {['salaryPayment', 'salariesReport'].includes(activeTab) && <Salaries {...props} />}
                 {['purchaseInvoice'].includes(activeTab) && <Purchases {...props} />}
