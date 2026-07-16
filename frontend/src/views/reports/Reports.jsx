@@ -134,7 +134,7 @@ const Reports = (props) => {
     }
 
     if (activeTab === 'unpaidInvoices') {
-        const unpaid = invoices.filter(inv => inv.zatcaStatus !== 'REPORTED');
+        const unpaid = invoices.filter(inv => inv.paymentMethod === 'Credit');
         return (
             <div className="glass-card" style={{ padding: '24px' }}>
                 <h3>{translations[currentLanguage].unpaidInvoices || 'Unpaid Invoices'}</h3>
@@ -240,7 +240,7 @@ const Reports = (props) => {
                     <tbody>
                         {items.map(item => (
                             <tr key={item.id}>
-                                <td>{item.name}</td>
+                                <td>{currentLanguage === 'ar' ? (item.nameAR || item.name) : (item.nameEN || item.name)}</td>
                                 <td style={{ textAlign: 'center' }}>{item.stock}</td>
                                 <td style={{ textAlign: 'center' }}>{item.qtySold}</td>
                             </tr>
@@ -422,13 +422,137 @@ const Reports = (props) => {
         );
     }
 
+    
+    if (activeTab === 'financialMovement') {
+        const inflows = (props.invoices || []).reduce((sum, inv) => sum + (inv.paymentMethod === 'Credit' ? 0 : inv.total), 0);
+        const outflows = (props.expenses || []).reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+        return (
+            <div className="glass-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0 }}>{translations[currentLanguage].financialMovement || 'Financial Movement'}</h3>
+                    <button className="btn btn-secondary" onClick={() => window.print()}>
+                        <i className="ri-printer-line"></i> {currentLanguage === 'ar' ? 'طباعة' : 'Print'}
+                    </button>
+                </div>
+                <div className="card-grid">
+                    <div className="glass-card green">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'التدفقات النقدية الداخلة' : 'Cash Inflows'}</h3>
+                                <div className="stat-value">{formatCurrency(inflows)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="glass-card purple">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'التدفقات النقدية الخارجة' : 'Cash Outflows'}</h3>
+                                <div className="stat-value">{formatCurrency(outflows)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (activeTab === 'salesAnalysis') {
+        const salesByCustomer = (props.invoices || []).reduce((acc, inv) => {
+            const customer = inv.customer || (currentLanguage === 'ar' ? 'عميل نقدي' : 'Cash Customer');
+            acc[customer] = (acc[customer] || 0) + (inv.total || 0);
+            return acc;
+        }, {});
+        
+        return (
+            <div className="glass-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0 }}>{translations[currentLanguage].salesAnalysis || 'Sales Analysis'}</h3>
+                    <button className="btn btn-secondary" onClick={() => window.print()}>
+                        <i className="ri-printer-line"></i> {currentLanguage === 'ar' ? 'طباعة' : 'Print'}
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{currentLanguage === 'ar' ? 'العميل' : 'Customer'}</th>
+                            <th style={{ textAlign: 'right' }}>{currentLanguage === 'ar' ? 'إجمالي المبيعات' : 'Total Sales'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Object.entries(salesByCustomer).sort((a, b) => b[1] - a[1]).map(([customer, amount]) => (
+                            <tr key={customer}>
+                                <td>{customer}</td>
+                                <td style={{ textAlign: 'right' }}>{formatCurrency(amount)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    if (activeTab === 'summaryReport') {
+        const totalSales = (props.invoices || []).reduce((sum, inv) => sum + (inv.total || 0), 0);
+        const totalPurchases = (props.expenses || []).reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+        const activeCustomers = new Set((props.invoices || []).map(i => i.customer)).size;
+        
+        return (
+            <div className="glass-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0 }}>{translations[currentLanguage].summaryReport || 'Summary Report'}</h3>
+                    <button className="btn btn-secondary" onClick={() => window.print()}>
+                        <i className="ri-printer-line"></i> {currentLanguage === 'ar' ? 'طباعة' : 'Print'}
+                    </button>
+                </div>
+                <div className="card-grid">
+                    <div className="glass-card cyan">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'إجمالي المبيعات' : 'Total Sales'}</h3>
+                                <div className="stat-value">{formatCurrency(totalSales)}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-line-chart-line"></i></div>
+                        </div>
+                    </div>
+                    <div className="glass-card purple">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses'}</h3>
+                                <div className="stat-value">{formatCurrency(totalPurchases)}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-shopping-cart-2-line"></i></div>
+                        </div>
+                    </div>
+                    <div className="glass-card gold">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'عدد العملاء النشطين' : 'Active Customers'}</h3>
+                                <div className="stat-value">{activeCustomers}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-group-line"></i></div>
+                        </div>
+                    </div>
+                    <div className="glass-card green">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'إجمالي الفواتير' : 'Total Invoices'}</h3>
+                                <div className="stat-value">{(props.invoices || []).length}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-file-list-3-line"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Placeholder for other reports
     const placeholderTitles = {
-        financialMovement: translations[currentLanguage].financialMovement || 'Financial Movement',
+        
         customerStatement: translations[currentLanguage].customerStatement || 'Customer Statement',
         supplierStatement: translations[currentLanguage].supplierStatement || 'Supplier Statement',
-        salesAnalysis: translations[currentLanguage].salesAnalysis || 'Sales Analysis',
-        summaryReport: translations[currentLanguage].summaryReport || 'Summary Report'
+        
+        
     };
     if (placeholderTitles[activeTab]) {
         return (

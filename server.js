@@ -151,16 +151,16 @@ const mockDb = {
         { id: 'QTN-2010', date: '2026-06-25 13:00', customer: 'الشركة العربية', items: [{ name: 'Keyboard x12', price: 150, qty: 12 }], discount: 0, total: 2070.0, vat: 270.0 }
     ],
     expenses: [
-        { id: 'EXP-5001', date: '2026-06-01', category: 'rent', amount: 3000, description: 'Office Rent / إيجار المكتب الرئيسي' },
-        { id: 'EXP-5002', date: '2026-06-10', category: 'marketing', amount: 500, description: 'Google Ads / إعلانات جوجل' },
-        { id: 'EXP-5003', date: '2026-06-12', category: 'salaries', amount: 15000, description: 'Monthly Employees Salaries / رواتب الموظفين لشهر يونيو' },
-        { id: 'EXP-5004', date: '2026-06-14', category: 'shipping', amount: 320, description: 'Aramex Delivery Fees / رسوم توصيل أرامكس' },
-        { id: 'EXP-5005', date: '2026-06-15', category: 'other', amount: 180, description: 'Office Pantry Items / مستلزمات ضيافة مكتبية' },
-        { id: 'EXP-5006', date: '2026-06-18', category: 'rent', amount: 450, description: 'Internet & Landline / فاتورة الإنترنت والهاتف' },
-        { id: 'EXP-5007', date: '2026-06-20', category: 'marketing', amount: 750, description: 'Snapchat Marketing Campaign / حملة سناب شات' },
-        { id: 'EXP-5008', date: '2026-06-21', category: 'other', amount: 120, description: 'Electricity Bill / فاتورة الكهرباء' },
-        { id: 'EXP-5009', date: '2026-06-22', category: 'shipping', amount: 450, description: 'DHL Custom Clearance / رسوم تخليص جمركي دي إتش إل' },
-        { id: 'EXP-5010', date: '2026-06-24', category: 'salaries', amount: 4000, description: 'Contractor Commissions / عمولات مناديب المبيعات' }
+        { id: 'EXP-5001', date: '2026-06-01', category: 'rent', amount: 300, description: 'Office Rent / إيجار المكتب الرئيسي' },
+        { id: 'EXP-5002', date: '2026-06-10', category: 'marketing', amount: 50, description: 'Google Ads / إعلانات جوجل' },
+        { id: 'EXP-5003', date: '2026-06-12', category: 'salaries', amount: 1500, description: 'Monthly Employees Salaries / رواتب الموظفين لشهر يونيو' },
+        { id: 'EXP-5004', date: '2026-06-14', category: 'shipping', amount: 32, description: 'Aramex Delivery Fees / رسوم توصيل أرامكس' },
+        { id: 'EXP-5005', date: '2026-06-15', category: 'other', amount: 18, description: 'Office Pantry Items / مستلزمات ضيافة مكتبية' },
+        { id: 'EXP-5006', date: '2026-06-18', category: 'rent', amount: 45, description: 'Internet & Landline / فاتورة الإنترنت والهاتف' },
+        { id: 'EXP-5007', date: '2026-06-20', category: 'marketing', amount: 75, description: 'Snapchat Marketing Campaign / حملة سناب شات' },
+        { id: 'EXP-5008', date: '2026-06-21', category: 'other', amount: 12, description: 'Electricity Bill / فاتورة الكهرباء' },
+        { id: 'EXP-5009', date: '2026-06-22', category: 'shipping', amount: 45, description: 'DHL Custom Clearance / رسوم تخليص جمركي دي إتش إل' },
+        { id: 'EXP-5010', date: '2026-06-24', category: 'salaries', amount: 400, description: 'Contractor Commissions / عمولات مناديب المبيعات' }
     ],
     customers: [
         { id: 'CUST-8001', name: 'Khalil Al-Ghamdi / خليل الغامدي', phone: '0501234567', email: 'khalil@26i.uk', points: 150, spent: 1725 },

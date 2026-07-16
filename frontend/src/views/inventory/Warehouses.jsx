@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-const Warehouses = ({ currentLanguage, translations, activeTab }) => {
+const Warehouses = (props) => {
+    const { currentLanguage, translations, activeTab } = props;
     const [warehouses, setWarehouses] = useState([
         { id: 'W-001', name: 'Main Warehouse', location: 'Riyadh', capacity: '1000 sqm', manager: 'Ahmed' }
     ]);
@@ -28,10 +29,41 @@ const Warehouses = ({ currentLanguage, translations, activeTab }) => {
     };
 
     if (activeTab === 'stocktaking') {
+        const inventory = props.products || [];
         return (
-            <div className="glass-card">
-                <h3>{currentLanguage === 'ar' ? 'الجرد المخزني' : 'Stocktaking'}</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'سيتم تفعيل ميزة مطابقة الجرد قريباً.' : 'Inventory reconciliation feature will be enabled soon.'}</p>
+            <div className="glass-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0 }}>{currentLanguage === 'ar' ? 'الجرد المخزني' : 'Stocktaking'}</h3>
+                    <button className="btn btn-secondary" onClick={() => window.print()}>
+                        <i className="ri-printer-line"></i> {currentLanguage === 'ar' ? 'طباعة' : 'Print'}
+                    </button>
+                </div>
+                {inventory.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)' }}>{currentLanguage === 'ar' ? 'لا توجد منتجات مسجلة' : 'No products found'}</p>
+                ) : (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{currentLanguage === 'ar' ? 'رمز المنتج' : 'Item Code'}</th>
+                                <th>{currentLanguage === 'ar' ? 'المنتج' : 'Product'}</th>
+                                <th style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'رصيد النظام' : 'System Stock'}</th>
+                                <th style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'الرصيد الفعلي' : 'Physical Count'}</th>
+                                <th style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'الفروقات' : 'Variance'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {inventory.map(item => (
+                                <tr key={item.id}>
+                                    <td>{item.barcode || item.id}</td>
+                                    <td>{currentLanguage === 'ar' ? (item.nameAR || item.name) : (item.nameEN || item.name)}</td>
+                                    <td style={{ textAlign: 'center' }}>{item.stock}</td>
+                                    <td style={{ textAlign: 'center' }}><input type="number" className="form-control" style={{ width: '80px', margin: '0 auto', textAlign: 'center' }} placeholder="0" /></td>
+                                    <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>-</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
         );
     }
