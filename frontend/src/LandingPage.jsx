@@ -430,7 +430,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 borderRadius: '8px'
             }}>
                 <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <img src="/logo.png" alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
+                    <img src="/logo.png" alt={t.brandName} style={{ height: '32px', width: 'auto', mixBlendMode: 'screen', filter: 'invert(1)' }} />
                     <span>{t.brandName}</span>
                 </div>
                 
@@ -1503,3 +1503,4 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
         </div>
     );
 }
+
