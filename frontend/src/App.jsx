@@ -1913,6 +1913,12 @@ const handleB2BSubmit = () => {
 
     const props = { handleB2BAddItem, setHostname, products, settings, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal, translations, headers };
 
+    const b2bProductOptions = React.useMemo(() => {
+        return products.map(p => (
+            <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
+        ));
+    }, [products, currentLanguage]);
+
     return (
         <div className="app-container">
             <Sidebar settings={settings} 
@@ -2057,9 +2063,7 @@ const handleB2BSubmit = () => {
                                             <td>
                                                 <select className="form-control" value={item.productId} onChange={(e) => handleB2BItemChange(index, 'productId', e.target.value)} style={{ background: 'rgba(0,0,0,0.4)', border: 'none' }}>
                                                     <option value="">{currentLanguage === 'ar' ? 'اختر المنتج...' : 'Select Product...'}</option>
-                                                    {products.map(p => (
-                                                        <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
-                                                    ))}
+                                                    {b2bProductOptions}
                                                 </select>
                                             </td>
                                             <td>
