@@ -9,7 +9,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
     
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
-        unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active'
+        unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0
     });
     
     const [showInstallments, setShowInstallments] = useState(null); // stores the lease object to show installments
@@ -40,7 +40,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
         try {
             await axios.post('/api/lease-contracts', formData, { headers });
             setShowModal(false);
-            setFormData({ unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active' });
+            setFormData({ unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0 });
             fetchData();
         } catch (err) {
             alert('Error saving lease contract');
@@ -256,6 +256,19 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                         <option value="Yearly">Yearly</option>
                                         <option value="One-time">One-time</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-group">
+                                    <label>{isAr ? 'نوع رسوم الإدارة' : 'Management Fee Type'}</label>
+                                    <select className="modern-input" value={formData.managementFeeType} onChange={e => setFormData({...formData, managementFeeType: e.target.value})}>
+                                        <option value="Percentage">Percentage Fee (%)</option>
+                                        <option value="Fixed">Fixed Monthly Fee</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>{isAr ? 'قيمة رسوم الإدارة' : 'Management Fee Value'}</label>
+                                    <input type="number" className="modern-input" min="0" value={formData.managementFeeValue} onChange={e => setFormData({...formData, managementFeeValue: e.target.value})} />
                                 </div>
                             </div>
                             <div className="form-group">

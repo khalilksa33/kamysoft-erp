@@ -8,8 +8,6 @@ const Properties = () => {
     const [type, setType] = useState('Resort');
     const [location, setLocation] = useState('');
     const [ownerId, setOwnerId] = useState('');
-    const [managementFeeType, setManagementFeeType] = useState('Percentage');
-    const [managementFeeValue, setManagementFeeValue] = useState(0);
 
     useEffect(() => {
         fetchProperties();
@@ -41,12 +39,11 @@ const Properties = () => {
             await fetch('/api/properties', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ name, type, location, ownerId, managementFeeType, managementFeeValue })
+                body: JSON.stringify({ name, type, location, ownerId })
             });
             setName('');
             setLocation('');
             setOwnerId('');
-            setManagementFeeValue(0);
             fetchProperties();
         } catch (err) { console.error('Error creating property', err); }
     };
@@ -87,15 +84,6 @@ const Properties = () => {
                         <option value="">-- Company Owned (No 3rd Party Owner) --</option>
                         {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                     </select>
-                    {ownerId && (
-                        <>
-                            <select value={managementFeeType} onChange={e => setManagementFeeType(e.target.value)}>
-                                <option value="Percentage">Percentage Fee (%)</option>
-                                <option value="Fixed">Fixed Monthly Fee</option>
-                            </select>
-                            <input type="number" placeholder="Fee Value" value={managementFeeValue} onChange={e => setManagementFeeValue(e.target.value)} />
-                        </>
-                    )}
                     <button type="submit" className="primary-btn">Save</button>
                 </form>
             </div>
@@ -108,7 +96,6 @@ const Properties = () => {
                             <th>Type</th>
                             <th>Location</th>
                             <th>Owner</th>
-                            <th>Fee</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -120,14 +107,13 @@ const Properties = () => {
                                 <td>{p.type}</td>
                                 <td>{p.location}</td>
                                 <td>{getOwnerName(p.ownerId)}</td>
-                                <td>{p.ownerId ? `${p.managementFeeValue} ${p.managementFeeType === 'Percentage' ? '%' : 'Fixed'}` : '-'}</td>
                                 <td>{p.status}</td>
                                 <td>
                                     <button className="danger-btn" onClick={() => handleDelete(p.id)}>Delete</button>
                                 </td>
                             </tr>
                         ))}
-                        {properties.length === 0 && <tr><td colSpan="7">No properties found.</td></tr>}
+                        {properties.length === 0 && <tr><td colSpan="6">No properties found.</td></tr>}
                     </tbody>
                 </table>
             </div>

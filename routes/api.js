@@ -1794,10 +1794,6 @@ router.get('/api/owner-statement/:ownerId', authenticateToken, async (req, res) 
         }
 
         const propertyIds = properties.map(p => p.id);
-        const propertyFeeMap = {};
-        properties.forEach(p => {
-            propertyFeeMap[p.id] = { type: p.managementFeeType, value: p.managementFeeValue };
-        });
 
         // 2. Find all units in those properties
         const units = await Unit.find({ tenantId, propertyId: { $in: propertyIds }});
@@ -1816,7 +1812,6 @@ router.get('/api/owner-statement/:ownerId', authenticateToken, async (req, res) 
 
         leases.forEach(lease => {
             const propertyId = unitToPropertyMap[lease.unitId];
-            const feeConfig = propertyFeeMap[propertyId];
 
             lease.installments.forEach(inst => {
                 if (inst.status === 'Paid') {
@@ -1831,18 +1826,16 @@ router.get('/api/owner-statement/:ownerId', authenticateToken, async (req, res) 
                             leaseId: lease._id
                         });
                         totalCollected += inst.amount;
-                        if (feeConfig.type === 'Percentage') {
-                            managementFees += inst.amount * (feeConfig.value / 100);
+                        if (lease.managementFeeType === 'Percentage') {
+                            managementFees += inst.amount * ((lease.managementFeeValue || 0) / 100);
                         }
                     }
                 }
             });
-        });
-
-        // Add fixed management fees for properties (once per month? We'll assume per statement generation for simplicity if fixed)
-        properties.forEach(p => {
-            if (p.managementFeeType === 'Fixed') {
-                managementFees += p.managementFeeValue;
+            
+            // Add fixed management fees for the lease (assume once per statement for simplicity)
+            if (lease.managementFeeType === 'Fixed') {
+                managementFees += (lease.managementFeeValue || 0);
             }
         });
 

@@ -347,8 +347,6 @@ const propertySchema = new mongoose.Schema({
     location: { type: String },
     status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
     ownerId: { type: String },
-    managementFeeType: { type: String, enum: ['Percentage', 'Fixed'], default: 'Percentage' },
-    managementFeeValue: { type: Number, default: 0 },
     tenantId: { type: String, default: 'default', index: true }
 });
 const Property = mongoose.model('Property', propertySchema);
@@ -419,6 +417,8 @@ const leaseContractSchema = new mongoose.Schema({
         status: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
         invoiceId: { type: String }
     }],
+    managementFeeType: { type: String, enum: ['Percentage', 'Fixed'], default: 'Percentage' },
+    managementFeeValue: { type: Number, default: 0 },
     status: { type: String, enum: ['Active', 'Expired', 'Terminated'], default: 'Active' },
     createdAt: { type: Date, default: Date.now }
 });
