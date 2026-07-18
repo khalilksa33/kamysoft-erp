@@ -17,7 +17,8 @@ const mockDb = {
     warehouses: [], inventoryTxs: [], journalEntries: [], vouchers: [],
     salaries: [], purchaseInvoices: [], returnInvoices: [], accounts: [],
     subscriptionPayments: [], properties: [], units: [], bookings: [],
-    maintenanceTasks: [], propertyInvoices: [], leaseContracts: []
+    maintenanceTasks: [], propertyInvoices: [], leaseContracts: [],
+    propertyOwners: [], leads: []
 };
 
 // Middleware from server.js for auth
@@ -1556,9 +1557,54 @@ router.delete('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) =
                 Customer.deleteMany({ tenantId }),
                 Employee.deleteMany({ tenantId }),
                 Supplier.deleteMany({ tenantId }),
-                Order.deleteMany({ tenantId })
+                Order.deleteMany({ tenantId }),
+                Warehouse.deleteMany({ tenantId }),
+                InventoryTx.deleteMany({ tenantId }),
+                JournalEntry.deleteMany({ tenantId }),
+                Voucher.deleteMany({ tenantId }),
+                Salary.deleteMany({ tenantId }),
+                PurchaseInvoice.deleteMany({ tenantId }),
+                ReturnInvoice.deleteMany({ tenantId }),
+                Account.deleteMany({ tenantId }),
+                SubscriptionPayment.deleteMany({ tenantId }),
+                PropertyOwner.deleteMany({ tenantId }),
+                Property.deleteMany({ tenantId }),
+                Unit.deleteMany({ tenantId }),
+                Booking.deleteMany({ tenantId }),
+                MaintenanceTask.deleteMany({ tenantId }),
+                PropertyInvoice.deleteMany({ tenantId }),
+                LeaseContract.deleteMany({ tenantId }),
+                Lead.deleteMany({ tenantId })
             ]);
         } else {
+            const deleteForTenant = (arr) => arr ? arr.filter(i => i.tenantId !== tenantId) : [];
+            mockDb.users = deleteForTenant(mockDb.users);
+            mockDb.products = deleteForTenant(mockDb.products);
+            mockDb.invoices = deleteForTenant(mockDb.invoices);
+            mockDb.quotations = deleteForTenant(mockDb.quotations);
+            mockDb.expenses = deleteForTenant(mockDb.expenses);
+            mockDb.assets = deleteForTenant(mockDb.assets);
+            mockDb.customers = deleteForTenant(mockDb.customers);
+            mockDb.employees = deleteForTenant(mockDb.employees);
+            mockDb.suppliers = deleteForTenant(mockDb.suppliers);
+            mockDb.orders = deleteForTenant(mockDb.orders);
+            mockDb.warehouses = deleteForTenant(mockDb.warehouses);
+            mockDb.inventoryTxs = deleteForTenant(mockDb.inventoryTxs);
+            mockDb.journalEntries = deleteForTenant(mockDb.journalEntries);
+            mockDb.vouchers = deleteForTenant(mockDb.vouchers);
+            mockDb.salaries = deleteForTenant(mockDb.salaries);
+            mockDb.purchaseInvoices = deleteForTenant(mockDb.purchaseInvoices);
+            mockDb.returnInvoices = deleteForTenant(mockDb.returnInvoices);
+            mockDb.accounts = deleteForTenant(mockDb.accounts);
+            mockDb.subscriptionPayments = deleteForTenant(mockDb.subscriptionPayments);
+            mockDb.propertyOwners = deleteForTenant(mockDb.propertyOwners);
+            mockDb.properties = deleteForTenant(mockDb.properties);
+            mockDb.units = deleteForTenant(mockDb.units);
+            mockDb.bookings = deleteForTenant(mockDb.bookings);
+            mockDb.maintenanceTasks = deleteForTenant(mockDb.maintenanceTasks);
+            mockDb.propertyInvoices = deleteForTenant(mockDb.propertyInvoices);
+            mockDb.leaseContracts = deleteForTenant(mockDb.leaseContracts);
+            mockDb.leads = deleteForTenant(mockDb.leads);
             if (mockDb.settingsTenant) delete mockDb.settingsTenant[tenantId];
         }
         if (global.removeCloudflareTunnelConfig) {

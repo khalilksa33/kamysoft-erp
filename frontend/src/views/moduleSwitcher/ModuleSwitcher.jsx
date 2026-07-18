@@ -19,13 +19,24 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
         setSettings(prev => {
             const currentModules = prev.enabledModules || {};
             const isCurrentlyEnabled = currentModules[moduleId] ?? true;
-            return {
+            const updatedSettings = {
                 ...prev,
                 enabledModules: {
                     ...currentModules,
                     [moduleId]: !isCurrentlyEnabled
                 }
             };
+
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(updatedSettings)
+                }).catch(err => console.error('Failed to save module settings:', err));
+            }
+
+            return updatedSettings;
         });
     };
 

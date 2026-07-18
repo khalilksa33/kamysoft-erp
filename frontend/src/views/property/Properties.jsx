@@ -38,16 +38,24 @@ const Properties = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await fetch('/api/properties', {
+            const res = await fetch('/api/properties', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name, type, location, ownerId })
             });
+            if (!res.ok) {
+                const text = await res.text();
+                alert(`Error creating property: ${res.status} ${text}`);
+                return;
+            }
             setName('');
             setLocation('');
             setOwnerId('');
             fetchProperties();
-        } catch (err) { console.error('Error creating property', err); }
+        } catch (err) { 
+            console.error('Error creating property', err);
+            alert(`Network error creating property: ${err.message}`);
+        }
     };
 
     const handleDelete = async (id) => {
