@@ -906,8 +906,11 @@ export default function App() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: loginUsername, password: loginPassword })
         })
-        .then(res => {
-            if (!res.ok) throw new Error('Invalid credentials');
+        .then(async res => {
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Invalid credentials');
+            }
             return res.json();
         })
         .then(data => {
@@ -918,25 +921,29 @@ export default function App() {
             setActiveTab('dashboard');
         })
         .catch(err => {
-            // Local offline mock fallback login for portability
-            const username = loginUsername.toLowerCase();
-            const password = loginPassword;
-            let role = '';
+            if (err.message === 'Failed to fetch') {
+                // Local offline mock fallback login for portability
+                const username = loginUsername.toLowerCase();
+                const password = loginPassword;
+                let role = '';
 
-            if (username === 'admin' && password === 'admin123') role = 'Admin';
-            else if (username === 'demo' && password === 'demo123') role = 'Admin';
-            else if (username === 'manager' && password === 'manager123') role = 'Manager';
-            else if (username === 'cashier' && password === 'cashier123') role = 'Cashier';
+                if (username === 'admin' && password === 'admin123') role = 'Admin';
+                else if (username === 'demo' && password === 'demo123') role = 'Admin';
+                else if (username === 'manager' && password === 'manager123') role = 'Manager';
+                else if (username === 'cashier' && password === 'cashier123') role = 'Cashier';
 
-            if (role) {
-                const mockUser = { id: Date.now().toString(), username, role };
-                localStorage.setItem('token', 'mock-token-secret');
-                localStorage.setItem('user', JSON.stringify(mockUser));
-                setToken('mock-token-secret');
-                setUser(mockUser);
-                setActiveTab('dashboard');
+                if (role) {
+                    const mockUser = { id: Date.now().toString(), username, role };
+                    localStorage.setItem('token', 'mock-token-secret');
+                    localStorage.setItem('user', JSON.stringify(mockUser));
+                    setToken('mock-token-secret');
+                    setUser(mockUser);
+                    setActiveTab('dashboard');
+                } else {
+                    setAuthError(currentLanguage === 'ar' ? 'خطأ في الاتصال بالشبكة' : 'Network error or backend unreachable.');
+                }
             } else {
-                setAuthError(currentLanguage === 'ar' ? 'بيانات الدخول غير صحيحة (demo / demo123)' : 'Invalid credentials (demo / demo123)');
+                setAuthError(err.message || (currentLanguage === 'ar' ? 'بيانات الدخول غير صحيحة' : 'Invalid credentials'));
             }
         });
     };

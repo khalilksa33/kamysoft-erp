@@ -11,8 +11,8 @@ const landingTranslations = {
         viewPricing: "View Pricing Plans",
         features: "Features",
         pricing: "Pricing",
-        faq: "FAQ",
         contact: "Contact",
+        blog: "Blog",
         businessTypes: "Business Sectors",
         
         // Stats
@@ -31,6 +31,7 @@ const landingTranslations = {
         sectorAppliances: "Home Appliances & Electronics",
         sectorFurniture: "Furniture Store",
         sectorSpareParts: "Spare Parts (Auto/HVAC/Plumbing/Electric)",
+        sectorRealestate: "Real Estate & Property Management",
         
         simBarcodes: "Automated Barcode Scans",
         simTables: "Table & Guest Mapping",
@@ -109,6 +110,11 @@ const landingTranslations = {
         formSuccess: "Thank you! Your request has been successfully registered. We will contact you soon.",
         formError: "An error occurred. Please verify your entries.",
         
+        // Blog
+        blogTitle: "Our Latest Articles",
+        blogSub: "Insights, updates, and comprehensive guides for growing your business.",
+        blogReadMore: "Read More",
+        
         // FAQs
         faqTitle: "Frequently Asked Questions",
         faqQ1: "Does the software support local offline operation?",
@@ -133,8 +139,8 @@ const landingTranslations = {
         viewPricing: "عرض خطط الأسعار",
         features: "المميزات",
         pricing: "الأسعار",
-        faq: "الأسئلة الشائعة",
         contact: "اتصل بنا",
+        blog: "المدونة",
         businessTypes: "قطاعات الأعمال",
         
         // Stats
@@ -153,6 +159,7 @@ const landingTranslations = {
         sectorAppliances: "الأجهزة المنزلية والإلكترونيات",
         sectorFurniture: "معارض الأثاث",
         sectorSpareParts: "قطع الغيار (سيارات/تكييف/سباكة/كهرباء)",
+        sectorRealestate: "إدارة الأملاك والعقارات",
         
         simBarcodes: "قراءة الباركود التلقائية",
         simTables: "تخطيط الطاولات والضيوف",
@@ -230,6 +237,11 @@ const landingTranslations = {
         formSubmit: "إرسال طلب الديمو",
         formSuccess: "شكرًا لك! تم تسجيل طلبك بنجاح. سنتواصل معك في أقرب وقت ممكن.",
         formError: "حدث خطأ ما. يرجى التحقق من المدخلات.",
+        
+        // Blog
+        blogTitle: "أحدث مقالاتنا",
+        blogSub: "رؤى، وتحديثات، وأدلة شاملة لتنمية أعمالك.",
+        blogReadMore: "اقرأ المزيد",
         
         // FAQs
         faqTitle: "الأسئلة الشائعة",
@@ -443,6 +455,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     <a href="#features" className="nav-item-link">{t.features}</a>
                     <a href="#sectors" className="nav-item-link">{t.businessTypes}</a>
                     <a href="#pricing" className="nav-item-link">{t.pricing}</a>
+                    <a href="#blog" className="nav-item-link">{t.blog}</a>
                     <a href="#faq" className="nav-item-link">{t.faq}</a>
                     <a href="#contact" className="nav-item-link">{t.contact}</a>
                 </nav>
@@ -717,6 +730,14 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                         <i className="ri-settings-5-line"></i>
                         <span>{t.sectorSpareParts}</span>
                     </button>
+                    <button 
+                        className={`btn ${activeSector === 'realestate' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setActiveSector('realestate')}
+                        style={activeSector !== 'realestate' ? { background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } : {}}
+                    >
+                        <i className="ri-building-4-line"></i>
+                        <span>{t.sectorRealestate}</span>
+                    </button>
                 </div>
                 
                 {/* Simulation Features Panel */}
@@ -730,6 +751,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'appliances' && (currentLanguage === 'ar' ? 'الأجهزة المنزلية والتكييف والإلكترونيات' : 'Electrical, HVAC & Home Appliances')}
                             {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'معارض ومحلات الأثاث والمفروشات' : 'Furniture & Home Decor Store')}
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'قطع غيار السيارات والسباكة والتكييف والإلكترونيات' : 'Auto, Plumbing, HVAC & Electric Spare Parts')}
+                            {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'إدارة الأملاك والعقارات' : 'Real Estate & Property Management')}
                         </h3>
                         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px', fontSize: '14px' }}>
                             {activeSector === 'retail' && (currentLanguage === 'ar' ? 'يمنحك 26i السيطرة الكاملة على مخازنك، ومشترياتك، وإهلاك أصولك، ومتابعة مصروفاتك اليومية بطريقة سهلة ومبسطة.' : '26i provides complete control over your multi-category stocks, supplier purchase orders, capital asset depreciation, and daily cash expenses.')}
@@ -739,6 +761,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'appliances' && (currentLanguage === 'ar' ? 'مخصص لمبيعات الأجهزة الكهربائية والتكييف، يدعم تتبع الأرقام التسلسلية الفريدة لكل جهاز لمنع تداخل الضمانات، مع جدولة مواعيد التركيب المنزلي للـ HVAC.' : 'Designed for appliances and HVAC sales. Tracks unique serial numbers per unit to prevent warranty overlap, with built-in scheduling for home installations.')}
                             {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'يسهل إدارة الطلبات المخصصة وعربون الحجز، وتتبع حالة تجميع غرف النوم والمطابخ بالمستودعات، وجدولة مسارات شاحنات التوصيل والتركيب.' : 'Eases custom orders and deposit collections, tracks assembly progress of items inside the warehouse, and schedules delivery routing and technicians.')}
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'ابحث فوراً بترميز OEM أو الكود الأصلي، وتتبع توافقية قطع الغيار مع موديلات السيارات وماركات التكييف والسباكة، مع ترميز باركود رفوف المستودع.' : 'Instantly search by OEM parts or interchangeably coded items. Track compatibility across models/brands (Auto or HVAC) and scan shelf bins.')}
+                            {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'نظام متكامل لإدارة العقود والإيجارات، ومتابعة تحصيل الدفعات، وجدولة صيانة العقارات بكل احترافية.' : 'Comprehensive system for managing contracts, leases, tracking payment collections, and scheduling property maintenance professionally.')}
                         </p>
                         
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -768,6 +791,12 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
                                     <span>{currentLanguage === 'ar' ? 'البحث بأكواد OEM وتوافق الأجهزة والموديلات' : 'OEM Interchangeable Code & Model Mapping'}</span>
+                                </li>
+                            )}
+                            {activeSector === 'realestate' && (
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                    <span>{currentLanguage === 'ar' ? 'إدارة العقود والتحصيلات العقارية' : 'Lease Contracts & Asset Collections'}</span>
                                 </li>
                             )}
                             <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -907,6 +936,22 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <span>{currentLanguage === 'ar' ? 'موقع الرف والمستودع' : 'Warehouse Shelf Bin'}</span>
                                     <span style={{ color: 'var(--accent-cyan)' }}>Shelf B - Row 4 - Box 12</span>
+                                </div>
+                            </div>
+                        )}
+                        {activeSector === 'realestate' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>{currentLanguage === 'ar' ? 'إجمالي الدخل الإيجاري' : 'Total Rental Income'}</span>
+                                    <span style={{ color: 'var(--accent-success)' }}>350,000 {t.currency}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '6px' }}>
+                                    <span>{currentLanguage === 'ar' ? 'نسبة إشغال العقارات' : 'Property Occupancy'}</span>
+                                    <span style={{ color: 'var(--accent-cyan)' }}>92%</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>{currentLanguage === 'ar' ? 'طلبات صيانة معلقة' : 'Pending Maintenance'}</span>
+                                    <span style={{ color: 'var(--accent-gold)' }}>4</span>
                                 </div>
                             </div>
                         )}
@@ -1128,6 +1173,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         <option value="grocery">{t.sectorSupermarket}</option>
                                         <option value="restaurant">{t.sectorRestaurant}</option>
                                         <option value="apparel">{t.sectorApparel}</option>
+                                        <option value="realestate">{t.sectorRealestate}</option>
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ margin: 0 }}>
@@ -1152,6 +1198,33 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             </button>
                         </form>
                     )}
+                </div>
+            </section>
+            
+            {/* BLOG SECTION */}
+            <section id="blog" style={{ maxWidth: '1200px', margin: '80px auto', padding: '0 20px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                    <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.blogTitle}</h2>
+                    <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.blogSub}</p>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="glass-card feature-card-glow" style={{ borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+                            <div style={{ height: '160px', background: `linear-gradient(45deg, var(--accent-purple), var(--accent-cyan))`, opacity: 0.8 }}></div>
+                            <div style={{ padding: '24px' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'تحديثات النظام' : 'System Updates'}</div>
+                                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
+                                    {currentLanguage === 'ar' ? `كيف تستفيد من تحديثات ${t.brandName} لنمو مبيعاتك (${i})` : `How to Leverage ${t.brandName} Updates for Sales Growth (${i})`}
+                                </h3>
+                                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>
+                                    {currentLanguage === 'ar' ? 'اكتشف أفضل الممارسات لتحسين كفاءة العمليات اليومية وتقليل التكاليف التشغيلية باستخدام أدواتنا السحابية المتطورة...' : 'Discover best practices to improve daily operational efficiency and reduce costs using our advanced cloud tools...'}
+                                </p>
+                                <a href="#" style={{ color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    {t.blogReadMore} <i className={currentLanguage === 'ar' ? "ri-arrow-left-line" : "ri-arrow-right-line"}></i>
+                                </a>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </section>
             
