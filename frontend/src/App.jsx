@@ -33,6 +33,7 @@ import Units from './views/property/Units';
 import Bookings from './views/property/Bookings';
 import PropertyMaintenance from './views/property/Maintenance';
 import LeasingContracts from './views/property/LeasingContracts';
+import RealEstateCRM from './views/property/RealEstateCRM';
 import TenantPortal from './views/property/TenantPortal';
 import PropertyOwners from './views/property/PropertyOwners';
 import OwnerAccounting from './views/property/OwnerAccounting';
@@ -2152,6 +2153,7 @@ const handleB2BSubmit = () => {
                 {['property_units'].includes(activeTab) && <Units {...props} />}
                 {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
                 {['property_leasing'].includes(activeTab) && <LeasingContracts {...props} />}
+                {['property_crm'].includes(activeTab) && <RealEstateCRM {...props} />}
                 {['property_owners'].includes(activeTab) && <PropertyOwners {...props} />}
                 {['property_owner_accounting'].includes(activeTab) && <OwnerAccounting {...props} />}
                 {['property_maintenance'].includes(activeTab) && <PropertyMaintenance {...props} />}

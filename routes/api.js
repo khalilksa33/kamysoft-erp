@@ -2483,4 +2483,120 @@ router.post('/api/tenant-portal/maintenance', authenticateTenant, async (req, re
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// CRM / Lead Management Routes
+router.get('/api/leads', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const leads = await Lead.find({ tenantId });
+            res.json(leads);
+        } else {
+            res.json(mockDb.leads?.filter(l => l.tenantId === tenantId) || []);
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/leads', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const data = { ...req.body, tenantId, id: 'lead-' + Date.now() };
+        if (global.isMongoConnected) {
+            const lead = new Lead(data);
+            await lead.save();
+            res.status(201).json(lead);
+        } else {
+            mockDb.leads = mockDb.leads || [];
+            data._id = data.id;
+            mockDb.leads.push(data);
+            res.status(201).json(data);
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/api/leads/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await Lead.updateOne({ _id: req.params.id, tenantId }, req.body);
+        } else {
+            mockDb.leads = mockDb.leads.map(l => l._id === req.params.id && l.tenantId === tenantId ? { ...l, ...req.body } : l);
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/api/leads/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await Lead.deleteOne({ _id: req.params.id, tenantId });
+        } else {
+            mockDb.leads = mockDb.leads.filter(l => !(l._id === req.params.id && l.tenantId === tenantId));
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/leads/:id/notes', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { content } = req.body;
+        const note = { date: new Date(), user: req.user?.username || 'System', content };
+        
+        if (global.isMongoConnected) {
+            const lead = await Lead.findOne({ _id: req.params.id, tenantId });
+            if (!lead) return res.status(404).json({ error: 'Lead not found' });
+            lead.notes.push(note);
+            await lead.save();
+            res.json(lead);
+        } else {
+            const lead = mockDb.leads.find(l => l._id === req.params.id && l.tenantId === tenantId);
+            if (!lead) return res.status(404).json({ error: 'Lead not found' });
+            lead.notes = lead.notes || [];
+            lead.notes.push(note);
+            res.json(lead);
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/leads/:id/convert', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        let leadData = null;
+        
+        if (global.isMongoConnected) {
+            const lead = await Lead.findOne({ _id: req.params.id, tenantId });
+            if (!lead) return res.status(404).json({ error: 'Lead not found' });
+            lead.status = 'Won';
+            await lead.save();
+            leadData = lead;
+        } else {
+            const lead = mockDb.leads.find(l => l._id === req.params.id && l.tenantId === tenantId);
+            if (!lead) return res.status(404).json({ error: 'Lead not found' });
+            lead.status = 'Won';
+            leadData = lead;
+        }
+        
+        // Create Customer
+        const customerData = {
+            id: 'cust-' + Date.now(),
+            tenantId,
+            name: leadData.name,
+            email: leadData.email || '',
+            phone: leadData.phone || '',
+            type: 'Individual' // default
+        };
+        
+        if (global.isMongoConnected) {
+            const customer = new Customer(customerData);
+            await customer.save();
+            res.json({ success: true, customer });
+        } else {
+            customerData._id = customerData.id;
+            mockDb.customers.push(customerData);
+            res.json({ success: true, customer: customerData });
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

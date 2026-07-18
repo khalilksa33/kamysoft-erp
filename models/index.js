@@ -424,6 +424,26 @@ const leaseContractSchema = new mongoose.Schema({
 });
 const LeaseContract = mongoose.model('LeaseContract', leaseContractSchema);
 
+// Real Estate CRM Leads
+const leadSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true },
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String },
+    source: { type: String, enum: ['Website', 'Referral', 'Walk-in', 'Social Media', 'Other'], default: 'Website' },
+    status: { type: String, enum: ['New', 'Contacted', 'Viewing Scheduled', 'Negotiation', 'Won', 'Lost'], default: 'New' },
+    interestedPropertyId: { type: String }, // optional ref to Property
+    budget: { type: Number },
+    notes: [{
+        date: { type: Date, default: Date.now },
+        user: { type: String }, // who added the note
+        content: { type: String, required: true }
+    }],
+    createdAt: { type: Date, default: Date.now }
+});
+const Lead = mongoose.model('Lead', leadSchema);
+
 module.exports = {
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
     Warehouse,
@@ -436,5 +456,5 @@ module.exports = {
     SubscriptionPayment,
     Account,
     PropertyOwner,
-    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract
+    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead
 };

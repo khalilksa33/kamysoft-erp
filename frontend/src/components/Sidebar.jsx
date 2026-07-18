@@ -69,7 +69,8 @@ const sidebarTranslations = {
         propertyLeasing: "Leasing & Contracts",
         propertyMaintenance: "Maintenance Tasks",
         propertyOwners: "Property Owners",
-        ownerAccounting: "Owner Accounting"
+        ownerAccounting: "Owner Accounting",
+        propertyCrm: "CRM / Leads"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -137,7 +138,8 @@ const sidebarTranslations = {
         propertyLeasing: "العقود والتأجير",
         propertyMaintenance: "مهام الصيانة",
         propertyOwners: "الملاك",
-        ownerAccounting: "حسابات الملاك"
+        ownerAccounting: "حسابات الملاك",
+        propertyCrm: "إدارة العملاء المحتملين (CRM)"
     }
 };
 
@@ -161,6 +163,7 @@ const menuConfig = [
             { id: 'property_units', labelKey: 'propertyUnits' },
             { id: 'property_bookings', labelKey: 'propertyBookings' },
             { id: 'property_leasing', labelKey: 'propertyLeasing' },
+            { id: 'property_crm', labelKey: 'propertyCrm' },
             { id: 'property_maintenance', labelKey: 'propertyMaintenance' },
             { id: 'property_owners', labelKey: 'propertyOwners' },
             { id: 'property_owner_accounting', labelKey: 'ownerAccounting' }
