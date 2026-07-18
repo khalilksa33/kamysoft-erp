@@ -27,9 +27,9 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                 axios.get('/api/units', { headers }),
                 axios.get('/api/customers', { headers })
             ]);
-            setLeases(leaseRes.data);
-            setUnits(unitsRes.data);
-            setCustomers(custRes.data);
+            if (Array.isArray(leaseRes.data)) setLeases(leaseRes.data); else setLeases([]);
+            if (Array.isArray(unitsRes.data)) setUnits(unitsRes.data); else setUnits([]);
+            if (Array.isArray(custRes.data)) setCustomers(custRes.data); else setCustomers([]);
         } catch (err) {
             console.error('Error fetching leasing data:', err);
         }

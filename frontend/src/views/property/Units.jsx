@@ -23,9 +23,8 @@ const Units = () => {
             ]);
             const propData = await propRes.json();
             const unitData = await unitRes.json();
-            setProperties(propData);
-            setUnits(unitData);
-            if (propData.length > 0) setPropertyId(propData[0].id);
+            if (Array.isArray(propData)) { setProperties(propData); if (propData.length > 0) setPropertyId(propData[0].id); } else setProperties([]);
+            if (Array.isArray(unitData)) setUnits(unitData); else setUnits([]);
         } catch (err) { console.error('Error fetching data', err); }
     };
 

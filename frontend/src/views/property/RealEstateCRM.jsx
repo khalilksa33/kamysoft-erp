@@ -28,8 +28,8 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                 axios.get('/api/leads', { headers }),
                 axios.get('/api/properties', { headers })
             ]);
-            setLeads(leadsRes.data);
-            setProperties(propsRes.data);
+            if (Array.isArray(leadsRes.data)) setLeads(leadsRes.data); else setLeads([]);
+            if (Array.isArray(propsRes.data)) setProperties(propsRes.data); else setProperties([]);
         } catch (err) {
             console.error('Error fetching CRM data:', err);
         }

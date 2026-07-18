@@ -2468,7 +2468,7 @@ router.post('/api/lease-contracts', authenticateToken, async (req, res) => {
             data._id = Date.now().toString();
             mockDb.leaseContracts.push(data);
             if (data.status === 'Active') {
-                const u = mockDb.units.find(u => u._id === data.unitId && u.tenantId === tenantId);
+                const u = mockDb.units.find(u => u.id === data.unitId && u.tenantId === tenantId);
                 if (u) u.status = 'Occupied';
             }
             res.status(201).json(data);
@@ -2482,24 +2482,27 @@ router.put('/api/lease-contracts/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = req.headers['x-tenant-id'] || 'default';
         if (global.isMongoConnected) {
-            const updated = await LeaseContract.findOneAndUpdate({ _id: req.params.id, tenantId }, req.body, { new: true });
+            const updated = await LeaseContract.findOneAndUpdate({ id: req.params.id, tenantId }, req.body, { new: true });
             
             // Sync unit status
-            if (updated) {
-                const newStatus = updated.status === 'Active' ? 'Occupied' : 'Available';
-                await Unit.updateOne({ _id: updated.unitId, tenantId }, { $set: { status: newStatus }});
+            if (updated && req.body.status) {
+                const newStatus = req.body.status === 'Active' ? 'Occupied' : 'Available';
+                await Unit.updateOne({ id: updated.unitId, tenantId }, { $set: { status: newStatus }});
             }
             
             res.json(updated);
         } else {
-            const idx = mockDb.leaseContracts.findIndex(l => l._id === req.params.id && l.tenantId === tenantId);
+            const idx = mockDb.leaseContracts.findIndex(l => l.id === req.params.id && l.tenantId === tenantId);
             if (idx === -1) return res.status(404).json({ error: 'Not found' });
+            
             mockDb.leaseContracts[idx] = { ...mockDb.leaseContracts[idx], ...req.body };
             
-            const lease = mockDb.leaseContracts[idx];
-            const newStatus = lease.status === 'Active' ? 'Occupied' : 'Available';
-            const u = mockDb.units.find(u => u._id === lease.unitId && u.tenantId === tenantId);
-            if (u) u.status = newStatus;
+            if (req.body.status) {
+                const lease = mockDb.leaseContracts[idx];
+                const newStatus = lease.status === 'Active' ? 'Occupied' : 'Available';
+                const u = mockDb.units.find(u => u.id === lease.unitId && u.tenantId === tenantId);
+                if (u) u.status = newStatus;
+            }
             
             res.json(mockDb.leaseContracts[idx]);
         }
@@ -2515,9 +2518,9 @@ router.patch('/api/lease-contracts/:id/installments/:idx/pay', authenticateToken
         
         let lease;
         if (global.isMongoConnected) {
-            lease = await LeaseContract.findOne({ _id: req.params.id, tenantId });
+            lease = await LeaseContract.findOne({ id: req.params.id, tenantId });
         } else {
-            lease = mockDb.leaseContracts.find(l => l._id === req.params.id && l.tenantId === tenantId);
+            lease = mockDb.leaseContracts.find(l => l.id === req.params.id && l.tenantId === tenantId);
         }
         
         if (!lease) return res.status(404).json({ error: 'Lease not found' });
@@ -2533,7 +2536,7 @@ router.patch('/api/lease-contracts/:id/installments/:idx/pay', authenticateToken
         // Generate PropertyInvoice
         const invoiceData = {
             tenantId,
-            bookingId: lease._id.toString() + '-INST-' + installmentIndex, // Track it via lease + idx
+            leaseId: lease.id,
             customerId: lease.customerId,
             issueDate: new Date(),
             dueDate: installment.dueDate,
@@ -2545,19 +2548,20 @@ router.patch('/api/lease-contracts/:id/installments/:idx/pay', authenticateToken
         
         let savedInvoice;
         if (global.isMongoConnected) {
+            invoiceData.id = 'pinv-' + Date.now();
             savedInvoice = new PropertyInvoice(invoiceData);
             await savedInvoice.save();
             
             lease.installments[installmentIndex].status = 'Paid';
-            lease.installments[installmentIndex].invoiceId = savedInvoice._id.toString();
+            lease.installments[installmentIndex].invoiceId = savedInvoice.id;
             await lease.save();
         } else {
-            invoiceData._id = Date.now().toString();
+            invoiceData.id = Date.now().toString();
             mockDb.propertyInvoices.push(invoiceData);
             savedInvoice = invoiceData;
             
             lease.installments[installmentIndex].status = 'Paid';
-            lease.installments[installmentIndex].invoiceId = savedInvoice._id;
+            lease.installments[installmentIndex].invoiceId = savedInvoice.id;
         }
         
         res.json({ success: true, lease, invoice: savedInvoice });
@@ -2570,17 +2574,19 @@ router.delete('/api/lease-contracts/:id', authenticateToken, async (req, res) =>
     try {
         const tenantId = req.headers['x-tenant-id'] || 'default';
         if (global.isMongoConnected) {
-            const lease = await LeaseContract.findOneAndDelete({ _id: req.params.id, tenantId });
+            const lease = await LeaseContract.findOneAndDelete({ id: req.params.id, tenantId });
             if (lease) {
-                await Unit.updateOne({ _id: lease.unitId, tenantId }, { $set: { status: 'Available' }});
+                await Unit.updateOne({ id: lease.unitId, tenantId }, { $set: { status: 'Available' }});
+                await PropertyInvoice.deleteMany({ leaseId: req.params.id, tenantId });
             }
         } else {
-            const lease = mockDb.leaseContracts.find(l => l._id === req.params.id && l.tenantId === tenantId);
+            const lease = mockDb.leaseContracts.find(l => l.id === req.params.id && l.tenantId === tenantId);
             if (lease) {
-                const u = mockDb.units.find(u => u._id === lease.unitId && u.tenantId === tenantId);
+                const u = mockDb.units.find(u => u.id === lease.unitId && u.tenantId === tenantId);
                 if (u) u.status = 'Available';
             }
-            mockDb.leaseContracts = mockDb.leaseContracts.filter(l => !(l._id === req.params.id && l.tenantId === tenantId));
+            mockDb.leaseContracts = mockDb.leaseContracts.filter(l => !(l.id === req.params.id && l.tenantId === tenantId));
+            mockDb.propertyInvoices = mockDb.propertyInvoices.filter(i => !(i.leaseId === req.params.id && i.tenantId === tenantId));
         }
         res.json({ success: true });
     } catch (err) {
@@ -2602,10 +2608,10 @@ router.post('/api/customers/:id/set-password', authenticateToken, async (req, re
         const hashedPassword = await bcrypt.hash(password, 10);
         
         if (global.isMongoConnected) {
-            await Customer.updateOne({ _id: req.params.id, tenantId }, { $set: { portalPassword: hashedPassword }});
+            await Customer.updateOne({ id: req.params.id, tenantId }, { $set: { portalPassword: hashedPassword }});
             res.json({ success: true });
         } else {
-            const cust = mockDb.customers.find(c => c._id === req.params.id && c.tenantId === tenantId);
+            const cust = mockDb.customers.find(c => c.id === req.params.id && c.tenantId === tenantId);
             if (cust) {
                 cust.portalPassword = hashedPassword;
                 res.json({ success: true });
@@ -2636,11 +2642,11 @@ router.post('/api/tenant-portal/login', async (req, res) => {
         if (!valid) return res.status(401).json({ error: 'Invalid phone or password' });
         
         const token = jwt.sign(
-            { id: customer._id, role: 'Tenant', tenantId: customer.tenantId },
+            { id: customer.id, role: 'Tenant', tenantId: customer.tenantId },
             process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026',
             { expiresIn: '24h' }
         );
-        res.json({ token, customer: { id: customer._id, name: customer.name, phone: customer.phone } });
+        res.json({ token, customer: { id: customer.id, name: customer.name, phone: customer.phone } });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -2709,7 +2715,7 @@ router.post('/api/tenant-portal/maintenance', authenticateTenant, async (req, re
             await task.save();
             res.status(201).json(task);
         } else {
-            data._id = Date.now().toString();
+            data.id = Date.now().toString();
             mockDb.maintenanceTasks.push(data);
             res.status(201).json(data);
         }
@@ -2739,7 +2745,6 @@ router.post('/api/leads', authenticateToken, async (req, res) => {
             res.status(201).json(lead);
         } else {
             mockDb.leads = mockDb.leads || [];
-            data._id = data.id;
             mockDb.leads.push(data);
             res.status(201).json(data);
         }
@@ -2750,11 +2755,12 @@ router.put('/api/leads/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         if (global.isMongoConnected) {
-            await Lead.updateOne({ _id: req.params.id, tenantId }, req.body);
+            await Lead.updateOne({ id: req.params.id, tenantId }, req.body);
+            res.json({ success: true });
         } else {
-            mockDb.leads = mockDb.leads.map(l => l._id === req.params.id && l.tenantId === tenantId ? { ...l, ...req.body } : l);
+            mockDb.leads = mockDb.leads.map(l => l.id === req.params.id && l.tenantId === tenantId ? { ...l, ...req.body } : l);
+            res.json({ success: true });
         }
-        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -2762,9 +2768,9 @@ router.delete('/api/leads/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         if (global.isMongoConnected) {
-            await Lead.deleteOne({ _id: req.params.id, tenantId });
+            await Lead.deleteOne({ id: req.params.id, tenantId });
         } else {
-            mockDb.leads = mockDb.leads.filter(l => !(l._id === req.params.id && l.tenantId === tenantId));
+            mockDb.leads = mockDb.leads.filter(l => !(l.id === req.params.id && l.tenantId === tenantId));
         }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -2774,19 +2780,20 @@ router.post('/api/leads/:id/notes', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const { content } = req.body;
-        const note = { date: new Date(), user: req.user?.username || 'System', content };
+        const noteObj = { date: new Date(), user: req.user?.username || 'System', content };
         
         if (global.isMongoConnected) {
-            const lead = await Lead.findOne({ _id: req.params.id, tenantId });
+            const lead = await Lead.findOne({ id: req.params.id, tenantId });
             if (!lead) return res.status(404).json({ error: 'Lead not found' });
-            lead.notes.push(note);
+            lead.notes = lead.notes || [];
+            lead.notes.push(noteObj);
             await lead.save();
             res.json(lead);
         } else {
-            const lead = mockDb.leads.find(l => l._id === req.params.id && l.tenantId === tenantId);
+            const lead = mockDb.leads.find(l => l.id === req.params.id && l.tenantId === tenantId);
             if (!lead) return res.status(404).json({ error: 'Lead not found' });
             lead.notes = lead.notes || [];
-            lead.notes.push(note);
+            lead.notes.push(noteObj);
             res.json(lead);
         }
     } catch (err) { res.status(500).json({ error: err.message }); }

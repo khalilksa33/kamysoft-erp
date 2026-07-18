@@ -19,7 +19,8 @@ const Properties = () => {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/properties', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            setProperties(data);
+            if (Array.isArray(data)) setProperties(data);
+            else setProperties([]);
         } catch (err) { console.error('Error fetching properties', err); }
     };
 
@@ -28,7 +29,8 @@ const Properties = () => {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/property-owners', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            setOwners(data);
+            if (Array.isArray(data)) setOwners(data);
+            else setOwners([]);
         } catch (err) { console.error('Error fetching owners', err); }
     };
 

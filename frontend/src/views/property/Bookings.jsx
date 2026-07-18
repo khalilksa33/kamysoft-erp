@@ -44,12 +44,9 @@ const Bookings = () => {
             const unitData = await unitRes.json();
             const custData = await custRes.json();
             
-            setBookings(bookData);
-            setUnits(unitData);
-            setCustomers(custData);
-            
-            if (unitData.length > 0) setUnitId(unitData[0].id);
-            if (custData.length > 0) setCustomerId(custData[0].id);
+            if (Array.isArray(bookData)) setBookings(bookData); else setBookings([]);
+            if (Array.isArray(unitData)) { setUnits(unitData); if (unitData.length > 0) setUnitId(unitData[0].id); } else setUnits([]);
+            if (Array.isArray(custData)) { setCustomers(custData); if (custData.length > 0) setCustomerId(custData[0].id); } else setCustomers([]);
         } catch (err) { console.error('Error fetching data', err); }
     };
 
