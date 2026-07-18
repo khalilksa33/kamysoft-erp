@@ -25,8 +25,18 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (token == null) return res.sendStatus(401);
-    jwt.verify(token, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', async (err, user) => {
         if (err) return res.sendStatus(403);
+        
+        // Verify user still exists (prevents deleted tenants from using active tokens)
+        if (global.isMongoConnected) {
+            const userExists = await User.exists({ id: user.id });
+            if (!userExists) return res.sendStatus(401);
+        } else {
+            const userExists = mockDb.users.some(u => u.id === user.id);
+            if (!userExists) return res.sendStatus(401);
+        }
+
         req.user = user;
         next();
     });
@@ -340,21 +350,7 @@ router.get('/api/settings', async (req, res) => {
                 if (tenantId === 'default') {
                     settings = await Settings.create({ ...mockDb.settings, tenantId: 'default' });
                 } else {
-                    settings = await Settings.create({
-                        tenantId,
-                        businessName: `${tenantId.toUpperCase()} Store`,
-                        vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
-                        taxRate: 15,
-                        baseCurrency: 'SAR',
-                        businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
-                        crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
-                        contactNumber: '+966 50 000 0000',
-                        exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
-                        branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
-                        currentBranch: 'Main Branch',
-                        businessType: 'retail',
-                        enabledModules: { invoices: false, pos: true, maintenance: false, inventory: true, customers: false, employees: false, suppliers: true, warehouses: false, financials: false, reports: false, settings: true, propertyManagement: false }
-                    });
+                    return res.status(404).json({ error: 'Store not found or deleted' });
                 }
             }
             res.json(settings);
@@ -363,20 +359,11 @@ router.get('/api/settings', async (req, res) => {
                 mockDb.settingsTenant = { 'default': { ...mockDb.settings, tenantId: 'default' } };
             }
             if (!mockDb.settingsTenant[tenantId]) {
-                mockDb.settingsTenant[tenantId] = {
-                    tenantId,
-                    businessName: `${tenantId.toUpperCase()} Store`,
-                    vatNumber: '310' + Math.floor(100000000000 + Math.random() * 900000000000).toString(),
-                    taxRate: 15,
-                    baseCurrency: 'SAR',
-                    businessAddress: 'Saudi Arabia / المملكة العربية السعودية',
-                    crNumber: Math.floor(1010000000 + Math.random() * 900000000).toString(),
-                    contactNumber: '+966 50 000 0000',
-                    exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
-                    branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
-                    currentBranch: 'Main Branch',
-                    businessType: 'retail'
-                };
+                if (tenantId === 'default') {
+                    mockDb.settingsTenant[tenantId] = { ...mockDb.settings, tenantId: 'default' };
+                } else {
+                    return res.status(404).json({ error: 'Store not found or deleted' });
+                }
             }
             res.json(mockDb.settingsTenant[tenantId]);
         }
