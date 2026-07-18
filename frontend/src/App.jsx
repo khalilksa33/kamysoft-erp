@@ -1,5 +1,7 @@
 import html2pdf from 'html2pdf.js';
 import React, { useState, useEffect } from 'react';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
@@ -666,6 +668,11 @@ export default function App() {
     const [loginUsername, setLoginUsername] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [authError, setAuthError] = useState('');
+    const [authView, setAuthView] = useState(() => {
+        if (window.location.pathname === '/reset-password') return 'reset-password';
+        if (window.location.pathname === '/forgot-password') return 'forgot-password';
+        return 'login';
+    });
 
     // System Core Configurations
     const [currentLanguage, setCurrentLanguage] = useState('en');
@@ -1873,6 +1880,24 @@ const handleB2BSubmit = () => {
     
     // Auth Overlay Login page (for demo.26i.uk or cust-x.26i.uk)
     if (!token) {
+        if (authView === 'forgot-password') {
+            return (
+                <>
+                    <ForgotPassword onNavigate={setAuthView} />
+                    {renderDevToolbar()}
+                </>
+            );
+        }
+        
+        if (authView === 'reset-password') {
+            return (
+                <>
+                    <ResetPassword onNavigate={setAuthView} />
+                    {renderDevToolbar()}
+                </>
+            );
+        }
+
         return (
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '20px' }}>
                 <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '30px' }}>
@@ -1925,6 +1950,12 @@ const handleB2BSubmit = () => {
                             <input type="password" className="form-control" placeholder="admin123" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>{currentLanguage === 'ar' ? 'دخول' : 'Login'}</button>
+                        
+                        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                            <button type="button" onClick={() => setAuthView('forgot-password')} style={{ background: 'transparent', border: 'none', color: 'var(--accent-purple)', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}>
+                                {currentLanguage === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
+                            </button>
+                        </div>
                     </form>
 
                     <div style={{ textAlign: 'center', marginTop: '24px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>

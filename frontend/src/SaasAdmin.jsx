@@ -405,7 +405,8 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                             <div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>VAT:</span> {store.vatNumber || 'N/A'}</div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>CR:</span> {store.crNumber || 'N/A'}</div>
-                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Admin:</span> <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{store.adminUsername || 'N/A'}</span></div>
+                                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                                     <button onClick={() => openEditProfileModal(store)}
                                                                         style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#a78bfa', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
                                                                         <i className="ri-edit-line" /> Edit Profile
@@ -413,6 +414,21 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                                     <button onClick={() => openModulesModal(store.tenantId)}
                                                                         style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#34d399', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
                                                                         <i className="ri-layout-grid-line" /> Edit Modules
+                                                                    </button>
+                                                                    <button onClick={async () => {
+                                                                        if (window.confirm(`Are you sure you want to reset the admin password for ${store.tenantId}?`)) {
+                                                                            try {
+                                                                                const res = await fetch(`/api/saas/stores/${store.tenantId}/reset-password`, { method: 'POST', headers: { 'x-saas-admin-key': adminKey } });
+                                                                                const data = await res.json();
+                                                                                if (data.success) {
+                                                                                    window.alert(`Password reset successfully!\n\nNew Password: ${data.newPassword}\n\nPlease copy this password securely and provide it to the tenant.`);
+                                                                                } else {
+                                                                                    window.alert(`Error: ${data.error}`);
+                                                                                }
+                                                                            } catch (e) { window.alert('Failed to reset password'); }
+                                                                        }
+                                                                    }} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#f87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                                                                        <i className="ri-lock-password-line" /> Reset Password
                                                                     </button>
                                                                 </div>
                                                             </div>

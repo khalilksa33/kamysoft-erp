@@ -79,6 +79,92 @@ router.post('/api/auth/login', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+router.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { tenantId } = req.body;
+        if (!tenantId) return res.status(400).json({ error: 'Tenant ID is required' });
+        
+        const host = (req.headers.host || '').split(':')[0].toLowerCase();
+        let baseDomain = '26i.uk';
+        if (host.endsWith('ssh-erp.26i.uk')) baseDomain = 'ssh-erp.26i.uk';
+        else if (host.endsWith('localhost')) baseDomain = 'localhost';
+
+        let settings, adminUser;
+        if (global.isMongoConnected) {
+            settings = await Settings.findOne({ tenantId });
+            adminUser = await User.findOne({ tenantId, role: 'Admin' });
+        } else {
+            settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+            adminUser = mockDb.users.find(u => u.tenantId === tenantId && u.role === 'Admin');
+        }
+
+        if (!settings || !settings.email) {
+            return res.status(404).json({ error: 'No email associated with this tenant. Please contact platform support.' });
+        }
+        if (!adminUser) {
+            return res.status(404).json({ error: 'No admin user found for this tenant.' });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        
+        if (global.isMongoConnected) {
+            await Settings.updateOne({ tenantId }, { passwordResetToken: resetToken, passwordResetExpires: Date.now() + 3600000 });
+        } else {
+            settings.passwordResetToken = resetToken;
+            settings.passwordResetExpires = Date.now() + 3600000;
+        }
+
+        if (typeof global.sendPasswordResetEmail === 'function') {
+            global.sendPasswordResetEmail(settings.email, tenantId, resetToken, baseDomain);
+        }
+
+        res.json({ success: true, message: 'Password reset link sent to your email address.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { tenantId, token, newPassword } = req.body;
+        if (!tenantId || !token || !newPassword) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        let settings;
+        if (global.isMongoConnected) {
+            settings = await Settings.findOne({ tenantId, passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });
+        } else {
+            settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+            if (settings && (settings.passwordResetToken !== token || settings.passwordResetExpires < Date.now())) {
+                settings = null;
+            }
+        }
+
+        if (!settings) {
+            return res.status(400).json({ error: 'Invalid or expired password reset token.' });
+        }
+
+        const passwordHash = bcrypt.hashSync(newPassword, 10);
+
+        if (global.isMongoConnected) {
+            await User.updateOne({ tenantId, role: 'Admin' }, { passwordHash });
+            await Settings.updateOne({ tenantId }, { $unset: { passwordResetToken: 1, passwordResetExpires: 1 } });
+        } else {
+            const adminUser = mockDb.users.find(u => u.tenantId === tenantId && u.role === 'Admin');
+            if (adminUser) adminUser.passwordHash = passwordHash;
+            delete settings.passwordResetToken;
+            delete settings.passwordResetExpires;
+        }
+
+        res.json({ success: true, message: 'Password has been reset successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const getBaseDomain = (host) => {
     host = host.toLowerCase();
     if (host.endsWith('ssh-erp.26i.uk')) return 'ssh-erp.26i.uk';
@@ -1547,17 +1633,21 @@ router.get('/api/saas/stores', requireSaasAdmin, async (req, res) => {
         if (global.isMongoConnected) {
             const stores = await Settings.find({}).lean();
             const enriched = await Promise.all(stores.map(async (s) => {
-                const [invoiceCount, productCount, userCount] = await Promise.all([
+                const [invoiceCount, productCount, userCount, adminUser] = await Promise.all([
                     Invoice.countDocuments({ tenantId: s.tenantId }),
                     Product.countDocuments({ tenantId: s.tenantId }),
-                    User.countDocuments({ tenantId: s.tenantId })
+                    User.countDocuments({ tenantId: s.tenantId }),
+                    User.findOne({ tenantId: s.tenantId, role: 'Admin' })
                 ]);
-                return { ...s, invoiceCount, productCount, userCount };
+                return { ...s, invoiceCount, productCount, userCount, adminUsername: adminUser ? adminUser.username : 'N/A' };
             }));
             res.json(enriched);
         } else {
             const stores = Object.values(mockDb.settingsTenant || { default: mockDb.settings });
-            res.json(stores.map(s => ({ ...s, invoiceCount: 0, productCount: 0, userCount: 0 })));
+            res.json(stores.map(s => {
+                const adminUser = mockDb.users.find(u => u.tenantId === s.tenantId && u.role === 'Admin');
+                return { ...s, invoiceCount: 0, productCount: 0, userCount: 0, adminUsername: adminUser ? adminUser.username : 'N/A' };
+            }));
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1653,6 +1743,28 @@ router.patch('/api/saas/stores/:tenantId/status', requireSaasAdmin, async (req, 
         res.status(500).json({ error: err.message });
     }
 });
+
+// POST reset admin password for a tenant
+router.post('/api/saas/stores/:tenantId/reset-password', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        const newPassword = crypto.randomBytes(4).toString('hex') + '!aA'; // simple random secure password
+        const passwordHash = bcrypt.hashSync(newPassword, 10);
+        
+        if (global.isMongoConnected) {
+            const result = await User.findOneAndUpdate({ tenantId, role: 'Admin' }, { passwordHash }, { new: true });
+            if (!result) return res.status(404).json({ error: 'Admin user not found for this tenant.' });
+        } else {
+            const u = mockDb.users.find(u => u.tenantId === tenantId && u.role === 'Admin');
+            if (!u) return res.status(404).json({ error: 'Admin user not found for this tenant.' });
+            u.passwordHash = passwordHash;
+        }
+        res.json({ success: true, message: 'Password reset successfully', newPassword });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 // PATCH update tenant profile (Saas Admin)
 router.patch('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) => {

@@ -63,6 +63,35 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
     }
 };
 
+const sendPasswordResetEmail = async (tenantEmail, tenantId, resetToken, baseDomain = '26i.uk') => {
+    const resetLink = `http://${baseDomain}/reset-password?token=${resetToken}&tenantId=${tenantId}`;
+    if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
+        console.log(`[Mock Email] Password Reset link for ${tenantId} sent to ${tenantEmail}: ${resetLink}`);
+        return true;
+    }
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || "SME Solutions <no-reply@26i.uk>",
+            to: tenantEmail,
+            subject: 'Password Reset - SME Solutions',
+            html: `
+                <h3>Password Reset Request</h3>
+                <p>A password reset was requested for your store: <b>${tenantId}</b>.</p>
+                <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;text-align:center;">
+                    <p style="margin-bottom:16px;font-size:16px;">Click the button below to reset your password. This link is valid for 1 hour.</p>
+                    <a href="${resetLink}" style="background:#3b82f6;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Reset Password</a>
+                </div>
+                <p>If you did not request this, please ignore this email.</p>
+            `
+        });
+        console.log(`Password reset email sent to ${tenantEmail}`);
+        return true;
+    } catch (err) {
+        console.error('Failed to send password reset email:', err.message);
+        return false;
+    }
+};
+
 const getTenantId = (req) => {
     const host = (req.headers.host || '').split(':')[0].toLowerCase();
     const baseDomain = getBaseDomain(host);
@@ -1033,6 +1062,7 @@ global.mockDb = mockDb;
 global.getTenantId = getTenantId;
 global.defaultProductsBySector = defaultProductsBySector;
 global.sendLicenseEmail = sendLicenseEmail;
+global.sendPasswordResetEmail = sendPasswordResetEmail;
 global.updateCloudflareTunnelConfig = updateCloudflareTunnelConfig;
 global.removeCloudflareTunnelConfig = removeCloudflareTunnelConfig;
 
