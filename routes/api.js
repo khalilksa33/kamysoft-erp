@@ -717,27 +717,115 @@ router.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res
 
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
         
-        const cert = settings?.zatcaConn?.clientId || "MOCK_CERT";
-        const secret = settings?.zatcaConn?.clientSecret || "MOCK_SECRET";
+        const cert = settings?.zatcaConn?.clientId;
+        const secret = settings?.zatcaConn?.clientSecret;
+        const privateKey = settings?.zatcaConn?.privateKey;
         const env = settings?.zatcaConn?.env || 'sandbox';
+
+        if (!cert || !secret || !privateKey) {
+            return res.status(400).json({ error: 'ZATCA connection details missing. Please onboard first.' });
+        }
+
+        const { generateInvoiceXml, signInvoice, DEFAULT_COMPLIANCE_PREVIOUS_INVOICE_HASH, generatePhase2QRImage } = require('@talha7k/zatca');
+
+        const issueDate = new Date(invoice.date);
+        
+        // Build ZATCA invoice model
+        const invoiceData = {
+            invoiceNumber: invoice.id,
+            uuid: invoice.uuid || require('crypto').randomUUID(),
+            issueDate: issueDate.toISOString().split('T')[0],
+            issueTime: issueDate.toISOString().split('T')[1].substring(0,8),
+            invoiceTypeCode: '388', // Tax Invoice
+            currencyCode: 'SAR',
+            previousInvoiceHash: invoice.pih && invoice.pih !== "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==" ? invoice.pih : DEFAULT_COMPLIANCE_PREVIOUS_INVOICE_HASH,
+            supplier: {
+                nameAr: settings?.companyName || 'شركة اختبار',
+                nameEn: settings?.companyName || 'Test Company',
+                vatNumber: settings?.vatNumber || '310122393500003',
+                address: {
+                    city: settings?.address?.split(',')[0] || 'Riyadh',
+                    street: settings?.address?.split(',')[0] || 'King Fahd Road',
+                    postalCode: '12345',
+                    buildingNumber: '1234',
+                    district: settings?.address?.split(',')[0] || 'Al Olaya'
+                }
+            },
+            customer: {
+                nameAr: invoice.customer || 'Customer',
+                nameEn: invoice.customer || 'Customer',
+                address: {
+                    city: 'Riyadh',
+                    street: 'King Fahd',
+                    postalCode: '12345',
+                    buildingNumber: '1234',
+                    district: 'Olaya'
+                }
+            },
+            taxExclusiveAmount: invoice.total - invoice.vat,
+            taxInclusiveAmount: invoice.total,
+            taxAmount: invoice.vat,
+            payableAmount: invoice.total,
+            lineExtensionAmount: invoice.total - invoice.vat,
+            invoiceLines: invoice.items.map((item, index) => ({
+                id: (index + 1).toString(),
+                name: item.name,
+                quantity: item.qty,
+                price: item.price,
+                netAmount: item.price * item.qty,
+                taxAmount: (item.price * item.qty) * 0.15,
+                taxInclusiveAmount: (item.price * item.qty) * 1.15,
+                taxCategory: 'S',
+                taxRate: 15
+            }))
+        };
+
+        // 1. Generate XML
+        const unsignedXml = generateInvoiceXml(invoiceData);
+
+        // 2. Sign XML
+        const qrData = {
+            sellerName: invoiceData.supplier.nameEn,
+            vatNumber: invoiceData.supplier.vatNumber,
+            timestamp: `${invoiceData.issueDate}T${invoiceData.issueTime}Z`,
+            totalWithVat: invoiceData.taxInclusiveAmount.toFixed(2),
+            vatTotal: invoiceData.taxAmount.toFixed(2)
+        };
+
+        const signedResult = signInvoice({
+            xml: unsignedXml,
+            privateKeyPem: privateKey,
+            certificatePem: cert,
+            qrData: qrData
+        });
+
+        const xmlBase64 = Buffer.from(signedResult.signedXml).toString('base64');
+        const invoiceHashHex = Buffer.from(signedResult.invoiceHash, 'base64').toString('hex');
+        
+        // Optionally generate a QR Code image base64 for display
+        const qrImageBase64 = generatePhase2QRImage(signedResult.signedXml);
 
         // Call real ZATCA Reporting API
         try {
-            const apiRes = await zatcaApi.reportInvoice(invoice.xmlBase64 || "mock-xml", invoice.xmlHashHex || "mock-hash", cert, secret, env);
+            const apiRes = await zatcaApi.reportInvoice(xmlBase64, invoiceHashHex, cert, secret, env);
             console.log('ZATCA Reporting Success', apiRes);
         } catch(e) {
             console.error('ZATCA Reporting API Error', e.message);
             return res.status(400).json({ error: 'ZATCA Reporting failed: ' + e.message });
         }
 
+        invoice.xml = signedResult.signedXml;
+        invoice.xmlBase64 = xmlBase64;
+        invoice.xmlHashHex = invoiceHashHex;
+        invoice.signature = signedResult.signatureValue;
+        invoice.zatcaStatus = 'REPORTED';
+        invoice.certSignature = qrImageBase64; // Store QR code in this unused field for frontend display
+
         if (req.app.locals.isSaas) {
-            invoice.zatcaStatus = 'REPORTED';
             await invoice.save();
-        } else {
-            invoice.zatcaStatus = 'REPORTED';
         }
 
-        res.json({ message: 'Reported to ZATCA' });
+        res.json({ message: 'Reported to ZATCA successfully', zatcaStatus: invoice.zatcaStatus, qrCode: qrImageBase64 });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
