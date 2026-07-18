@@ -101,14 +101,14 @@ export default function TenantPortal() {
                             <label>Phone Number</label>
                             <div className="input-with-icon">
                                 <i className="ri-phone-line"></i>
-                                <input type="text" className="modern-input" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="Enter registered phone" />
+                                <input type="text" className="form-control" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="Enter registered phone" />
                             </div>
                         </div>
                         <div className="form-group">
                             <label>Password</label>
                             <div className="input-with-icon">
                                 <i className="ri-lock-line"></i>
-                                <input type="password" className="modern-input" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" />
+                                <input type="password" className="form-control" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" />
                             </div>
                         </div>
                         <button type="submit" className="modern-btn primary" style={{ width: '100%', padding: '12px' }}>
@@ -220,7 +220,7 @@ export default function TenantPortal() {
                             <form onSubmit={handleCreateTicket} style={{ display: 'flex', gap: '15px', marginBottom: '30px', alignItems: 'flex-end' }}>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label>Select Unit</label>
-                                    <select className="modern-input" required value={newTicket.unitId} onChange={e => setNewTicket({...newTicket, unitId: e.target.value})}>
+                                    <select className="form-control" required value={newTicket.unitId} onChange={e => setNewTicket({...newTicket, unitId: e.target.value})}>
                                         <option value="">-- Choose Unit --</option>
                                         {leases.map(l => (
                                             <option key={l.unitId} value={l.unitId}>Unit {l.unitId}</option>
@@ -229,7 +229,7 @@ export default function TenantPortal() {
                                 </div>
                                 <div className="form-group" style={{ flex: 2 }}>
                                     <label>Issue Description</label>
-                                    <input type="text" className="modern-input" required value={newTicket.description} onChange={e => setNewTicket({...newTicket, description: e.target.value})} placeholder="E.g., AC is leaking" />
+                                    <input type="text" className="form-control" required value={newTicket.description} onChange={e => setNewTicket({...newTicket, description: e.target.value})} placeholder="E.g., AC is leaking" />
                                 </div>
                                 <button type="submit" className="modern-btn primary" style={{ padding: '12px 24px' }}>Submit</button>
                             </form>

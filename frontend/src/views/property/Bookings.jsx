@@ -122,16 +122,16 @@ const Bookings = () => {
             <div className="card">
                 <h3>New Booking</h3>
                 <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <select value={unitId} onChange={e => setUnitId(e.target.value)} required>
+                    <select className="form-control" value={unitId} onChange={e => setUnitId(e.target.value)} required>
                         <option value="" disabled>Select Unit</option>
                         {units.map(u => <option key={u.id} value={u.id}>{u.unitNumber} ({u.type}) - {u.dailyRate}/night</option>)}
                     </select>
-                    <select value={customerId} onChange={e => setCustomerId(e.target.value)} required>
+                    <select className="form-control" value={customerId} onChange={e => setCustomerId(e.target.value)} required>
                         <option value="" disabled>Select Customer</option>
                         {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
-                    <input type="date" value={checkInDate} onChange={e => setCheckInDate(e.target.value)} required title="Check-in" />
-                    <input type="date" value={checkOutDate} onChange={e => setCheckOutDate(e.target.value)} required title="Check-out" />
+                    <input type="date" className="form-control" value={checkInDate} onChange={e => setCheckInDate(e.target.value)} required title="Check-in" />
+                    <input type="date" className="form-control" value={checkOutDate} onChange={e => setCheckOutDate(e.target.value)} required title="Check-out" />
                     <button type="submit" className="primary-btn">Book</button>
                 </form>
             </div>

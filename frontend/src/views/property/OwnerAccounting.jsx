@@ -60,18 +60,18 @@ const OwnerAccounting = ({ currentLanguage }) => {
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{ display: 'block', marginBottom: '5px' }}>{isAr ? 'اختر المالك' : 'Select Owner'}</label>
-                        <select className="modern-input" value={selectedOwner} onChange={e => setSelectedOwner(e.target.value)}>
+                        <select className="form-control" value={selectedOwner} onChange={e => setSelectedOwner(e.target.value)}>
                             <option value="">-- {isAr ? 'اختر المالك' : 'Choose Owner'} --</option>
                             {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px' }}>{isAr ? 'من تاريخ' : 'Start Date'}</label>
-                        <input type="date" className="modern-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                        <input type="date" className="form-control" value={startDate} onChange={e => setStartDate(e.target.value)} />
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px' }}>{isAr ? 'إلى تاريخ' : 'End Date'}</label>
-                        <input type="date" className="modern-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                        <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
                     </div>
                     <button className="primary-btn" onClick={generateStatement} disabled={!selectedOwner || loading}>
                         {loading ? (isAr ? 'جاري التوليد...' : 'Generating...') : (isAr ? 'توليد الكشف' : 'Generate Statement')}

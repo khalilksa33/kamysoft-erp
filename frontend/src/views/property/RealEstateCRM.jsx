@@ -240,7 +240,7 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                         <form onSubmit={handleAddNote} style={{ display: 'flex', gap: '10px' }}>
                             <input 
                                 type="text" 
-                                className="modern-input" 
+                                className="form-control" 
                                 style={{ flex: 1 }} 
                                 placeholder={isAr ? 'إضافة ملاحظة جديدة...' : 'Add new note...'} 
                                 value={newNote} 
@@ -267,22 +267,22 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                         <form onSubmit={handleSave}>
                             <div className="form-group">
                                 <label>{isAr ? 'الاسم' : 'Name'}</label>
-                                <input type="text" className="modern-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                <input type="text" className="form-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                             </div>
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'الهاتف' : 'Phone'}</label>
-                                    <input type="text" className="modern-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                                    <input type="text" className="form-control" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'البريد الإلكتروني' : 'Email'}</label>
-                                    <input type="email" className="modern-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                    <input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                                 </div>
                             </div>
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'المصدر' : 'Source'}</label>
-                                    <select className="modern-input" value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})}>
+                                    <select className="form-control" value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})}>
                                         <option value="Website">Website</option>
                                         <option value="Referral">Referral</option>
                                         <option value="Walk-in">Walk-in</option>
@@ -292,7 +292,7 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'العقار المهتم به' : 'Interested Property'}</label>
-                                    <select className="modern-input" value={formData.interestedPropertyId} onChange={e => setFormData({...formData, interestedPropertyId: e.target.value})}>
+                                    <select className="form-control" value={formData.interestedPropertyId} onChange={e => setFormData({...formData, interestedPropertyId: e.target.value})}>
                                         <option value="">{isAr ? '-- غير محدد --' : '-- Not Specified --'}</option>
                                         {properties.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -302,7 +302,7 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                             </div>
                             <div className="form-group">
                                 <label>{isAr ? 'الميزانية (اختياري)' : 'Budget (Optional)'}</label>
-                                <input type="number" className="modern-input" value={formData.budget} onChange={e => setFormData({...formData, budget: e.target.value})} />
+                                <input type="number" className="form-control" value={formData.budget} onChange={e => setFormData({...formData, budget: e.target.value})} />
                             </div>
                             
                             <div className="modal-actions">

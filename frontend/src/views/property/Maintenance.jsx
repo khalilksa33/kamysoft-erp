@@ -202,7 +202,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 <td>${task.vendorCost > 0 ? task.vendorCost : task.cost}</td>
                                 <td>
                                     <select 
-                                        className="modern-input" 
+                                        className="form-control" 
                                         style={{ padding: '4px', width: 'auto' }}
                                         value={task.status} 
                                         onChange={(e) => handleUpdateStatus(task.id || task._id, e.target.value)}
@@ -238,14 +238,14 @@ const Maintenance = ({ currentLanguage, headers }) => {
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'العقار' : 'Property'}</label>
-                                    <select className="modern-input" required value={formData.propertyId} onChange={e => setFormData({...formData, propertyId: e.target.value})}>
+                                    <select className="form-control" required value={formData.propertyId} onChange={e => setFormData({...formData, propertyId: e.target.value})}>
                                         <option value="">{isAr ? '-- اختر العقار --' : '-- Select Property --'}</option>
                                         {properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'الوحدة (اختياري للمرافق)' : 'Unit (Optional for Facility)'}</label>
-                                    <select className="modern-input" value={formData.unitId} onChange={e => setFormData({...formData, unitId: e.target.value})}>
+                                    <select className="form-control" value={formData.unitId} onChange={e => setFormData({...formData, unitId: e.target.value})}>
                                         <option value="">{isAr ? '-- مرافق العقار --' : '-- Facility Wide --'}</option>
                                         {units.filter(u => u.propertyId === formData.propertyId).map(u => (
                                             <option key={u.id} value={u.id}>{u.unitNumber}</option>
@@ -256,20 +256,20 @@ const Maintenance = ({ currentLanguage, headers }) => {
 
                             <div className="form-group">
                                 <label>{isAr ? 'الوصف' : 'Description'}</label>
-                                <textarea className="modern-input" required rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                                <textarea className="form-control" required rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                             </div>
 
                             {activeTab === 'Preventative' && (
                                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <div className="form-group">
                                         <label>{isAr ? 'التكرار' : 'Frequency'}</label>
-                                        <select className="modern-input" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})}>
+                                        <select className="form-control" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})}>
                                             {FREQUENCIES.map(f => <option key={f} value={f}>{f}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">
                                         <label>{isAr ? 'تاريخ الجدولة القادم' : 'Next Scheduled Date'}</label>
-                                        <input type="date" className="modern-input" value={formData.nextScheduledDate} onChange={e => setFormData({...formData, nextScheduledDate: e.target.value})} required={activeTab === 'Preventative'} />
+                                        <input type="date" className="form-control" value={formData.nextScheduledDate} onChange={e => setFormData({...formData, nextScheduledDate: e.target.value})} required={activeTab === 'Preventative'} />
                                     </div>
                                 </div>
                             )}
@@ -277,7 +277,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'نوع المُسند إليه' : 'Assignee Type'}</label>
-                                    <select className="modern-input" value={formData.assigneeType} onChange={e => setFormData({...formData, assigneeType: e.target.value})}>
+                                    <select className="form-control" value={formData.assigneeType} onChange={e => setFormData({...formData, assigneeType: e.target.value})}>
                                         <option value="Employee">{isAr ? 'موظف داخلي' : 'Internal Employee'}</option>
                                         <option value="Vendor">{isAr ? 'مورد / شركة خارجية' : 'External Vendor'}</option>
                                     </select>
@@ -286,7 +286,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 {formData.assigneeType === 'Employee' ? (
                                     <div className="form-group">
                                         <label>{isAr ? 'الموظف' : 'Employee'}</label>
-                                        <select className="modern-input" required value={formData.assignedTo} onChange={e => setFormData({...formData, assignedTo: e.target.value})}>
+                                        <select className="form-control" required value={formData.assignedTo} onChange={e => setFormData({...formData, assignedTo: e.target.value})}>
                                             <option value="">{isAr ? '-- اختر --' : '-- Select --'}</option>
                                             {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                         </select>
@@ -294,7 +294,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 ) : (
                                     <div className="form-group">
                                         <label>{isAr ? 'المورد' : 'Supplier / Vendor'}</label>
-                                        <select className="modern-input" required value={formData.assignedSupplierId} onChange={e => setFormData({...formData, assignedSupplierId: e.target.value})}>
+                                        <select className="form-control" required value={formData.assignedSupplierId} onChange={e => setFormData({...formData, assignedSupplierId: e.target.value})}>
                                             <option value="">{isAr ? '-- اختر --' : '-- Select --'}</option>
                                             {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
@@ -306,7 +306,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 <label>{isAr ? 'التكلفة التقديرية' : 'Estimated Cost'}</label>
                                 <input 
                                     type="number" 
-                                    className="modern-input" 
+                                    className="form-control" 
                                     value={formData.assigneeType === 'Vendor' ? formData.vendorCost : formData.cost} 
                                     onChange={e => {
                                         if (formData.assigneeType === 'Vendor') setFormData({...formData, vendorCost: e.target.value});

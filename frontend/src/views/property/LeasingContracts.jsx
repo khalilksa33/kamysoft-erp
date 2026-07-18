@@ -216,7 +216,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                         <form onSubmit={handleSave}>
                             <div className="form-group">
                                 <label>{isAr ? 'الوحدة' : 'Unit'}</label>
-                                <select className="modern-input" required value={formData.unitId} onChange={e => setFormData({...formData, unitId: e.target.value})}>
+                                <select className="form-control" required value={formData.unitId} onChange={e => setFormData({...formData, unitId: e.target.value})}>
                                     <option value="">{isAr ? '-- اختر الوحدة --' : '-- Select Unit --'}</option>
                                     {units.filter(u => u.status === 'Available').map(u => (
                                         <option key={u._id} value={u._id}>{u.unitNumber} ({u.type}) - {u.dailyRate}/day</option>
@@ -225,7 +225,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                             </div>
                             <div className="form-group">
                                 <label>{isAr ? 'المستأجر' : 'Tenant (Customer)'}</label>
-                                <select className="modern-input" required value={formData.customerId} onChange={e => setFormData({...formData, customerId: e.target.value})}>
+                                <select className="form-control" required value={formData.customerId} onChange={e => setFormData({...formData, customerId: e.target.value})}>
                                     <option value="">{isAr ? '-- اختر المستأجر --' : '-- Select Tenant --'}</option>
                                     {customers.map(c => (
                                         <option key={c._id} value={c._id}>{c.name} - {c.phone}</option>
@@ -235,21 +235,21 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'تاريخ البداية' : 'Start Date'}</label>
-                                    <input type="date" className="modern-input" required value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                                    <input type="date" className="form-control" required value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'تاريخ النهاية' : 'End Date'}</label>
-                                    <input type="date" className="modern-input" required value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                                    <input type="date" className="form-control" required value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                                 </div>
                             </div>
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'إجمالي الإيجار' : 'Total Rent Amount'}</label>
-                                    <input type="number" className="modern-input" required min="0" value={formData.rentAmount} onChange={e => setFormData({...formData, rentAmount: e.target.value})} />
+                                    <input type="number" className="form-control" required min="0" value={formData.rentAmount} onChange={e => setFormData({...formData, rentAmount: e.target.value})} />
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'تكرار الدفع' : 'Payment Frequency'}</label>
-                                    <select className="modern-input" value={formData.paymentFrequency} onChange={e => setFormData({...formData, paymentFrequency: e.target.value})}>
+                                    <select className="form-control" value={formData.paymentFrequency} onChange={e => setFormData({...formData, paymentFrequency: e.target.value})}>
                                         <option value="Monthly">Monthly</option>
                                         <option value="Quarterly">Quarterly</option>
                                         <option value="Semi-Annually">Semi-Annually</option>
@@ -261,19 +261,19 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="form-group">
                                     <label>{isAr ? 'نوع رسوم الإدارة' : 'Management Fee Type'}</label>
-                                    <select className="modern-input" value={formData.managementFeeType} onChange={e => setFormData({...formData, managementFeeType: e.target.value})}>
+                                    <select className="form-control" value={formData.managementFeeType} onChange={e => setFormData({...formData, managementFeeType: e.target.value})}>
                                         <option value="Percentage">Percentage Fee (%)</option>
                                         <option value="Fixed">Fixed Monthly Fee</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>{isAr ? 'قيمة رسوم الإدارة' : 'Management Fee Value'}</label>
-                                    <input type="number" className="modern-input" min="0" value={formData.managementFeeValue} onChange={e => setFormData({...formData, managementFeeValue: e.target.value})} />
+                                    <input type="number" className="form-control" min="0" value={formData.managementFeeValue} onChange={e => setFormData({...formData, managementFeeValue: e.target.value})} />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>{isAr ? 'الحالة' : 'Status'}</label>
-                                <select className="modern-input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
+                                <select className="form-control" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
                                     <option value="Active">Active</option>
                                     <option value="Expired">Expired</option>
                                     <option value="Terminated">Terminated</option>

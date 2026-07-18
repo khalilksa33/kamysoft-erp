@@ -62,19 +62,19 @@ const Units = () => {
             <div className="card">
                 <h3>Add New Unit</h3>
                 <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <select value={propertyId} onChange={e => setPropertyId(e.target.value)} required>
+                    <select className="form-control" value={propertyId} onChange={e => setPropertyId(e.target.value)} required>
                         <option value="" disabled>Select Property</option>
                         {properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
-                    <input type="text" placeholder="Unit Number (e.g. 101)" value={unitNumber} onChange={e => setUnitNumber(e.target.value)} required />
-                    <select value={type} onChange={e => setType(e.target.value)}>
+                    <input type="text" className="form-control" placeholder="Unit Number (e.g. 101)" value={unitNumber} onChange={e => setUnitNumber(e.target.value)} required />
+                    <select className="form-control" value={type} onChange={e => setType(e.target.value)}>
                         <option value="Room">Room</option>
                         <option value="Suite">Suite</option>
                         <option value="Apartment">Apartment</option>
                         <option value="Villa">Villa</option>
                     </select>
-                    <input type="number" placeholder="Beds" value={beds} onChange={e => setBeds(e.target.value)} required min="1" />
-                    <input type="number" placeholder="Daily Rate" value={dailyRate} onChange={e => setDailyRate(e.target.value)} required min="0" step="0.01" />
+                    <input type="number" className="form-control" placeholder="Beds" value={beds} onChange={e => setBeds(e.target.value)} required min="1" />
+                    <input type="number" className="form-control" placeholder="Daily Rate" value={dailyRate} onChange={e => setDailyRate(e.target.value)} required min="0" step="0.01" />
                     <button type="submit" className="primary-btn">Save</button>
                 </form>
             </div>

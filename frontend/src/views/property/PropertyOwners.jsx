@@ -51,10 +51,10 @@ const PropertyOwners = ({ currentLanguage }) => {
             <div className="card">
                 <h3>{isAr ? 'إضافة مالك جديد' : 'Add New Owner'}</h3>
                 <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <input type="text" placeholder={isAr ? 'اسم المالك' : 'Owner Name'} value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
-                    <input type="text" placeholder={isAr ? 'رقم الجوال' : 'Phone'} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
-                    <input type="email" placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-                    <input type="text" placeholder={isAr ? 'تفاصيل البنك (الايبان)' : 'Bank Details (IBAN)'} value={form.bankDetails} onChange={e => setForm({...form, bankDetails: e.target.value})} style={{ flex: '1 1 300px' }} />
+                    <input type="text" className="form-control" placeholder={isAr ? 'اسم المالك' : 'Owner Name'} value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+                    <input type="text" className="form-control" placeholder={isAr ? 'رقم الجوال' : 'Phone'} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                    <input type="email" className="form-control" placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                    <input type="text" className="form-control" placeholder={isAr ? 'تفاصيل البنك (الايبان)' : 'Bank Details (IBAN)'} value={form.bankDetails} onChange={e => setForm({...form, bankDetails: e.target.value})} style={{ flex: '1 1 300px' }} />
                     <button type="submit" className="primary-btn">{isAr ? 'حفظ' : 'Save'}</button>
                 </form>
             </div>

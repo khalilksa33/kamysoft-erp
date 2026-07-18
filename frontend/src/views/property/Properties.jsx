@@ -73,16 +73,16 @@ const Properties = () => {
             <div className="card">
                 <h3>Add New Property</h3>
                 <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <input type="text" placeholder="Property Name" value={name} onChange={e => setName(e.target.value)} required />
-                    <select value={type} onChange={e => setType(e.target.value)}>
+                    <input type="text" className="form-control" placeholder="Property Name" value={name} onChange={e => setName(e.target.value)} required />
+                    <select className="form-control" value={type} onChange={e => setType(e.target.value)}>
                         <option value="Resort">Resort</option>
                         <option value="Building">Building</option>
                         <option value="Hotel">Hotel</option>
                         <option value="Compound">Compound</option>
                     </select>
-                    <input type="text" placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} />
+                    <input type="text" className="form-control" placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} />
                     
-                    <select value={ownerId} onChange={e => setOwnerId(e.target.value)}>
+                    <select className="form-control" value={ownerId} onChange={e => setOwnerId(e.target.value)}>
                         <option value="">-- Company Owned (No 3rd Party Owner) --</option>
                         {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                     </select>
