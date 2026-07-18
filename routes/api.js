@@ -8,7 +8,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
 
 // Mock in-memory DB fallback for serverless environments (if MongoDB is disconnected)
 const mockDb = {

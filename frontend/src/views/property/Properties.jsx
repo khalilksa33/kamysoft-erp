@@ -72,7 +72,7 @@ const Properties = () => {
             
             <div className="card">
                 <h3>Add New Property</h3>
-                <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <form onSubmit={handleCreate} className="inline-form">
                     <input type="text" className="form-control" placeholder="Property Name" value={name} onChange={e => setName(e.target.value)} required />
                     <select className="form-control" value={type} onChange={e => setType(e.target.value)}>
                         <option value="Resort">Resort</option>

@@ -61,7 +61,7 @@ const Units = () => {
             
             <div className="card">
                 <h3>Add New Unit</h3>
-                <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <form onSubmit={handleCreate} className="inline-form">
                     <select className="form-control" value={propertyId} onChange={e => setPropertyId(e.target.value)} required>
                         <option value="" disabled>Select Property</option>
                         {properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}

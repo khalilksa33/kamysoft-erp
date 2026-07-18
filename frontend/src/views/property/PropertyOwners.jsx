@@ -50,7 +50,7 @@ const PropertyOwners = ({ currentLanguage }) => {
             
             <div className="card">
                 <h3>{isAr ? 'إضافة مالك جديد' : 'Add New Owner'}</h3>
-                <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <form onSubmit={handleCreate} className="inline-form">
                     <input type="text" className="form-control" placeholder={isAr ? 'اسم المالك' : 'Owner Name'} value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
                     <input type="text" className="form-control" placeholder={isAr ? 'رقم الجوال' : 'Phone'} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                     <input type="email" className="form-control" placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />

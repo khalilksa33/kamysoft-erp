@@ -121,7 +121,7 @@ const Bookings = () => {
             
             <div className="card">
                 <h3>New Booking</h3>
-                <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <form onSubmit={handleCreate} className="inline-form">
                     <select className="form-control" value={unitId} onChange={e => setUnitId(e.target.value)} required>
                         <option value="" disabled>Select Unit</option>
                         {units.map(u => <option key={u.id} value={u.id}>{u.unitNumber} ({u.type}) - {u.dailyRate}/night</option>)}
