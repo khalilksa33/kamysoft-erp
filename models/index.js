@@ -195,7 +195,9 @@ const settingsSchema = new mongoose.Schema({
     
     // License Tracking
     licenseKey: { type: String },
-    licenseStatus: { type: String, default: 'active' }, // 'active', 'expired'
+    licenseStatus: { type: String, default: 'active' }, // 'active', 'expired', 'pending_verification'
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
     licenseExpiresAt: { type: Date }
 });
 const Settings = mongoose.model('Settings', settingsSchema);

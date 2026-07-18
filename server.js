@@ -33,24 +33,26 @@ const getBaseDomain = (host) => {
     return host;
 };
 
-const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk') => {
+const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk', verificationToken) => {
+    const verifyLink = `http://${baseDomain}/api/auth/verify-email?token=${verificationToken}&tenantId=${tenantId}`;
     if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
-        console.log(`[Mock Email] License key for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${licenseKey}`);
+        console.log(`[Mock Email] Verify link for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${verifyLink}`);
         return true;
     }
     try {
         await transporter.sendMail({
             from: process.env.EMAIL_FROM || "SME Solutions <no-reply@26i.uk>",
             to: tenantEmail,
-            subject: 'Welcome to SME Solutions! Your 14-Day Free Trial',
+            subject: 'Verify Your Email - SME Solutions',
             html: `
                 <h3>Welcome to SME Solutions, ${businessName}!</h3>
-                <p>Your store has been successfully created. You can access it at: <b>https://${tenantId}.${baseDomain}</b></p>
-                <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;">
-                    <p style="margin:0;font-size:16px;color:#10b981;font-weight:bold;">14-Day Free Trial Active</p>
+                <p>Your store has been created successfully.</p>
+                <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;text-align:center;">
+                    <p style="margin-bottom:16px;font-size:16px;">Please verify your email address to activate and launch your store.</p>
+                    <a href="${verifyLink}" style="background:#10b981;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Verify Email & Launch Store</a>
                 </div>
-                <p>Your free trial is valid until: <b>${new Date(expiresAt).toLocaleDateString()}</b>.</p>
-                <p>Enjoy our premium features!</p>
+                <p>Once verified, you can access your store at: <b>http://${tenantId}.${baseDomain}</b></p>
+                <p>Your 14-Day Free Trial is valid until: <b>${new Date(expiresAt).toLocaleDateString()}</b>.</p>
             `
         });
         console.log(`License email sent to ${tenantEmail}`);

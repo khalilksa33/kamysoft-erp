@@ -49,6 +49,14 @@ router.post('/api/auth/login', async (req, res) => {
         if (user.isActive === false) {
             return res.status(403).json({ error: 'Your account has been deactivated. Please contact support.' });
         }
+        
+        if (tenantId !== 'default') {
+            const settings = await Settings.findOne({ tenantId });
+            if (settings && settings.isEmailVerified === false) {
+                return res.status(403).json({ error: 'Please verify your email address before logging in.' });
+            }
+        }
+        
         const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, JWT_SECRET, { expiresIn: '12h' });
         res.json({ token, user: { id: user.id, username: user.username, role: user.role, isActive: user.isActive } });
     } catch (err) {
@@ -124,8 +132,10 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             mobile: mobile,
             nationalAddress: nationalAddress,
             licenseKey: licenseKey,
-            licenseStatus: 'active',
-            licenseExpiresAt: expirationDate
+            licenseStatus: 'pending_verification',
+            licenseExpiresAt: expirationDate,
+            isEmailVerified: false,
+            emailVerificationToken: crypto.randomBytes(32).toString('hex')
         };
         
         if (global.isMongoConnected) {
@@ -201,13 +211,11 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         
         // Send email asynchronously (don't block the response)
         if (email) {
-            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain);
+            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain, settingsData.emailVerificationToken);
         }
         
-        // Update Cloudflare Tunnel asynchronously
-        if (process.env.CF_ACCOUNT_ID && baseDomain) {
-            global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
-        }
+        // Cloudflare Tunnel update is deferred until email is verified
+
         
         res.status(201).json({ 
             success: true, 
@@ -217,6 +225,55 @@ router.post('/api/auth/register-tenant', async (req, res) => {
     } catch (err) {
         console.error('Error registering tenant:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/auth/verify-email', async (req, res) => {
+    try {
+        const { token, tenantId } = req.query;
+        if (!token || !tenantId) return res.status(400).send('Missing verification parameters.');
+        
+        const settings = await Settings.findOne({ tenantId });
+        if (!settings) return res.status(404).send('Tenant not found.');
+        
+        const host = (req.headers.host || '').split(':')[0].toLowerCase();
+        const baseDomain = getBaseDomain(host);
+        
+        if (settings.isEmailVerified) {
+            return res.redirect(`http://${tenantId}.${baseDomain}/login`);
+        }
+        
+        if (settings.emailVerificationToken !== token) {
+            return res.status(400).send('Invalid or expired verification token.');
+        }
+        
+        settings.isEmailVerified = true;
+        settings.emailVerificationToken = undefined;
+        settings.licenseStatus = 'active';
+        await settings.save();
+        
+        // Update Cloudflare Tunnel now that email is verified
+        if (process.env.CF_ACCOUNT_ID && baseDomain) {
+            global.updateCloudflareTunnelConfig(`${tenantId}.${baseDomain}`).catch(err => console.error(err));
+        }
+        
+        res.send(`
+            <html>
+                <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                    <h2 style="color: #10b981;">Email Verified Successfully!</h2>
+                    <p>Your tenant <b>${tenantId}</b> is now launching.</p>
+                    <p>Redirecting you to your login page...</p>
+                    <script>
+                        setTimeout(() => {
+                            window.location.href = "http://${tenantId}.${baseDomain}/login";
+                        }, 3000);
+                    </script>
+                </body>
+            </html>
+        `);
+    } catch (err) {
+        console.error('Error verifying email:', err);
+        res.status(500).send('Internal server error.');
     }
 });
 
