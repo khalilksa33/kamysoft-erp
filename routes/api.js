@@ -637,19 +637,63 @@ router.post('/api/zatca/onboard', authenticateToken, async (req, res) => {
         const tenantId = getTenantId(req);
         const { otp, env } = req.body;
         
-        // 1. Generate local ECDSA keys
-        const keys = zatcaCrypto.onboardDevice(tenantId);
-        
-        // 2. Simulate ZATCA CSR response
+        let settings;
+        if (req.app.locals.isSaas) {
+            settings = await Settings.findOne({ tenantId });
+        } else {
+            settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId] ? mockDb.settingsTenant[tenantId] : mockDb.settings;
+        }
+
+        const { generateCSR, generateECDSAKeyPair } = require('@talha7k/zatca');
+        const keys = await generateECDSAKeyPair();
+
+        const orgName = settings?.companyName || 'Test Company';
+        const vatNumber = settings?.vatNumber || '310122393500003';
+        const crNumber = settings?.crNumber || '454634645645654';
+        const city = settings?.address?.split(',')[0] || 'Riyadh';
+
+        const { csr } = await generateCSR({
+            organizationNameAr: orgName,
+            organizationNameEn: orgName,
+            vatNumber: vatNumber,
+            crNumber: crNumber,
+            commonName: `TST-${vatNumber}`,
+            egsSerialNumber: '1-TST|2-TST|3-ed22f1d8-e6a2-1118-9b58-d9a8f11e445f',
+            location: {
+                city: city,
+                district: city,
+                street: city,
+                buildingNumber: '0000',
+                postalCode: '12345'
+            },
+            industry: 'Technology'
+        }, keys.privateKey, keys.publicKey);
+
         let zatcaRes = { certificate: 'SIMULATED_CERT', secret: 'SIMULATED_SECRET' };
         
         try {
             if (otp && otp !== '123456') {
-                // Try real ZATCA API if they provided an OTP
-                // zatcaRes = await zatcaApi.registerDevice(otp, "mock-csr", env || 'sandbox');
+                zatcaRes = await zatcaApi.registerDevice(otp, csr, env || 'sandbox');
+                
+                const connData = {
+                    clientId: zatcaRes.certificate,
+                    clientSecret: zatcaRes.secret,
+                    privateKey: keys.privateKey,
+                    publicKey: keys.publicKey,
+                    env: env || 'sandbox'
+                };
+
+                if (req.app.locals.isSaas) {
+                    await Settings.updateOne({ tenantId }, { $set: { zatcaConn: connData } });
+                } else {
+                    if (!mockDb.settingsTenant) mockDb.settingsTenant = {};
+                    if (!mockDb.settingsTenant[tenantId]) mockDb.settingsTenant[tenantId] = {};
+                    mockDb.settingsTenant[tenantId].zatcaConn = connData;
+                }
             }
         } catch(e) {
             console.error('ZATCA Registration failed', e.message);
+            return res.status(400).json({ error: 'ZATCA Registration failed: ' + e.message });
         }
 
         res.json({ message: 'Device keys generated and registered successfully', keys, zatca: zatcaRes });
@@ -662,20 +706,28 @@ router.post('/api/invoices/:id/zatca-report', authenticateToken, async (req, res
     try {
         const tenantId = getTenantId(req);
         let invoice;
+        let settings;
         if (req.app.locals.isSaas) {
             invoice = await Invoice.findOne({ id: req.params.id, tenantId });
+            settings = await Settings.findOne({ tenantId });
         } else {
             invoice = mockDb.invoices.find(i => i.id === req.params.id && i.tenantId === tenantId);
+            settings = mockDb.settingsTenant[tenantId] || mockDb.settings;
         }
 
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+        
+        const cert = settings?.zatcaConn?.clientId || "MOCK_CERT";
+        const secret = settings?.zatcaConn?.clientSecret || "MOCK_SECRET";
+        const env = settings?.zatcaConn?.env || 'sandbox';
 
         // Call real ZATCA Reporting API
         try {
-            const apiRes = await zatcaApi.reportInvoice(invoice.xmlBase64 || "mock-xml", invoice.xmlHashHex || "mock-hash", "MOCK_CERT", "MOCK_SECRET", 'sandbox');
+            const apiRes = await zatcaApi.reportInvoice(invoice.xmlBase64 || "mock-xml", invoice.xmlHashHex || "mock-hash", cert, secret, env);
             console.log('ZATCA Reporting Success', apiRes);
         } catch(e) {
             console.error('ZATCA Reporting API Error', e.message);
+            return res.status(400).json({ error: 'ZATCA Reporting failed: ' + e.message });
         }
 
         if (req.app.locals.isSaas) {

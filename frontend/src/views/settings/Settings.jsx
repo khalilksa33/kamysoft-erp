@@ -328,6 +328,13 @@ const Settings = (props) => {
                                         });
                                         const data = await res.json();
                                         if (res.ok) {
+                                            const newConn = {
+                                                ...zatcaConn,
+                                                clientId: data.zatca?.certificate || zatcaConn.clientId,
+                                                clientSecret: data.zatca?.secret || zatcaConn.clientSecret,
+                                                status: 'CONNECTED'
+                                            };
+                                            setZatcaConn(newConn);
                                             alert(currentLanguage === 'ar' ? 'تم إنشاء المفاتيح بنجاح!' : 'Cryptographic Keys generated successfully!');
                                         } else {
                                             alert('Error: ' + data.error);
