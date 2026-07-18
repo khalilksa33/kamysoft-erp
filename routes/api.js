@@ -62,13 +62,18 @@ router.post('/api/auth/login', async (req, res) => {
         }
         
         if (tenantId !== 'default') {
-            const settings = await Settings.findOne({ tenantId });
+            let settings;
+            if (global.isMongoConnected) {
+                settings = await Settings.findOne({ tenantId });
+            } else {
+                settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+            }
             if (settings && settings.isEmailVerified === false) {
                 return res.status(403).json({ error: 'Please verify your email address before logging in.' });
             }
         }
         
-        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, JWT_SECRET, { expiresIn: '12h' });
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', { expiresIn: '12h' });
         res.json({ token, user: { id: user.id, username: user.username, role: user.role, isActive: user.isActive } });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -96,6 +101,16 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         const normalizedTenantId = tenantId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
         if (!normalizedTenantId) {
             return res.status(400).json({ error: 'Invalid subdomain format' });
+        }
+        
+        // Clean up any orphaned data from a previous failed registration attempt for this tenantId
+        if (global.isMongoConnected) {
+            await Promise.all([
+                User.deleteMany({ tenantId: normalizedTenantId }),
+                Product.deleteMany({ tenantId: normalizedTenantId }),
+                Account.deleteMany({ tenantId: normalizedTenantId }),
+                Settings.deleteOne({ tenantId: normalizedTenantId })
+            ]);
         }
         
         // Check uniqueness of tenantId
@@ -246,7 +261,12 @@ router.get('/api/auth/verify-email', async (req, res) => {
         const { token, tenantId } = req.query;
         if (!token || !tenantId) return res.status(400).send('Missing verification parameters.');
         
-        const settings = await Settings.findOne({ tenantId });
+        let settings;
+        if (global.isMongoConnected) {
+            settings = await Settings.findOne({ tenantId });
+        } else {
+            settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+        }
         if (!settings) return res.status(404).send('Tenant not found.');
         
         const host = (req.headers.host || '').split(':')[0].toLowerCase();
@@ -263,7 +283,11 @@ router.get('/api/auth/verify-email', async (req, res) => {
         settings.isEmailVerified = true;
         settings.emailVerificationToken = undefined;
         settings.licenseStatus = 'active';
-        await settings.save();
+        if (global.isMongoConnected) {
+            await settings.save();
+        } else {
+            mockDb.settingsTenant[tenantId] = settings;
+        }
         
         // Update Cloudflare Tunnel now that email is verified
         if (process.env.CF_ACCOUNT_ID && baseDomain) {

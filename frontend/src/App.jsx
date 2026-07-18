@@ -1909,6 +1909,11 @@ const handleB2BSubmit = () => {
                     )}
 
                     <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'تسجيل الدخول' : 'User Login'}</h3>
+                    {new URLSearchParams(window.location.search).get('verified') === 'true' && (
+                        <div style={{ color: 'var(--accent-success)', background: 'rgba(16,185,129,0.1)', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '15px', textAlign: 'center', border: '1px solid var(--accent-success)' }}>
+                            {currentLanguage === 'ar' ? 'تم التحقق من بريدك الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.' : 'Email verified successfully! You can now log in.'}
+                        </div>
+                    )}
                     {authError && <div style={{ color: 'var(--accent-danger)', fontSize: '13px', marginBottom: '15px', textAlign: 'center' }}>{authError}</div>}
                     <form onSubmit={handleLogin}>
                         <div className="form-group">
