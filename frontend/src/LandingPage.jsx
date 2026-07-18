@@ -1335,10 +1335,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
                                     https://{registerForm.tenantId.toLowerCase()}.{baseDomain}
                                 </div>
-                                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-danger)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
-                                    <div style={{ fontSize: '16px', color: 'var(--accent-danger)', marginBottom: '4px', fontWeight: 'bold' }}>{isRtl ? 'تنبيه: يجب التحقق من البريد الإلكتروني' : 'Action Required: Verify Email'}</div>
-                                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginTop: '4px' }}>{isRtl ? 'لقد أرسلنا رابط تحقق إلى بريدك الإلكتروني. يجب النقر عليه لتفعيل متجرك قبل تسجيل الدخول.' : 'We have sent a verification link to your email. You must click it to activate your store before logging in.'}</div>
-                                </div>
+
                                 {generatedLicenseKey && (
                                     <div style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
                                         <div style={{ fontSize: '12px', color: '#34d399', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{isRtl ? 'حالة المتجر' : 'Store Status'}</div>

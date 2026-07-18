@@ -388,6 +388,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                                 <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '100px', display: 'inline-block' }}>Lic. Status:</span> {store.licenseStatus || 'active'}</div>
                                                             </div>
                                                             <div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Owner:</span> <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{store.fullName || 'N/A'}</span></div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Email:</span> {store.email || 'N/A'}</div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Mobile:</span> {store.mobile || store.contactNumber || 'N/A'}</div>
                                                                 <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Address:</span> {(() => {
