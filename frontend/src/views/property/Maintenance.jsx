@@ -10,6 +10,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
     const [units, setUnits] = useState([]);
     const [properties, setProperties] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     
     const [activeTab, setActiveTab] = useState('Corrective'); // 'Corrective' | 'Preventative'
     const [showModal, setShowModal] = useState(false);
@@ -24,7 +25,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
         cost: 0,
         assigneeType: 'Employee', // 'Employee' | 'Vendor'
         assignedTo: '',
-        assignedVendorName: '',
+        assignedSupplierId: '',
         vendorCost: 0,
         status: 'Pending'
     });
@@ -36,27 +37,31 @@ const Maintenance = ({ currentLanguage, headers }) => {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const [taskRes, unitRes, empRes, propRes] = await Promise.all([
+            const [taskRes, unitRes, empRes, propRes, supRes] = await Promise.all([
                 fetch('/api/maintenance-tasks', { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch('/api/units', { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch('/api/employees', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/properties', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetch('/api/properties', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/suppliers', { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
             
             const taskData = await taskRes.json();
             const unitData = await unitRes.json();
             const empData = await empRes.json();
             const propData = await propRes.json();
+            const supData = await supRes.json();
             
             setTasks(taskData);
             setUnits(unitData);
             setEmployees(empData);
             setProperties(propData);
+            setSuppliers(supData);
             
             setFormData(prev => ({
                 ...prev,
                 propertyId: propData.length > 0 ? propData[0].id : '',
-                assignedTo: empData.length > 0 ? empData[0].id : ''
+                assignedTo: empData.length > 0 ? empData[0].id : '',
+                assignedSupplierId: supData.length > 0 ? supData[0].id : ''
             }));
         } catch (err) { console.error('Error fetching data', err); }
     };
@@ -67,7 +72,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
             const token = localStorage.getItem('token');
             const payload = { ...formData, maintenanceType: activeTab };
             if (payload.assigneeType === 'Employee') {
-                payload.assignedVendorName = '';
+                payload.assignedSupplierId = '';
                 payload.vendorCost = 0;
             } else {
                 payload.assignedTo = '';
@@ -130,6 +135,11 @@ const Maintenance = ({ currentLanguage, headers }) => {
         return emp ? emp.name : 'N/A';
     };
 
+    const getSupplierName = (id) => {
+        const sup = suppliers.find(x => x.id === id || x._id === id);
+        return sup ? sup.name : 'N/A';
+    };
+
     const filteredTasks = tasks.filter(t => (t.maintenanceType || 'Corrective') === activeTab);
 
     return (
@@ -183,8 +193,8 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 {activeTab === 'Preventative' && <td>{task.nextScheduledDate ? new Date(task.nextScheduledDate).toLocaleDateString() : '-'}</td>}
                                 {activeTab === 'Corrective' && <td>{new Date(task.reportedDate).toLocaleDateString()}</td>}
                                 <td>
-                                    {task.assignedVendorName ? (
-                                        <span style={{ color: 'var(--accent-purple)' }}><i className="ri-store-2-line"></i> {task.assignedVendorName}</span>
+                                    {task.assignedSupplierId ? (
+                                        <span style={{ color: 'var(--accent-purple)' }}><i className="ri-store-2-line"></i> {getSupplierName(task.assignedSupplierId)}</span>
                                     ) : (
                                         <span style={{ color: 'var(--accent-blue)' }}><i className="ri-user-line"></i> {getEmployeeName(task.assignedTo)}</span>
                                     )}
@@ -283,8 +293,11 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                     </div>
                                 ) : (
                                     <div className="form-group">
-                                        <label>{isAr ? 'اسم المورد' : 'Vendor Name'}</label>
-                                        <input type="text" className="modern-input" required value={formData.assignedVendorName} onChange={e => setFormData({...formData, assignedVendorName: e.target.value})} />
+                                        <label>{isAr ? 'المورد' : 'Supplier / Vendor'}</label>
+                                        <select className="modern-input" required value={formData.assignedSupplierId} onChange={e => setFormData({...formData, assignedSupplierId: e.target.value})}>
+                                            <option value="">{isAr ? '-- اختر --' : '-- Select --'}</option>
+                                            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        </select>
                                     </div>
                                 )}
                             </div>

@@ -388,7 +388,7 @@ const maintenanceTaskSchema = new mongoose.Schema({
     status: { type: String, enum: ['Pending', 'InProgress', 'Completed'], default: 'Pending' },
     cost: { type: Number, default: 0 },
     assignedTo: { type: String }, // references Employee ID
-    assignedVendorName: { type: String }, // Free-text for Vendor assignments
+    assignedSupplierId: { type: String }, // references Supplier ID
     vendorCost: { type: Number, default: 0 },
     tenantId: { type: String, default: 'default', index: true }
 });
