@@ -377,13 +377,19 @@ const Booking = mongoose.model('Booking', bookingSchema);
 
 const maintenanceTaskSchema = new mongoose.Schema({
     id: { type: String, required: true },
-    unitId: { type: String, required: true },
+    propertyId: { type: String }, // For Facility maintenance
+    unitId: { type: String }, // Optional, since it could be facility-wide
+    maintenanceType: { type: String, enum: ['Corrective', 'Preventative'], default: 'Corrective' },
+    frequency: { type: String, enum: ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'], default: 'None' },
+    nextScheduledDate: { type: Date },
     description: { type: String, required: true },
     reportedDate: { type: Date, default: Date.now },
     resolvedDate: { type: Date },
     status: { type: String, enum: ['Pending', 'InProgress', 'Completed'], default: 'Pending' },
     cost: { type: Number, default: 0 },
     assignedTo: { type: String }, // references Employee ID
+    assignedVendorName: { type: String }, // Free-text for Vendor assignments
+    vendorCost: { type: Number, default: 0 },
     tenantId: { type: String, default: 'default', index: true }
 });
 const MaintenanceTask = mongoose.model('MaintenanceTask', maintenanceTaskSchema);

@@ -2052,11 +2052,15 @@ router.post('/api/maintenance-tasks', authenticateToken, async (req, res) => {
         const newTask = { ...req.body, tenantId, id: 'maint-' + Date.now() };
         if (global.isMongoConnected) {
             await MaintenanceTask.create(newTask);
-            await Unit.updateOne({ id: newTask.unitId, tenantId }, { status: 'Maintenance' });
+            if (newTask.unitId) {
+                await Unit.updateOne({ id: newTask.unitId, tenantId }, { status: 'Maintenance' });
+            }
         } else {
             mockDb.maintenanceTasks.push(newTask);
-            const unit = mockDb.units.find(u => u.id === newTask.unitId && u.tenantId === tenantId);
-            if(unit) unit.status = 'Maintenance';
+            if (newTask.unitId) {
+                const unit = mockDb.units.find(u => u.id === newTask.unitId && u.tenantId === tenantId);
+                if(unit) unit.status = 'Maintenance';
+            }
         }
         res.status(201).json(newTask);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -2069,7 +2073,9 @@ router.put('/api/maintenance-tasks/:id', authenticateToken, async (req, res) => 
             await MaintenanceTask.updateOne({ id: req.params.id, tenantId }, req.body);
             if (req.body.status === 'Completed') {
                 const task = await MaintenanceTask.findOne({ id: req.params.id, tenantId });
-                if(task) await Unit.updateOne({ id: task.unitId, tenantId }, { status: 'Available' });
+                if(task && task.unitId) {
+                    await Unit.updateOne({ id: task.unitId, tenantId }, { status: 'Available' });
+                }
             }
             res.json({ success: true });
         } else {
@@ -2077,8 +2083,11 @@ router.put('/api/maintenance-tasks/:id', authenticateToken, async (req, res) => 
             if (index !== -1) {
                 Object.assign(mockDb.maintenanceTasks[index], req.body);
                 if (req.body.status === 'Completed') {
-                    const unit = mockDb.units.find(u => u.id === mockDb.maintenanceTasks[index].unitId && u.tenantId === tenantId);
-                    if(unit) unit.status = 'Available';
+                    const task = mockDb.maintenanceTasks[index];
+                    if (task.unitId) {
+                        const unit = mockDb.units.find(u => u.id === task.unitId && u.tenantId === tenantId);
+                        if(unit) unit.status = 'Available';
+                    }
                 }
             }
             res.json({ success: true });
@@ -2093,14 +2102,18 @@ router.delete('/api/maintenance-tasks/:id', authenticateToken, async (req, res) 
         if (global.isMongoConnected) {
             task = await MaintenanceTask.findOne({ id: req.params.id, tenantId });
             await MaintenanceTask.deleteOne({ id: req.params.id, tenantId });
-            if (task) await Unit.updateOne({ id: task.unitId, tenantId }, { status: 'Available' });
+            if (task && task.unitId) {
+                await Unit.updateOne({ id: task.unitId, tenantId }, { status: 'Available' });
+            }
         } else {
             const idx = mockDb.maintenanceTasks.findIndex(t => t.id === req.params.id && t.tenantId === tenantId);
             if(idx !== -1) {
                 task = mockDb.maintenanceTasks[idx];
                 mockDb.maintenanceTasks.splice(idx, 1);
-                const unit = mockDb.units.find(u => u.id === task.unitId && u.tenantId === tenantId);
-                if(unit) unit.status = 'Available';
+                if (task.unitId) {
+                    const unit = mockDb.units.find(u => u.id === task.unitId && u.tenantId === tenantId);
+                    if(unit) unit.status = 'Available';
+                }
             }
         }
         res.json({ success: true });
