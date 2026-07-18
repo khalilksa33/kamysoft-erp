@@ -55,10 +55,16 @@ window.fetch = function (url, options = {}) {
         // Resolve tenant
         const host = window.location.hostname.toLowerCase();
         let tenant = 'default';
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTenant = urlParams.get('simTenant');
+        
         const isSaaSDomain = host.endsWith('26i.uk') || host.endsWith('localhost') || host.endsWith('127.0.0.1');
         const isLocal = !isSaaSDomain || host === 'localhost' || host === '127.0.0.1';
         
-        if (isLocal) {
+        if (urlTenant) {
+            tenant = urlTenant;
+        } else if (isLocal || host === 'ssh-cloud.26i.uk' || host === 'ssh-erp.26i.uk') {
             tenant = localStorage.getItem('simulatedTenant') || 'default';
             const simDomain = localStorage.getItem('simulatedDomain') || 'marketing';
             if (simDomain === 'demo') tenant = 'default';

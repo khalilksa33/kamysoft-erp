@@ -1397,6 +1397,28 @@ router.patch('/api/saas/stores/:tenantId/status', requireSaasAdmin, async (req, 
     }
 });
 
+// PATCH update tenant profile (Saas Admin)
+router.patch('/api/saas/stores/:tenantId', requireSaasAdmin, async (req, res) => {
+    try {
+        const { tenantId } = req.params;
+        const updates = req.body;
+        // Don't allow changing suspended or modules through this generic route
+        delete updates.suspended;
+        delete updates.modules;
+        
+        if (global.isMongoConnected) {
+            await Settings.updateOne({ tenantId }, { $set: updates });
+        } else {
+            if (mockDb.settingsTenant && mockDb.settingsTenant[tenantId]) {
+                Object.assign(mockDb.settingsTenant[tenantId], updates);
+            }
+        }
+        res.json({ success: true, message: 'Store profile updated successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET inquiries list
 router.get('/api/saas/inquiries', requireSaasAdmin, async (req, res) => {
     try {

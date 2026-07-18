@@ -316,14 +316,19 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 return;
             }
             
+            const payload = {
+                ...registerForm,
+                tenantId: cleanTenantId,
+                billingCycle: billingCycle
+            };
+            if (registerForm.nationalAddressObj) {
+                payload.nationalAddress = JSON.stringify(registerForm.nationalAddressObj);
+            }
+
             const response = await fetch('/api/auth/register-tenant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...registerForm,
-                    tenantId: cleanTenantId,
-                    billingCycle: billingCycle
-                })
+                body: JSON.stringify(payload)
             });
             const data = await response.json();
             if (response.ok) {
@@ -1389,6 +1394,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         <option value="appliances">{isRtl ? 'أجهزة منزلية وإلكترونيات' : 'Home Appliances & Electronics'}</option>
                                         <option value="furniture">{isRtl ? 'معرض أثاث ومفروشات' : 'Furniture & Home Decor'}</option>
                                         <option value="spareparts">{isRtl ? 'قطع غيار (سيارات/تكييف/سباكة/كهرباء)' : 'Spare Parts (Auto/HVAC/Plumbing)'}</option>
+                                        <option value="realestate">{isRtl ? 'إدارة أملاك وعقارات' : 'Real Estate Management'}</option>
                                     </select>
                                 </div>
 
@@ -1396,15 +1402,38 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                     <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                                         {isRtl ? 'العنوان الوطني' : 'National Address'}
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        name="nationalAddress"
-                                        value={registerForm.nationalAddress}
-                                        onChange={handleRegisterChange}
-                                        required
-                                        placeholder={isRtl ? 'الرياض، المملكة العربية السعودية' : 'Riyadh, Saudi Arabia'}
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                    />
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        <input type="text" placeholder={isRtl ? 'رقم المبنى (4 أرقام)' : 'Building No (4 digits)'} 
+                                            value={registerForm.nationalAddressObj?.buildingNo || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, buildingNo: e.target.value } })}
+                                            required pattern="\d{4}" maxLength="4" title="4 digits"
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                        <input type="text" placeholder={isRtl ? 'اسم الشارع' : 'Street Name'} 
+                                            value={registerForm.nationalAddressObj?.street || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, street: e.target.value } })}
+                                            required
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                        <input type="text" placeholder={isRtl ? 'الحي' : 'District'} 
+                                            value={registerForm.nationalAddressObj?.district || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, district: e.target.value } })}
+                                            required
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                        <input type="text" placeholder={isRtl ? 'المدينة' : 'City'} 
+                                            value={registerForm.nationalAddressObj?.city || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, city: e.target.value } })}
+                                            required
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                        <input type="text" placeholder={isRtl ? 'الرمز البريدي (5 أرقام)' : 'Postal Code (5 digits)'} 
+                                            value={registerForm.nationalAddressObj?.postalCode || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, postalCode: e.target.value } })}
+                                            required pattern="\d{5}" maxLength="5" title="5 digits"
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                        <input type="text" placeholder={isRtl ? 'الرقم الإضافي (اختياري)' : 'Additional No'} 
+                                            value={registerForm.nationalAddressObj?.additionalNo || ''}
+                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, additionalNo: e.target.value } })}
+                                            pattern="\d{4}" maxLength="4" title="4 digits"
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

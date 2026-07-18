@@ -262,7 +262,17 @@ const Settings = (props) => {
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'العنوان الوطني' : 'National Address'}</label>
-                                    <input type="text" className="form-control" value={settings.nationalAddress || settings.businessAddress || ''} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                                    <input type="text" className="form-control" value={(() => {
+                                        if (settings.nationalAddress) {
+                                            try {
+                                                const a = JSON.parse(settings.nationalAddress);
+                                                return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''} ${a.additionalNo ? '- ' + a.additionalNo : ''}`.trim();
+                                            } catch {
+                                                return settings.nationalAddress;
+                                            }
+                                        }
+                                        return settings.businessAddress || '';
+                                    })()} readOnly style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
                                 </div>
                             </div>
                             <div className="form-group">

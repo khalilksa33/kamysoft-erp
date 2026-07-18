@@ -42,6 +42,10 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
     const [selectedTenantForModules, setSelectedTenantForModules] = useState('');
     const [selectedModules, setSelectedModules] = useState({});
 
+    // Edit Profile Modal
+    const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+    const [editProfileData, setEditProfileData] = useState({});
+    
     const apiHeaders = useCallback(() => ({
         'Content-Type': 'application/json',
         'x-saas-admin-key': adminKey
@@ -147,6 +151,54 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
             setTimeout(() => setActionMsg(''), 3000);
         } catch {
             setActionMsg('Error saving modules');
+        }
+    };
+
+    const openEditProfileModal = (store) => {
+        let parsedAddress = { buildingNo: '', street: '', district: '', city: '', postalCode: '', additionalNo: '' };
+        if (store.nationalAddress) {
+            try {
+                parsedAddress = { ...parsedAddress, ...JSON.parse(store.nationalAddress) };
+            } catch {
+                parsedAddress.street = store.nationalAddress || store.businessAddress || '';
+            }
+        } else if (store.businessAddress) {
+            parsedAddress.street = store.businessAddress;
+        }
+
+        setEditProfileData({
+            tenantId: store.tenantId,
+            businessName: store.businessName || '',
+            email: store.email || '',
+            mobile: store.mobile || store.contactNumber || '',
+            nationalAddressObj: parsedAddress,
+            vatNumber: store.vatNumber || '',
+            crNumber: store.crNumber || '',
+            licenseKey: store.licenseKey || '',
+            licenseExpiresAt: store.licenseExpiresAt ? new Date(store.licenseExpiresAt).toISOString().split('T')[0] : ''
+        });
+        setShowEditProfileModal(true);
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            const payload = { ...editProfileData };
+            if (payload.nationalAddressObj) {
+                payload.nationalAddress = JSON.stringify(payload.nationalAddressObj);
+                delete payload.nationalAddressObj;
+            }
+
+            await fetch(`/api/saas/stores/${editProfileData.tenantId}`, {
+                method: 'PATCH',
+                headers: apiHeaders(),
+                body: JSON.stringify(payload)
+            });
+            setShowEditProfileModal(false);
+            setActionMsg(`Profile updated for ${editProfileData.tenantId}`);
+            setTimeout(() => setActionMsg(''), 3000);
+            loadData();
+        } catch {
+            setActionMsg('Error saving profile');
         }
     };
 
@@ -338,11 +390,25 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                             <div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Email:</span> {store.email || 'N/A'}</div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Mobile:</span> {store.mobile || store.contactNumber || 'N/A'}</div>
-                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Address:</span> {store.nationalAddress || store.businessAddress || 'N/A'}</div>
+                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>Address:</span> {(() => {
+                                                                    if (store.nationalAddress) {
+                                                                        try {
+                                                                            const a = JSON.parse(store.nationalAddress);
+                                                                            return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''}`.trim();
+                                                                        } catch {
+                                                                            return store.nationalAddress;
+                                                                        }
+                                                                    }
+                                                                    return store.businessAddress || 'N/A';
+                                                                })()}</div>
                                                             </div>
                                                             <div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>VAT:</span> {store.vatNumber || 'N/A'}</div>
-                                                                <div><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>CR:</span> {store.crNumber || 'N/A'}</div>
+                                                                <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>CR:</span> {store.crNumber || 'N/A'}</div>
+                                                                <button onClick={() => openEditProfileModal(store)}
+                                                                    style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#a78bfa', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                                                                    <i className="ri-edit-line" /> Edit Profile
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -468,6 +534,72 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                             <button onClick={() => setShowModulesModal(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
                             <button onClick={handleSaveModules} style={{ flex: 1, background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', border: 'none', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
                                 Save Modules
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Profile Modal */}
+            {showEditProfileModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '32px 36px', width: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '16px' }}>Edit Profile for {editProfileData.tenantId}</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Business Name</label>
+                                <input value={editProfileData.businessName} onChange={e => setEditProfileData({ ...editProfileData, businessName: e.target.value })}
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Email</label>
+                                <input value={editProfileData.email} onChange={e => setEditProfileData({ ...editProfileData, email: e.target.value })}
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Mobile</label>
+                                <input value={editProfileData.mobile} onChange={e => setEditProfileData({ ...editProfileData, mobile: e.target.value })}
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>National Address</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                    <input placeholder="Building No (4 digits)" value={editProfileData.nationalAddressObj?.buildingNo || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, buildingNo: e.target.value } })}
+                                        pattern="\d{4}" maxLength="4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                    <input placeholder="Street Name" value={editProfileData.nationalAddressObj?.street || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, street: e.target.value } })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                    <input placeholder="District" value={editProfileData.nationalAddressObj?.district || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, district: e.target.value } })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                    <input placeholder="City" value={editProfileData.nationalAddressObj?.city || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, city: e.target.value } })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                    <input placeholder="Postal Code (5 digits)" value={editProfileData.nationalAddressObj?.postalCode || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, postalCode: e.target.value } })}
+                                        pattern="\d{5}" maxLength="5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                    <input placeholder="Additional No" value={editProfileData.nationalAddressObj?.additionalNo || ''} onChange={e => setEditProfileData({ ...editProfileData, nationalAddressObj: { ...editProfileData.nationalAddressObj, additionalNo: e.target.value } })}
+                                        pattern="\d{4}" maxLength="4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>VAT Number</label>
+                                    <input value={editProfileData.vatNumber} onChange={e => setEditProfileData({ ...editProfileData, vatNumber: e.target.value })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>CR Number</label>
+                                    <input value={editProfileData.crNumber} onChange={e => setEditProfileData({ ...editProfileData, crNumber: e.target.value })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>License Expires At</label>
+                                <input type="date" value={editProfileData.licenseExpiresAt} onChange={e => setEditProfileData({ ...editProfileData, licenseExpiresAt: e.target.value })}
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setShowEditProfileModal(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
+                            <button onClick={handleSaveProfile} style={{ flex: 1, background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', border: 'none', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
+                                Save Profile
                             </button>
                         </div>
                     </div>
