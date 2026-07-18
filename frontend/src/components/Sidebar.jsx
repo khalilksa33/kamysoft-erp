@@ -67,7 +67,9 @@ const sidebarTranslations = {
         propertyUnits: "Units",
         propertyBookings: "Bookings",
         propertyLeasing: "Leasing & Contracts",
-        propertyMaintenance: "Maintenance Tasks"
+        propertyMaintenance: "Maintenance Tasks",
+        propertyOwners: "Property Owners",
+        ownerAccounting: "Owner Accounting"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -132,8 +134,10 @@ const sidebarTranslations = {
         propertyProperties: "العقارات",
         propertyUnits: "الوحدات",
         propertyBookings: "الحجوزات",
-        propertyLeasing: "عقود الإيجار",
-        propertyMaintenance: "مهام الصيانة"
+        propertyLeasing: "العقود والتأجير",
+        propertyMaintenance: "مهام الصيانة",
+        propertyOwners: "الملاك",
+        ownerAccounting: "حسابات الملاك"
     }
 };
 
@@ -157,7 +161,9 @@ const menuConfig = [
             { id: 'property_units', labelKey: 'propertyUnits' },
             { id: 'property_bookings', labelKey: 'propertyBookings' },
             { id: 'property_leasing', labelKey: 'propertyLeasing' },
-            { id: 'property_maintenance', labelKey: 'propertyMaintenance' }
+            { id: 'property_maintenance', labelKey: 'propertyMaintenance' },
+            { id: 'property_owners', labelKey: 'propertyOwners' },
+            { id: 'property_owner_accounting', labelKey: 'ownerAccounting' }
         ]
     },
     { id: 'maintenance', icon: 'ri-tools-line', labelKey: 'maintenance' },

@@ -329,12 +329,26 @@ const returnInvoiceSchema = new mongoose.Schema({
 });
 const ReturnInvoice = mongoose.model('ReturnInvoice', returnInvoiceSchema);
 
+const propertyOwnerSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    phone: { type: String },
+    email: { type: String },
+    bankDetails: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+propertyOwnerSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const PropertyOwner = mongoose.model('PropertyOwner', propertyOwnerSchema);
+
 const propertySchema = new mongoose.Schema({
     id: { type: String, required: true },
     name: { type: String, required: true },
     type: { type: String, enum: ['Resort', 'Building', 'Hotel', 'Compound'], required: true },
     location: { type: String },
     status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
+    ownerId: { type: String },
+    managementFeeType: { type: String, enum: ['Percentage', 'Fixed'], default: 'Percentage' },
+    managementFeeValue: { type: Number, default: 0 },
     tenantId: { type: String, default: 'default', index: true }
 });
 const Property = mongoose.model('Property', propertySchema);
@@ -421,5 +435,6 @@ module.exports = {
     ReturnInvoice,
     SubscriptionPayment,
     Account,
+    PropertyOwner,
     Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract
 };

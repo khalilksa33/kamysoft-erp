@@ -34,6 +34,8 @@ import Bookings from './views/property/Bookings';
 import PropertyMaintenance from './views/property/Maintenance';
 import LeasingContracts from './views/property/LeasingContracts';
 import TenantPortal from './views/property/TenantPortal';
+import PropertyOwners from './views/property/PropertyOwners';
+import OwnerAccounting from './views/property/OwnerAccounting';
 
 // Automatically add x-tenant-id header to relative API calls
 const getBaseDomain = (host) => {
@@ -2150,6 +2152,8 @@ const handleB2BSubmit = () => {
                 {['property_units'].includes(activeTab) && <Units {...props} />}
                 {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
                 {['property_leasing'].includes(activeTab) && <LeasingContracts {...props} />}
+                {['property_owners'].includes(activeTab) && <PropertyOwners {...props} />}
+                {['property_owner_accounting'].includes(activeTab) && <OwnerAccounting {...props} />}
                 {['property_maintenance'].includes(activeTab) && <PropertyMaintenance {...props} />}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}

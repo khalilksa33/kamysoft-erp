@@ -1721,6 +1721,169 @@ router.get('/api/reports/cash-flow', authenticateToken, async (req, res) => {
 
 // --- PROPERTY MANAGEMENT MODULE ---
 
+// Property Owners
+router.get('/api/property-owners', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const owners = await PropertyOwner.find({ tenantId });
+            res.json(owners);
+        } else {
+            res.json(mockDb.propertyOwners ? mockDb.propertyOwners.filter(o => o.tenantId === tenantId) : []);
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/property-owners', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const owner = { ...req.body, tenantId, id: 'owner-' + Date.now() };
+        if (global.isMongoConnected) {
+            await PropertyOwner.create(owner);
+        } else {
+            mockDb.propertyOwners = mockDb.propertyOwners || [];
+            mockDb.propertyOwners.push(owner);
+        }
+        res.status(201).json(owner);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/api/property-owners/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await PropertyOwner.updateOne({ id: req.params.id, tenantId }, req.body);
+        } else {
+            mockDb.propertyOwners = mockDb.propertyOwners.map(o => o.id === req.params.id && o.tenantId === tenantId ? { ...o, ...req.body } : o);
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/api/property-owners/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await PropertyOwner.deleteOne({ id: req.params.id, tenantId });
+        } else {
+            mockDb.propertyOwners = mockDb.propertyOwners.filter(o => !(o.id === req.params.id && o.tenantId === tenantId));
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Owner Statement API
+router.get('/api/owner-statement/:ownerId', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { ownerId } = req.params;
+        const { startDate, endDate } = req.query;
+
+        if (!global.isMongoConnected) {
+            return res.json({ income: [], expenses: [], summary: { totalCollected: 0, managementFees: 0, maintenanceCosts: 0, netDue: 0 }});
+        }
+
+        const start = startDate ? new Date(startDate) : new Date(0);
+        const end = endDate ? new Date(endDate) : new Date();
+        end.setHours(23, 59, 59, 999);
+
+        // 1. Find properties owned by this owner
+        const properties = await Property.find({ tenantId, ownerId });
+        if (!properties.length) {
+            return res.json({ income: [], expenses: [], summary: { totalCollected: 0, managementFees: 0, maintenanceCosts: 0, netDue: 0 }});
+        }
+
+        const propertyIds = properties.map(p => p.id);
+        const propertyFeeMap = {};
+        properties.forEach(p => {
+            propertyFeeMap[p.id] = { type: p.managementFeeType, value: p.managementFeeValue };
+        });
+
+        // 2. Find all units in those properties
+        const units = await Unit.find({ tenantId, propertyId: { $in: propertyIds }});
+        const unitIds = units.map(u => u.id);
+        const unitToPropertyMap = {};
+        units.forEach(u => {
+            unitToPropertyMap[u.id] = u.propertyId;
+        });
+
+        // 3. Find all lease contracts for these units
+        const leases = await LeaseContract.find({ tenantId, unitId: { $in: unitIds } });
+        // We'll collect invoices directly from these leases
+        let income = [];
+        let totalCollected = 0;
+        let managementFees = 0;
+
+        leases.forEach(lease => {
+            const propertyId = unitToPropertyMap[lease.unitId];
+            const feeConfig = propertyFeeMap[propertyId];
+
+            lease.installments.forEach(inst => {
+                if (inst.status === 'Paid') {
+                    // Assuming installment dueDate falls within statement period
+                    const instDate = new Date(inst.dueDate);
+                    if (instDate >= start && instDate <= end) {
+                        income.push({
+                            unitId: lease.unitId,
+                            propertyId: propertyId,
+                            date: inst.dueDate,
+                            amount: inst.amount,
+                            leaseId: lease._id
+                        });
+                        totalCollected += inst.amount;
+                        if (feeConfig.type === 'Percentage') {
+                            managementFees += inst.amount * (feeConfig.value / 100);
+                        }
+                    }
+                }
+            });
+        });
+
+        // Add fixed management fees for properties (once per month? We'll assume per statement generation for simplicity if fixed)
+        properties.forEach(p => {
+            if (p.managementFeeType === 'Fixed') {
+                managementFees += p.managementFeeValue;
+            }
+        });
+
+        // 4. Find all Completed maintenance tasks for these units in date range
+        const maintenanceTasks = await MaintenanceTask.find({ 
+            tenantId, 
+            unitId: { $in: unitIds },
+            status: 'Completed',
+            resolvedDate: { $gte: start, $lte: end }
+        });
+
+        let maintenanceCosts = 0;
+        let expenses = maintenanceTasks.map(t => {
+            maintenanceCosts += t.cost;
+            return {
+                taskId: t.id,
+                unitId: t.unitId,
+                date: t.resolvedDate,
+                description: t.description,
+                cost: t.cost
+            };
+        });
+
+        const netDue = totalCollected - managementFees - maintenanceCosts;
+
+        res.json({
+            income,
+            expenses,
+            summary: {
+                totalCollected,
+                managementFees,
+                maintenanceCosts,
+                netDue
+            }
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Properties
 router.get('/api/properties', authenticateToken, async (req, res) => {
     try {
