@@ -136,6 +136,23 @@ if (MONGO_URI) {
 // IN-MEMORY STORAGE (Fallback / Mock Database)
 // ----------------------------------------------------
 const mockDb = {
+    properties: [],
+    propertyOwners: [],
+    units: [],
+    bookings: [],
+    maintenanceTasks: [],
+    propertyInvoices: [],
+    leaseContracts: [],
+    leads: [],
+    subscriptionPayments: [],
+    accounts: [],
+    journalEntries: [],
+    expenses: [],
+    assets: [],
+    suppliers: [],
+    quotations: [],
+    orders: [],
+    settingsTenant: {},
     users: [
         // Admin: admin123, Manager: manager123, Cashier: cashier123, Demo: demo123
         { id: '1', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Admin' },

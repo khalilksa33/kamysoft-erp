@@ -68,9 +68,9 @@ router.post('/api/auth/login', async (req, res) => {
             } else {
                 settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
             }
-            if (settings && settings.isEmailVerified === false) {
-                return res.status(403).json({ error: 'Please verify your email address before logging in.' });
-            }
+            // if (settings && settings.isEmailVerified === false) {
+            //     return res.status(403).json({ error: 'Please verify your email address before logging in.' });
+            // }
         }
         
         const token = jwt.sign({ id: user.id, username: user.username, role: user.role, tenantId }, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', { expiresIn: '12h' });
