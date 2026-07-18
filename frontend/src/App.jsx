@@ -28,6 +28,12 @@ import Employees from './views/people/Employees';
 import Sidebar from './components/Sidebar';
 import SaasAdmin from './SaasAdmin';
 import Maintenance from './views/services/Maintenance';
+import Properties from './views/property/Properties';
+import Units from './views/property/Units';
+import Bookings from './views/property/Bookings';
+import PropertyMaintenance from './views/property/Maintenance';
+import LeasingContracts from './views/property/LeasingContracts';
+import TenantPortal from './views/property/TenantPortal';
 
 // Automatically add x-tenant-id header to relative API calls
 const getBaseDomain = (host) => {
@@ -1826,6 +1832,11 @@ const handleB2BSubmit = () => {
         return <SaasAdmin baseDomain={baseDomain} />;
     }
 
+    // Check if Tenant Portal is requested via URL path
+    if (window.location.pathname === '/portal' || window.location.pathname.startsWith('/portal/')) {
+        return <TenantPortal />;
+    }
+
     // Render Marketing Landing Page
     if (routeMode === 'marketing') {
         return (
@@ -2134,6 +2145,13 @@ const handleB2BSubmit = () => {
                 {/* TAB: MAINTENANCE */}
                 {['maintenance'].includes(activeTab) && <Maintenance {...props} />}
 
+                {/* TAB: PROPERTY MANAGEMENT */}
+                {['property_properties'].includes(activeTab) && <Properties {...props} />}
+                {['property_units'].includes(activeTab) && <Units {...props} />}
+                {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
+                {['property_leasing'].includes(activeTab) && <LeasingContracts {...props} />}
+                {['property_maintenance'].includes(activeTab) && <PropertyMaintenance {...props} />}
+
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (
                     <div className="glass-card">
@@ -2187,7 +2205,7 @@ const handleB2BSubmit = () => {
 
                 {/* TAB: SUPPLIERS */}
                 {['suppliers', 'suppliersManagement', 'supplierStatement'].includes(activeTab) && <Suppliers {...props} />}
-                {['employees'].includes(activeTab) && <Employees {...props} />}
+                {['employees', 'employeesManagement'].includes(activeTab) && <Employees {...props} />}
                 {/* TAB: EXPENSES */}
                 {activeTab === 'expenses' && (
                     <div className="glass-card">

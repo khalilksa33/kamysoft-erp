@@ -455,7 +455,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                     <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '32px 36px', width: '400px' }}>
                         <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '16px' }}>Modules for {selectedTenantForModules}</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                            {['pos', 'inventory', 'financials', 'hrm', 'ecommerce', 'b2b'].map(mod => (
+                            {['propertyManagement', 'inventory', 'pos', 'customers', 'employees', 'financials', 'ecommerce', 'b2b'].map(mod => (
                                 <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                                     <input type="checkbox" checked={selectedModules[mod] || false}
                                         onChange={e => setSelectedModules({ ...selectedModules, [mod]: e.target.checked })}

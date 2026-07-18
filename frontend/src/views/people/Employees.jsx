@@ -5,7 +5,8 @@ const Employees = (props) => {
         employees, setEmployees, currentLanguage, translations, headers 
     } = props;
 
-    const [empForm, setEmpForm] = useState({ name: '', dept: '' });
+    const defaultForm = { name: '', dept: '', position: '', email: '', phone: '', salary: 0, status: 'Active' };
+    const [empForm, setEmpForm] = useState(defaultForm);
     const [showEmployeeModal, setShowEmployeeModal] = useState(false);
 
     const handleSaveEmployee = (e) => {
@@ -29,7 +30,7 @@ const Employees = (props) => {
                 setEmployees([...employees, data]);
             }
             setShowEmployeeModal(false);
-            setEmpForm({ name: '', dept: '' });
+            setEmpForm(defaultForm);
         })
         .catch(() => {
             // Optimistic UI for mock mode
@@ -40,7 +41,7 @@ const Employees = (props) => {
                 setEmployees([...employees, mock]);
             }
             setShowEmployeeModal(false);
-            setEmpForm({ name: '', dept: '' });
+            setEmpForm(defaultForm);
         });
     };
 
@@ -59,7 +60,7 @@ const Employees = (props) => {
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 data-i18n="employees">{translations[currentLanguage].employees || 'Employees'}</h3>
-                <button className="btn btn-primary" onClick={() => { setEmpForm({ name: '', dept: '' }); setShowEmployeeModal(true); }}>
+                <button className="btn btn-primary" onClick={() => { setEmpForm(defaultForm); setShowEmployeeModal(true); }}>
                     {currentLanguage === 'ar' ? 'إضافة موظف' : 'Add Employee'}
                 </button>
             </div>
@@ -69,13 +70,17 @@ const Employees = (props) => {
                         <tr>
                             <th>{currentLanguage === 'ar' ? 'الاسم' : 'Name'}</th>
                             <th>{currentLanguage === 'ar' ? 'القسم' : 'Department'}</th>
+                            <th>{currentLanguage === 'ar' ? 'المنصب' : 'Position'}</th>
+                            <th>{currentLanguage === 'ar' ? 'رقم الهاتف' : 'Phone'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الراتب الأساسي' : 'Base Salary'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</th>
                             <th>{translations[currentLanguage].actions}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {employees.length === 0 ? (
                             <tr>
-                                <td colSpan="3" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                                     {currentLanguage === 'ar' ? 'لا يوجد موظفون مسجلون حالياً' : 'No employees registered currently'}
                                 </td>
                             </tr>
@@ -84,6 +89,14 @@ const Employees = (props) => {
                                 <tr key={e.id}>
                                     <td>{e.name}</td>
                                     <td>{e.dept}</td>
+                                    <td>{e.position}</td>
+                                    <td>{e.phone}</td>
+                                    <td>{e.salary}</td>
+                                    <td>
+                                        <span className={`status-badge ${e.status === 'Active' ? 'status-paid' : 'status-unpaid'}`}>
+                                            {e.status === 'Active' ? (currentLanguage === 'ar' ? 'نشط' : 'Active') : (currentLanguage === 'ar' ? 'غير نشط' : 'Inactive')}
+                                        </span>
+                                    </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <button className="btn btn-secondary" onClick={() => { setEmpForm(e); setShowEmployeeModal(true); }}>
@@ -103,18 +116,43 @@ const Employees = (props) => {
 
             {showEmployeeModal && (
                 <div className="modal-overlay" onClick={() => setShowEmployeeModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <h3>
                             {empForm.id ? (currentLanguage === 'ar' ? 'تعديل بيانات الموظف' : 'Edit Employee Details') : (currentLanguage === 'ar' ? 'إضافة موظف جديد' : 'Add New Employee')}
                         </h3>
                         <form onSubmit={handleSaveEmployee}>
-                            <div className="form-group">
-                                <label>{currentLanguage === 'ar' ? 'الاسم' : 'Name'}</label>
-                                <input type="text" value={empForm.name} onChange={e => setEmpForm({ ...empForm, name: e.target.value })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{currentLanguage === 'ar' ? 'القسم' : 'Department'}</label>
-                                <input type="text" value={empForm.dept} onChange={e => setEmpForm({ ...empForm, dept: e.target.value })} required />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'الاسم' : 'Name'}</label>
+                                    <input type="text" value={empForm.name} onChange={e => setEmpForm({ ...empForm, name: e.target.value })} required />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'القسم' : 'Department'}</label>
+                                    <input type="text" value={empForm.dept} onChange={e => setEmpForm({ ...empForm, dept: e.target.value })} required />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'المنصب' : 'Position'}</label>
+                                    <input type="text" value={empForm.position} onChange={e => setEmpForm({ ...empForm, position: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'رقم الهاتف' : 'Phone'}</label>
+                                    <input type="text" value={empForm.phone} onChange={e => setEmpForm({ ...empForm, phone: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
+                                    <input type="email" value={empForm.email} onChange={e => setEmpForm({ ...empForm, email: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'الراتب الأساسي' : 'Base Salary'}</label>
+                                    <input type="number" min="0" step="0.01" value={empForm.salary} onChange={e => setEmpForm({ ...empForm, salary: parseFloat(e.target.value) || 0 })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</label>
+                                    <select value={empForm.status} onChange={e => setEmpForm({ ...empForm, status: e.target.value })}>
+                                        <option value="Active">{currentLanguage === 'ar' ? 'نشط' : 'Active'}</option>
+                                        <option value="Inactive">{currentLanguage === 'ar' ? 'غير نشط' : 'Inactive'}</option>
+                                    </select>
+                                </div>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                                 <button type="submit" className="btn btn-primary">{translations[currentLanguage].save}</button>

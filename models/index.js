@@ -109,6 +109,7 @@ const customerSchema = new mongoose.Schema({
     email: { type: String },
     points: { type: Number, default: 0 },
     spent: { type: Number, default: 0 },
+    portalPassword: { type: String },
     tenantId: { type: String, default: 'default', index: true }
 });
 customerSchema.index({ id: 1, tenantId: 1 }, { unique: true });
@@ -118,6 +119,11 @@ const employeeSchema = new mongoose.Schema({
     id: { type: String, required: true },
     name: { type: String, required: true },
     dept: { type: String, required: true },
+    position: { type: String, default: '' },
+    email: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    salary: { type: Number, default: 0 },
+    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
     tenantId: { type: String, default: 'default', index: true }
 });
 employeeSchema.index({ id: 1, tenantId: 1 }, { unique: true });
@@ -230,7 +236,7 @@ const Warehouse = mongoose.model('Warehouse', warehouseSchema);
 const inventoryTxSchema = new mongoose.Schema({
     txId: { type: String, required: true },
     date: { type: Date, default: Date.now },
-    type: { type: String, enum: ['IN', 'OUT', 'TRANSFER'], required: true },
+    type: { type: String, enum: ['IN', 'OUT', 'TRANSFER', 'ADJUST'], required: true },
     productId: { type: String, required: true },
     qty: { type: Number, required: true },
     warehouseId: { type: String, required: true },
@@ -323,6 +329,87 @@ const returnInvoiceSchema = new mongoose.Schema({
 });
 const ReturnInvoice = mongoose.model('ReturnInvoice', returnInvoiceSchema);
 
+const propertySchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, enum: ['Resort', 'Building', 'Hotel', 'Compound'], required: true },
+    location: { type: String },
+    status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Property = mongoose.model('Property', propertySchema);
+
+const unitSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    propertyId: { type: String, required: true },
+    unitNumber: { type: String, required: true },
+    type: { type: String, enum: ['Room', 'Suite', 'Apartment', 'Villa'], required: true },
+    beds: { type: Number, default: 1 },
+    dailyRate: { type: Number, required: true },
+    status: { type: String, enum: ['Available', 'Occupied', 'Maintenance', 'Reserved'], default: 'Available' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Unit = mongoose.model('Unit', unitSchema);
+
+const bookingSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    unitId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    checkInDate: { type: Date, required: true },
+    checkOutDate: { type: Date, required: true },
+    totalAmount: { type: Number, required: true },
+    status: { type: String, enum: ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'], default: 'Pending' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Booking = mongoose.model('Booking', bookingSchema);
+
+const maintenanceTaskSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    unitId: { type: String, required: true },
+    description: { type: String, required: true },
+    reportedDate: { type: Date, default: Date.now },
+    resolvedDate: { type: Date },
+    status: { type: String, enum: ['Pending', 'InProgress', 'Completed'], default: 'Pending' },
+    cost: { type: Number, default: 0 },
+    assignedTo: { type: String }, // references Employee ID
+    tenantId: { type: String, default: 'default', index: true }
+});
+const MaintenanceTask = mongoose.model('MaintenanceTask', maintenanceTaskSchema);
+
+const propertyInvoiceSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    bookingId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    issueDate: { type: Date, default: Date.now },
+    dueDate: { type: Date, required: true },
+    subtotal: { type: Number, required: true },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    status: { type: String, enum: ['Unpaid', 'Paid', 'Cancelled'], default: 'Unpaid' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const PropertyInvoice = mongoose.model('PropertyInvoice', propertyInvoiceSchema);
+
+// Leasing & Contracts (Real Estate expansion)
+const leaseContractSchema = new mongoose.Schema({
+    tenantId: { type: String, default: 'default', index: true },
+    unitId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    rentAmount: { type: Number, required: true },
+    paymentFrequency: { type: String, enum: ['Monthly', 'Quarterly', 'Semi-Annually', 'Yearly', 'One-time'], default: 'Monthly' },
+    installments: [{
+        dueDate: { type: Date, required: true },
+        amount: { type: Number, required: true },
+        status: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
+        invoiceId: { type: String }
+    }],
+    status: { type: String, enum: ['Active', 'Expired', 'Terminated'], default: 'Active' },
+    createdAt: { type: Date, default: Date.now }
+});
+const LeaseContract = mongoose.model('LeaseContract', leaseContractSchema);
+
 module.exports = {
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
     Warehouse,
@@ -333,5 +420,6 @@ module.exports = {
     PurchaseInvoice,
     ReturnInvoice,
     SubscriptionPayment,
-    Account
+    Account,
+    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract
 };

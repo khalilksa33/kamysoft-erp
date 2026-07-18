@@ -61,7 +61,13 @@ const sidebarTranslations = {
         basicData: "Basic Data",
         light: "Light",
         dark: "Dark",
-        moduleSwitch: "Module Switcher"
+        moduleSwitch: "Module Switcher",
+        propertyManagement: "Real Estate",
+        propertyProperties: "Properties",
+        propertyUnits: "Units",
+        propertyBookings: "Bookings",
+        propertyLeasing: "Leasing & Contracts",
+        propertyMaintenance: "Maintenance Tasks"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -121,7 +127,13 @@ const sidebarTranslations = {
         zatcaIntegration: "الربط مع هيئة الزكاة والدخل",
         basicData: "بيانات أساسية",
         light: "نهاري",
-        dark: "ليلي"
+        dark: "ليلي",
+        propertyManagement: "إدارة العقارات",
+        propertyProperties: "العقارات",
+        propertyUnits: "الوحدات",
+        propertyBookings: "الحجوزات",
+        propertyLeasing: "عقود الإيجار",
+        propertyMaintenance: "مهام الصيانة"
     }
 };
 
@@ -138,6 +150,16 @@ const menuConfig = [
         ]
     },
     { id: 'pos', icon: 'ri-shopping-cart-line', labelKey: 'posCashier' },
+    {
+        id: 'propertyManagement', icon: 'ri-building-line', labelKey: 'propertyManagement',
+        submenu: [
+            { id: 'property_properties', labelKey: 'propertyProperties' },
+            { id: 'property_units', labelKey: 'propertyUnits' },
+            { id: 'property_bookings', labelKey: 'propertyBookings' },
+            { id: 'property_leasing', labelKey: 'propertyLeasing' },
+            { id: 'property_maintenance', labelKey: 'propertyMaintenance' }
+        ]
+    },
     { id: 'maintenance', icon: 'ri-tools-line', labelKey: 'maintenance' },
     {
         id: 'inventory', icon: 'ri-shopping-bag-3-line', labelKey: 'inventory',
