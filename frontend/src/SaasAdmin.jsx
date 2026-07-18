@@ -405,10 +405,16 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                                             <div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>VAT:</span> {store.vatNumber || 'N/A'}</div>
                                                                 <div style={{ marginBottom: '6px' }}><span style={{ color: 'rgba(255,255,255,0.4)', width: '80px', display: 'inline-block' }}>CR:</span> {store.crNumber || 'N/A'}</div>
-                                                                <button onClick={() => openEditProfileModal(store)}
-                                                                    style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#a78bfa', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
-                                                                    <i className="ri-edit-line" /> Edit Profile
-                                                                </button>
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <button onClick={() => openEditProfileModal(store)}
+                                                                        style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#a78bfa', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                                                                        <i className="ri-edit-line" /> Edit Profile
+                                                                    </button>
+                                                                    <button onClick={() => openModulesModal(store.tenantId)}
+                                                                        style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '6px', padding: '6px 12px', color: '#34d399', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                                                                        <i className="ri-layout-grid-line" /> Edit Modules
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -521,7 +527,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                     <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '32px 36px', width: '400px' }}>
                         <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '16px' }}>Modules for {selectedTenantForModules}</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                            {['propertyManagement', 'inventory', 'pos', 'customers', 'employees', 'financials', 'ecommerce', 'b2b'].map(mod => (
+                            {['pos', 'inventory', 'suppliers', 'invoices', 'maintenance', 'customers', 'employees', 'warehouses', 'financials', 'reports', 'propertyManagement', 'ecommerce', 'b2b'].map(mod => (
                                 <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                                     <input type="checkbox" checked={selectedModules[mod] || false}
                                         onChange={e => setSelectedModules({ ...selectedModules, [mod]: e.target.checked })}

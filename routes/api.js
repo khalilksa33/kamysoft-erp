@@ -293,7 +293,8 @@ router.get('/api/settings', async (req, res) => {
                         exchangeRates: { SAR: 1, USD: 0.27, EUR: 0.25, EGP: 12.8, AED: 0.99 },
                         branches: [{ name: 'Main Branch', address: 'Main St', phone: '+966 50 000 0000' }],
                         currentBranch: 'Main Branch',
-                        businessType: 'retail'
+                        businessType: 'retail',
+                        enabledModules: { invoices: false, pos: true, maintenance: false, inventory: true, customers: false, employees: false, suppliers: true, warehouses: false, financials: false, reports: false, settings: true, propertyManagement: false }
                     });
                 }
             }

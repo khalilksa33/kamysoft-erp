@@ -689,7 +689,7 @@ export default function App() {
         businessType: 'retail',
         enableTables: false,
         enableServiceDuration: false,
-        enabledModules: { invoices: true, pos: true, maintenance: true, inventory: true, customers: true, employees: true, suppliers: true, warehouses: true, financials: true, reports: true, settings: true }
+        enabledModules: { invoices: false, pos: true, maintenance: false, inventory: true, customers: false, employees: false, suppliers: true, warehouses: false, financials: false, reports: false, settings: true, propertyManagement: false }
     });
 
     const [zatcaConn, setZatcaConn] = useState({
