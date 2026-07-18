@@ -301,7 +301,11 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                 <div className="modern-nav-container">
                     <ul className="modern-nav-links">
                         {menuConfig.map((item) => {
+                            // Hide if SaaS Admin disabled it
                             if (item.id !== 'dashboard' && item.id !== 'settings' && settings?.enabledModules && settings.enabledModules[item.id] === false) return null;
+                            // Hide if Tenant disabled it locally
+                            if (item.id !== 'dashboard' && item.id !== 'settings' && settings?.visibleModules && settings.visibleModules[item.id] === false) return null;
+
                             const isExpanded = expandedMenu === item.id;
                             const isActive = activeTab === item.id || (item.submenu && item.submenu.some(sub => sub.id === activeTab));
                             

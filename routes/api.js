@@ -1667,9 +1667,16 @@ router.patch('/api/saas/stores/:tenantId/modules', requireSaasAdmin, async (req,
         const { tenantId } = req.params;
         const { modules } = req.body; // e.g., { pos: true, inventory: false }
         if (global.isMongoConnected) {
-            await Settings.updateOne({ tenantId }, { $set: { enabledModules: modules } });
+            await Settings.updateOne(
+                { tenantId },
+                { $set: { enabledModules: modules } },
+                { upsert: true }
+            );
         } else {
-            if (mockDb.settingsTenant[tenantId]) mockDb.settingsTenant[tenantId].enabledModules = modules;
+            if (!mockDb.settingsTenant[tenantId]) {
+                mockDb.settingsTenant[tenantId] = { ...mockDb.settings, tenantId };
+            }
+            mockDb.settingsTenant[tenantId].enabledModules = modules;
         }
         res.json({ success: true });
     } catch (err) {

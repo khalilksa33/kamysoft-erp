@@ -138,6 +138,62 @@ const Settings = (props) => {
                     </div>
                 )}
 
+                {activeSettingsTab === 'general' && (
+                    <div className="glass-card fade-in" style={{ marginTop: '20px' }}>
+                        <h3 style={{ marginBottom: '20px', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ri-eye-line"></i> {currentLanguage === 'ar' ? 'إظهار / إخفاء الوحدات' : 'Module Visibility'}
+                        </h3>
+                        <p style={{ marginBottom: '15px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                            {currentLanguage === 'ar' ? 'يمكنك إخفاء الوحدات المفعلة محلياً. إذا كانت الوحدة غير مفعلة من قبل الإدارة، فلا يمكنك إظهارها هنا.' : 'You can hide enabled modules locally. If a module is not enabled by the admin, you cannot show it here.'}
+                        </p>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            fetch('/api/settings', {
+                                method: 'POST',
+                                headers: props.headers,
+                                body: JSON.stringify(settings)
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                setSettings(data);
+                                alert(currentLanguage === 'ar' ? "تم حفظ إعدادات الوحدات بنجاح" : "Module visibility saved successfully");
+                            })
+                            .catch(() => {
+                                alert("Failed to save module visibility.");
+                            });
+                        }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                                {['pos', 'inventory', 'suppliers', 'invoices', 'maintenance', 'customers', 'employees', 'warehouses', 'financials', 'reports', 'propertyManagement', 'ecommerce', 'b2b'].map(mod => {
+                                    // Only show if the SaaS admin hasn't explicitly disabled it
+                                    if (settings.enabledModules && settings.enabledModules[mod] === false) return null;
+                                    
+                                    const isVisible = settings.visibleModules ? settings.visibleModules[mod] !== false : true;
+                                    
+                                    return (
+                                        <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'var(--glass-bg)', padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={isVisible}
+                                                onChange={e => {
+                                                    setSettings({
+                                                        ...settings,
+                                                        visibleModules: {
+                                                            ...(settings.visibleModules || {}),
+                                                            [mod]: e.target.checked
+                                                        }
+                                                    });
+                                                }}
+                                            />
+                                            <span style={{ textTransform: 'capitalize', color: 'var(--text-primary)', fontSize: '14px' }}>{mod.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{translations[currentLanguage].saveSettings}</button>
+                        </form>
+                    </div>
+                )}
+
                 {activeSettingsTab === 'branch' && (
                     <div className="glass-card fade-in">
                         <h3 style={{ marginBottom: '20px', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -177,6 +177,7 @@ const settingsSchema = new mongoose.Schema({
     enableTables: { type: Boolean, default: false },
     enableServiceDuration: { type: Boolean, default: false },
     enabledModules: { type: Object, default: {} },
+    visibleModules: { type: Object, default: {} },
     smtp: {
         provider: { type: String, default: 'smtp' }, // 'smtp' or 'sendgrid'
         host: { type: String },
