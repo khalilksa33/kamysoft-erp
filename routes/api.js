@@ -211,7 +211,9 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         
         // Send email asynchronously (don't block the response)
         if (email) {
-            sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain, settingsData.emailVerificationToken);
+            if (typeof global.sendLicenseEmail === 'function') {
+                global.sendLicenseEmail(email, normalizedTenantId, businessName, licenseKey, expirationDate, baseDomain, settingsData.emailVerificationToken);
+            }
         }
         
         // Cloudflare Tunnel update is deferred until email is verified
@@ -1654,9 +1656,17 @@ router.get('/api/saas/stats', requireSaasAdmin, async (req, res) => {
 router.get('/api/saas/stores/:tenantId/modules', requireSaasAdmin, async (req, res) => {
     try {
         const { tenantId } = req.params;
-        const storeSettings = await Settings.findOne({ tenantId });
-        if (!storeSettings) return res.status(404).json({ error: 'Store not found' });
-        res.json(storeSettings.enabledModules || {});
+        let enabledModules = {};
+        if (global.isMongoConnected) {
+            const storeSettings = await Settings.findOne({ tenantId });
+            if (!storeSettings) return res.status(404).json({ error: 'Store not found' });
+            enabledModules = storeSettings.enabledModules || {};
+        } else {
+            const storeSettings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+            if (!storeSettings) return res.status(404).json({ error: 'Store not found' });
+            enabledModules = storeSettings.enabledModules || {};
+        }
+        res.json(enabledModules);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -1673,6 +1683,9 @@ router.patch('/api/saas/stores/:tenantId/modules', requireSaasAdmin, async (req,
                 { upsert: true }
             );
         } else {
+            if (!mockDb.settingsTenant) {
+                mockDb.settingsTenant = { 'default': { ...mockDb.settings, tenantId: 'default' } };
+            }
             if (!mockDb.settingsTenant[tenantId]) {
                 mockDb.settingsTenant[tenantId] = { ...mockDb.settings, tenantId };
             }
