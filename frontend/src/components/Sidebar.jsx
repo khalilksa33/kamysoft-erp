@@ -249,7 +249,8 @@ const menuConfig = [
             { id: 'programActivation', labelKey: 'programActivation' },
             { id: 'techSupport', labelKey: 'techSupport' },
             { id: 'zatcaIntegration', labelKey: 'zatcaIntegration' },
-            { id: 'basicData', labelKey: 'basicData' }
+            { id: 'basicData', labelKey: 'basicData' },
+            { id: 'moduleSwitch', labelKey: 'moduleSwitch' }
         ]
     }
 ];
