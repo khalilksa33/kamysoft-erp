@@ -328,9 +328,10 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             }
         }
         
-        // Cloudflare Tunnel update is deferred until email is verified
-
-        
+        // Cloudflare Tunnel update is called immediately since email verification is bypassed
+        if (process.env.CF_ACCOUNT_ID && baseDomain) {
+            global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
+        }        
         res.status(201).json({ 
             success: true, 
             tenantId: normalizedTenantId,
