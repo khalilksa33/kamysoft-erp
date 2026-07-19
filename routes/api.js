@@ -52,6 +52,15 @@ router.post('/api/auth/login', async (req, res) => {
             user = await User.findOne({ username, tenantId });
         } else {
             user = mockDb.users.find(u => u.username === username && u.tenantId === tenantId);
+            if (!user) {
+                user = mockDb.users.find(u => u.username === username && !u.tenantId);
+                if (user) {
+                    if (!mockDb.settingsTenant) mockDb.settingsTenant = {};
+                    if (!mockDb.settingsTenant[tenantId] && tenantId !== 'default') {
+                        mockDb.settingsTenant[tenantId] = { ...mockDb.settings, tenantId };
+                    }
+                }
+            }
         }
         
         if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
@@ -2323,6 +2332,22 @@ router.post('/api/properties', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.put('/api/properties/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const updateData = { name: req.body.name, type: req.body.type, location: req.body.location, ownerId: req.body.ownerId };
+        
+        if (global.isMongoConnected) {
+            await Property.updateOne({ id: req.params.id, tenantId }, { $set: updateData });
+        } else {
+            const index = mockDb.properties.findIndex(p => p.id === req.params.id && p.tenantId === tenantId);
+            if (index !== -1) mockDb.properties[index] = { ...mockDb.properties[index], ...updateData };
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
 router.delete('/api/properties/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
@@ -2353,7 +2378,7 @@ router.get('/api/units', authenticateToken, async (req, res) => {
 router.post('/api/units', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        const newUnit = { ...req.body, tenantId, id: 'unit-' + Date.now() };
+        const newUnit = { ...req.body, status: req.body.status || 'Available', tenantId, id: 'unit-' + Date.now() };
         if (global.isMongoConnected) {
             await Unit.create(newUnit);
         } else {

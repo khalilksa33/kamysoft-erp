@@ -77,7 +77,7 @@ const OwnerAccounting = ({ currentLanguage }) => {
                         {loading ? (isAr ? 'جاري التوليد...' : 'Generating...') : (isAr ? 'توليد الكشف' : 'Generate Statement')}
                     </button>
                     {statement && (
-                        <button className="secondary-btn" onClick={handlePrint}>
+                        <button className="btn btn-secondary" onClick={handlePrint}>
                             <i className="ri-printer-line" style={{ marginRight: '5px' }}></i> {isAr ? 'طباعة' : 'Print'}
                         </button>
                     )}

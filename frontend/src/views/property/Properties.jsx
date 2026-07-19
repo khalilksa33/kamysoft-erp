@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../../index.css';
 
-const Properties = () => {
+const Properties = ({ currentLanguage }) => {
+    const isAr = currentLanguage === 'ar';
     const [properties, setProperties] = useState([]);
     const [owners, setOwners] = useState([]);
     const [name, setName] = useState('');
     const [type, setType] = useState('Resort');
     const [location, setLocation] = useState('');
     const [ownerId, setOwnerId] = useState('');
+    const [editId, setEditId] = useState(null);
 
     useEffect(() => {
         fetchProperties();
@@ -34,32 +36,44 @@ const Properties = () => {
         } catch (err) { console.error('Error fetching owners', err); }
     };
 
-    const handleCreate = async (e) => {
+    const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/properties', {
-                method: 'POST',
+            const url = editId ? `/api/properties/${editId}` : '/api/properties';
+            const method = editId ? 'PUT' : 'POST';
+            
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name, type, location, ownerId })
             });
             if (!res.ok) {
                 const text = await res.text();
-                alert(`Error creating property: ${res.status} ${text}`);
+                alert(`Error saving property: ${res.status} ${text}`);
                 return;
             }
             setName('');
             setLocation('');
             setOwnerId('');
+            setEditId(null);
             fetchProperties();
         } catch (err) { 
-            console.error('Error creating property', err);
-            alert(`Network error creating property: ${err.message}`);
+            console.error('Error saving property', err);
+            alert(`Network error saving property: ${err.message}`);
         }
     };
 
+    const handleEdit = (p) => {
+        setEditId(p.id);
+        setName(p.name);
+        setType(p.type);
+        setLocation(p.location || '');
+        setOwnerId(p.ownerId || '');
+    };
+
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this property and all its units?')) return;
+        if (!window.confirm(isAr ? 'هل أنت متأكد من حذف هذا العقار وجميع وحداته؟' : 'Delete this property and all its units?')) return;
         try {
             const token = localStorage.getItem('token');
             await fetch(`/api/properties/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -69,32 +83,33 @@ const Properties = () => {
 
     const getOwnerName = (id) => {
         const owner = owners.find(o => o.id === id);
-        return owner ? owner.name : 'Company Owned';
+        return owner ? owner.name : (isAr ? 'مملوك للشركة' : 'Company Owned');
     };
 
     return (
         <div className="view-container">
             <div className="header-row">
-                <h2>Manage Properties</h2>
+                <h2>{isAr ? 'إدارة العقارات' : 'Manage Properties'}</h2>
             </div>
             
             <div className="card">
-                <h3>Add New Property</h3>
-                <form onSubmit={handleCreate} className="inline-form">
-                    <input type="text" className="form-control" placeholder="Property Name" value={name} onChange={e => setName(e.target.value)} required />
+                <h3>{editId ? (isAr ? 'تعديل العقار' : 'Edit Property') : (isAr ? 'إضافة عقار جديد' : 'Add New Property')}</h3>
+                <form onSubmit={handleCreateOrUpdate} className="inline-form">
+                    <input type="text" className="form-control" placeholder={isAr ? 'اسم العقار' : 'Property Name'} value={name} onChange={e => setName(e.target.value)} required />
                     <select className="form-control" value={type} onChange={e => setType(e.target.value)}>
-                        <option value="Resort">Resort</option>
-                        <option value="Building">Building</option>
-                        <option value="Hotel">Hotel</option>
-                        <option value="Compound">Compound</option>
+                        <option value="Resort">{isAr ? 'منتجع' : 'Resort'}</option>
+                        <option value="Building">{isAr ? 'مبنى' : 'Building'}</option>
+                        <option value="Hotel">{isAr ? 'فندق' : 'Hotel'}</option>
+                        <option value="Compound">{isAr ? 'مجمع' : 'Compound'}</option>
                     </select>
-                    <input type="text" className="form-control" placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} />
+                    <input type="text" className="form-control" placeholder={isAr ? 'الموقع' : 'Location'} value={location} onChange={e => setLocation(e.target.value)} />
                     
                     <select className="form-control" value={ownerId} onChange={e => setOwnerId(e.target.value)}>
-                        <option value="">-- Company Owned (No 3rd Party Owner) --</option>
+                        <option value="">{isAr ? '-- مملوك للشركة --' : '-- Company Owned --'}</option>
                         {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                     </select>
-                    <button type="submit" className="btn btn-primary">Save</button>
+                    <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
+                    {editId && <button type="button" className="btn btn-secondary" onClick={() => { setEditId(null); setName(''); setLocation(''); setOwnerId(''); }}>{isAr ? 'إلغاء' : 'Cancel'}</button>}
                 </form>
             </div>
 
@@ -102,12 +117,12 @@ const Properties = () => {
                 <table className="data-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Location</th>
-                            <th>Owner</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>{isAr ? 'الاسم' : 'Name'}</th>
+                            <th>{isAr ? 'النوع' : 'Type'}</th>
+                            <th>{isAr ? 'الموقع' : 'Location'}</th>
+                            <th>{isAr ? 'المالك' : 'Owner'}</th>
+                            <th>{isAr ? 'الحالة' : 'Status'}</th>
+                            <th>{isAr ? 'إجراء' : 'Action'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,12 +133,13 @@ const Properties = () => {
                                 <td>{p.location}</td>
                                 <td>{getOwnerName(p.ownerId)}</td>
                                 <td>{p.status}</td>
-                                <td>
-                                    <button className="btn btn-danger" onClick={() => handleDelete(p.id)}>Delete</button>
+                                <td style={{ display: 'flex', gap: '8px' }}>
+                                    <button className="btn btn-primary" onClick={() => handleEdit(p)}>{isAr ? 'تعديل' : 'Edit'}</button>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(p.id)}>{isAr ? 'حذف' : 'Delete'}</button>
                                 </td>
                             </tr>
                         ))}
-                        {properties.length === 0 && <tr><td colSpan="6">No properties found.</td></tr>}
+                        {properties.length === 0 && <tr><td colSpan="6">{isAr ? 'لا يوجد عقارات' : 'No properties found.'}</td></tr>}
                     </tbody>
                 </table>
             </div>

@@ -64,7 +64,7 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
                                 />
                                 <span className="slider round" style={{
                                     position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                                    backgroundColor: isEnabled ? 'var(--accent-primary)' : '#ccc',
+                                    backgroundColor: isEnabled ? '#10b981' : '#ccc',
                                     transition: '.4s', borderRadius: '34px'
                                 }}>
                                     <span style={{

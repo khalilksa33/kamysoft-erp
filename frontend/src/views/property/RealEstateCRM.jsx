@@ -133,7 +133,7 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
         <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>{isAr ? 'إدارة العملاء المحتملين (CRM)' : 'CRM / Lead Management'}</h2>
-                <button onClick={() => setShowModal(true)} className="modern-btn primary">
+                <button onClick={() => setShowModal(true)} className="btn btn-primary">
                     <i className="ri-add-line"></i> {isAr ? 'عميل محتمل جديد' : 'New Lead'}
                 </button>
             </div>
@@ -182,10 +182,10 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                         <strong style={{ fontSize: '14px' }}>{lead.name}</strong>
                                         <div style={{ display: 'flex', gap: '4px' }}>
-                                            <button className="icon-btn info" style={{ padding: '4px', fontSize: '12px' }} onClick={() => setShowNotesModal(lead)} title={isAr ? 'ملاحظات المتابعة' : 'Follow-up Notes'}>
+                                            <button className="btn btn-info" style={{ padding: '4px', fontSize: '12px' }} onClick={() => setShowNotesModal(lead)} title={isAr ? 'ملاحظات المتابعة' : 'Follow-up Notes'}>
                                                 <i className="ri-sticky-note-line"></i>
                                             </button>
-                                            <button className="icon-btn danger" style={{ padding: '4px', fontSize: '12px' }} onClick={() => handleDelete(lead._id)}>
+                                            <button className="btn btn-danger" style={{ padding: '4px', fontSize: '12px' }} onClick={() => handleDelete(lead._id)}>
                                                 <i className="ri-delete-bin-line"></i>
                                             </button>
                                         </div>
@@ -201,7 +201,7 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                                         <span style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px' }}>{lead.source}</span>
                                         {status !== 'Won' && (
                                             <button 
-                                                className="modern-btn" 
+                                                className="btn btn-secondary" 
                                                 style={{ padding: '2px 6px', fontSize: '10px', backgroundColor: 'var(--accent-green)', color: '#fff', border: 'none' }}
                                                 onClick={() => handleConvert(lead._id)}
                                             >
@@ -247,11 +247,11 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                                 onChange={e => setNewNote(e.target.value)} 
                                 required 
                             />
-                            <button type="submit" className="modern-btn primary">{isAr ? 'إضافة' : 'Add'}</button>
+                            <button type="submit" className="btn btn-primary">{isAr ? 'إضافة' : 'Add'}</button>
                         </form>
 
                         <div className="modal-actions" style={{ marginTop: '20px' }}>
-                            <button type="button" className="modern-btn" onClick={() => setShowNotesModal(null)}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowNotesModal(null)}>
                                 {isAr ? 'إغلاق' : 'Close'}
                             </button>
                         </div>
@@ -306,8 +306,8 @@ export default function RealEstateCRM({ currentLanguage, headers, activeTab }) {
                             </div>
                             
                             <div className="modal-actions">
-                                <button type="button" className="modern-btn" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
-                                <button type="submit" className="modern-btn primary">{isAr ? 'حفظ' : 'Save'}</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+                                <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
                     </div>

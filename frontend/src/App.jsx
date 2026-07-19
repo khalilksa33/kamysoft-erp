@@ -2415,8 +2415,8 @@ const handleB2BSubmit = () => {
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>User Name / اسم المستخدم</th>
-                                            <th>System Role / دور الصلاحية</th>
+                                            <th>{currentLanguage === 'ar' ? 'اسم المستخدم' : 'User Name'}</th>
+                                            <th>{currentLanguage === 'ar' ? 'دور الصلاحية' : 'System Role'}</th>
                                             <th>{translations[currentLanguage].actions}</th>
                                         </tr>
                                     </thead>
@@ -2466,10 +2466,10 @@ const handleB2BSubmit = () => {
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                     <thead>
                                         <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Workspace Feature / ميزة النظام</th>
-                                            <th style={{ padding: '12px', textAlign: 'center' }}>Administrator / مدير النظام</th>
-                                            <th style={{ padding: '12px', textAlign: 'center' }}>Manager / مدير التشغيل</th>
-                                            <th style={{ padding: '12px', textAlign: 'center' }}>Cashier / صراف كاشير</th>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>{currentLanguage === 'ar' ? 'ميزة النظام' : 'Workspace Feature'}</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>{currentLanguage === 'ar' ? 'مدير النظام' : 'Administrator'}</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>{currentLanguage === 'ar' ? 'مدير التشغيل' : 'Manager'}</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>{currentLanguage === 'ar' ? 'صراف كاشير' : 'Cashier'}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -2602,7 +2602,7 @@ const handleB2BSubmit = () => {
                             <div className="glass-card" style={{ background: 'rgba(255,255,255,0.02)' }}>
                                 <h4 style={{ color: 'var(--accent-cyan)', marginBottom: '15px' }}>Submit & Verify XML Schema</h4>
                                 <div className="form-group">
-                                    <label>Select Invoice / اختر الفاتورة للربط</label>
+                                    <label>{currentLanguage === 'ar' ? 'اختر الفاتورة للربط' : 'Select Invoice'}</label>
                                     <select className="form-control" value={zatcaSelectInvoice} onChange={e => setZatcaSelectInvoice(e.target.value)}>
                                         <option value="">Choose...</option>
                                         {invoices.map(i => <option key={i.id} value={i.id}>{i.id} - {i.customer} ({formatCurrency(i.total)}) [{i.zatcaStatus}]</option>)}
@@ -2660,6 +2660,19 @@ const handleB2BSubmit = () => {
                         {/* Modal Header: format indicator / toggle */}
                         {/* Print Layout Area */}
                         {(() => {
+                            const formatAddress = (addressStr) => {
+                                if (!addressStr) return '';
+                                try {
+                                    const a = typeof addressStr === 'string' ? JSON.parse(addressStr) : addressStr;
+                                    if (a && typeof a === 'object' && (a.buildingNo || a.street || a.city || a.district)) {
+                                        return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''}`.trim();
+                                    }
+                                } catch (e) {
+                                    // Not JSON, just return string
+                                }
+                                return addressStr;
+                            };
+                            
                             const activeVat = activeInvoice.vat !== undefined && activeInvoice.vat !== null ? activeInvoice.vat : (activeInvoice.total - (activeInvoice.total / 1.15));
                             const activeSubtotal = activeInvoice.total - activeVat;
                             return (
@@ -2671,7 +2684,7 @@ const handleB2BSubmit = () => {
                                                 {/* Left Side: English Info (LTR) */}
                                                 <div style={{ textAlign: 'left', fontSize: '10px', direction: 'ltr', lineHeight: '1.3' }}>
                                                     <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                                    <p style={{ margin: '1px 0', color: '#555' }}><strong>Address:</strong> {settings.businessAddress}</p>
+                                                    <p style={{ margin: '1px 0', color: '#555' }}><strong>Address:</strong> {formatAddress(settings.businessAddress)}</p>
                                                     <p style={{ margin: '1px 0', color: '#555' }}><strong>VAT No:</strong> {settings.vatNumber}</p>
                                                     <p style={{ margin: '1px 0', color: '#555' }}><strong>CR No:</strong> {settings.crNumber}</p>
                                                     <p style={{ margin: '1px 0', color: '#555' }}><strong>Contact:</strong> {settings.contactNumber}</p>
@@ -2689,7 +2702,7 @@ const handleB2BSubmit = () => {
                                                 {/* Right Side: Arabic Details (RTL) */}
                                                 <div style={{ textAlign: 'right', fontSize: '10px', direction: 'rtl', lineHeight: '1.3' }}>
                                                     <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                                    <p style={{ margin: '1px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress}</p>
+                                                    <p style={{ margin: '1px 0', color: '#333' }}><strong>العنوان:</strong> {formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
                                                     <p style={{ margin: '1px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
                                                     <p style={{ margin: '1px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber}</p>
                                                     <p style={{ margin: '1px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber}</p>
@@ -2870,7 +2883,7 @@ const handleB2BSubmit = () => {
                                             )}
                                             <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{settings.businessAddress}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'الرقم الضريبي:' : 'VAT:'}</strong> {settings.vatNumber}</p>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'سجل تجاري:' : 'CR No:'}</strong> {settings.crNumber}</p>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'رقم التواصل:' : 'Contact:'}</strong> {settings.contactNumber}</p>
@@ -3070,7 +3083,7 @@ const handleB2BSubmit = () => {
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCustomerModal(false)}>{translations[currentLanguage].close}</button>
-                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                                <button type="submit" className="btn btn-primary">{currentLanguage === 'ar' ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
                     </div>
@@ -3109,7 +3122,7 @@ const handleB2BSubmit = () => {
                             )}
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowUserModal(false)}>{translations[currentLanguage].close}</button>
-                                <button type="submit" className="btn btn-primary">Save / حفظ</button>
+                                <button type="submit" className="btn btn-primary">{currentLanguage === 'ar' ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
                     </div>
@@ -3156,7 +3169,7 @@ const handleB2BSubmit = () => {
                                             {/* Left Side: English Info (LTR) */}
                                             <div style={{ textAlign: 'left', fontSize: '10px', direction: 'ltr', lineHeight: '1.3' }}>
                                                 <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                                <p style={{ margin: '1px 0', color: '#555' }}><strong>Address:</strong> {settings.businessAddress}</p>
+                                                <p style={{ margin: '1px 0', color: '#555' }}><strong>Address:</strong> {formatAddress(settings.businessAddress)}</p>
                                                 <p style={{ margin: '1px 0', color: '#555' }}><strong>VAT No:</strong> {settings.vatNumber}</p>
                                                 <p style={{ margin: '1px 0', color: '#555' }}><strong>CR No:</strong> {settings.crNumber}</p>
                                                 <p style={{ margin: '1px 0', color: '#555' }}><strong>Contact:</strong> {settings.contactNumber}</p>
@@ -3174,7 +3187,7 @@ const handleB2BSubmit = () => {
                                             {/* Right Side: Arabic Details (RTL) */}
                                             <div style={{ textAlign: 'right', fontSize: '10px', direction: 'rtl', lineHeight: '1.3' }}>
                                                 <h2 style={{ fontSize: '15px', margin: '0 0 3px 0', color: '#8b5cf6', fontWeight: 'bold' }}>{settings.businessName}</h2>
-                                                <p style={{ margin: '1px 0', color: '#333' }}><strong>العنوان:</strong> {settings.businessAddress}</p>
+                                                <p style={{ margin: '1px 0', color: '#333' }}><strong>العنوان:</strong> {formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
                                                 <p style={{ margin: '1px 0', color: '#333' }}><strong>الرقم الضريبي (VAT):</strong> {settings.vatNumber}</p>
                                                 <p style={{ margin: '1px 0', color: '#333' }}><strong>سجل تجاري (CR):</strong> {settings.crNumber}</p>
                                                 <p style={{ margin: '1px 0', color: '#333' }}><strong>رقم التواصل:</strong> {settings.contactNumber}</p>
@@ -3326,7 +3339,7 @@ const handleB2BSubmit = () => {
                                         )}
                                         <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Quotation / عرض سعر</p>
-                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{settings.businessAddress}</p>
+                                        <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>الرقم الضريبي / VAT:</strong> {settings.vatNumber}</p>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>سجل تجاري / CR No:</strong> {settings.crNumber}</p>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>رقم التواصل / Contact:</strong> {settings.contactNumber}</p>

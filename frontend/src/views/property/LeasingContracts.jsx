@@ -89,11 +89,11 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
     };
 
     const getUnitName = (id) => {
-        const u = units.find(x => x._id === id);
+        const u = units.find(x => (x._id || x.id) === id);
         return u ? `${u.unitNumber} (${u.type})` : id;
     };
     const getCustomerName = (id) => {
-        const c = customers.find(x => x._id === id);
+        const c = customers.find(x => (x._id || x.id) === id);
         return c ? c.name : id;
     };
 
@@ -101,7 +101,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
         <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>{isAr ? 'عقود الإيجار' : 'Leasing & Contracts'}</h2>
-                <button onClick={() => setShowModal(true)} className="modern-btn primary">
+                <button onClick={() => setShowModal(true)} className="btn btn-primary">
                     <i className="ri-add-line"></i> {isAr ? 'عقد جديد' : 'New Lease Contract'}
                 </button>
             </div>
@@ -133,13 +133,13 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="icon-btn info" onClick={() => setShowInstallments(lease)} title={isAr ? 'الأقساط' : 'Installments'}>
+                                    <button className="btn btn-info" onClick={() => setShowInstallments(lease)} title={isAr ? 'الأقساط' : 'Installments'}>
                                         <i className="ri-money-dollar-circle-line"></i>
                                     </button>
-                                    <button className="icon-btn" onClick={() => handleSetPassword(lease.customerId)} title={isAr ? 'تعيين كلمة مرور البوابة' : 'Set Portal Password'} style={{ marginLeft: '8px', color: 'var(--accent-purple)' }}>
+                                    <button className="btn btn-secondary" onClick={() => handleSetPassword(lease.customerId)} title={isAr ? 'تعيين كلمة مرور البوابة' : 'Set Portal Password'} style={{ marginLeft: '8px', color: 'var(--accent-purple)' }}>
                                         <i className="ri-key-2-line"></i>
                                     </button>
-                                    <button className="icon-btn danger" onClick={() => handleDelete(lease._id)} style={{ marginLeft: '8px' }}>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(lease._id || lease.id)} style={{ marginLeft: '8px' }}>
                                         <i className="ri-delete-bin-line"></i>
                                     </button>
                                 </td>
@@ -188,7 +188,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                         </td>
                                         <td>
                                             {inst.status === 'Pending' ? (
-                                                <button className="modern-btn primary" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handlePayInstallment(showInstallments._id, idx)}>
+                                                <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '12px' }} onClick={() => handlePayInstallment(showInstallments._id, idx)}>
                                                     {isAr ? 'دفع' : 'Pay'}
                                                 </button>
                                             ) : (
@@ -200,7 +200,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                             </tbody>
                         </table>
                         <div className="modal-actions" style={{ marginTop: '20px' }}>
-                            <button type="button" className="modern-btn" onClick={() => setShowInstallments(null)}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowInstallments(null)}>
                                 {isAr ? 'إغلاق' : 'Close'}
                             </button>
                         </div>
@@ -218,8 +218,8 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                 <label>{isAr ? 'الوحدة' : 'Unit'}</label>
                                 <select className="form-control" required value={formData.unitId} onChange={e => setFormData({...formData, unitId: e.target.value})}>
                                     <option value="">{isAr ? '-- اختر الوحدة --' : '-- Select Unit --'}</option>
-                                    {units.filter(u => u.status === 'Available').map(u => (
-                                        <option key={u._id} value={u._id}>{u.unitNumber} ({u.type}) - {u.dailyRate}/day</option>
+                                    {units.filter(u => u.status === 'Available' || !u.status).map(u => (
+                                        <option key={u._id || u.id} value={u._id || u.id}>{u.unitNumber} ({u.type}) - {u.dailyRate}/day</option>
                                     ))}
                                 </select>
                             </div>
@@ -228,7 +228,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                 <select className="form-control" required value={formData.customerId} onChange={e => setFormData({...formData, customerId: e.target.value})}>
                                     <option value="">{isAr ? '-- اختر المستأجر --' : '-- Select Tenant --'}</option>
                                     {customers.map(c => (
-                                        <option key={c._id} value={c._id}>{c.name} - {c.phone}</option>
+                                        <option key={c._id || c.id} value={c._id || c.id}>{c.name} - {c.phone}</option>
                                     ))}
                                 </select>
                             </div>
@@ -279,9 +279,9 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                     <option value="Terminated">Terminated</option>
                                 </select>
                             </div>
-                            <div className="modal-actions">
-                                <button type="button" className="modern-btn" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
-                                <button type="submit" className="modern-btn primary">{isAr ? 'حفظ' : 'Save'}</button>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+                                <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
                     </div>

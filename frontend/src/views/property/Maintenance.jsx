@@ -146,24 +146,22 @@ const Maintenance = ({ currentLanguage, headers }) => {
         <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>{isAr ? 'مهام الصيانة والمرافق' : 'Facility & Maintenance Tasks'}</h2>
-                <button onClick={() => setShowModal(true)} className="modern-btn primary">
+                <button onClick={() => setShowModal(true)} className="btn btn-primary">
                     <i className="ri-add-line"></i> {isAr ? 'مهمة صيانة جديدة' : 'New Maintenance Task'}
                 </button>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+            <div className="flex-row gap-10" style={{ marginBottom: '20px' }}>
                 <button 
-                    className={`modern-btn ${activeTab === 'Corrective' ? 'primary' : ''}`}
-                    onClick={() => setActiveTab('Corrective')}
-                >
-                    {isAr ? 'صيانة تفاعلية' : 'Corrective Maintenance'}
+                className={`btn ${activeTab === 'Corrective' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('Corrective')}>
+                    {isAr ? 'صيانة تصحيحية' : 'Corrective Maintenance'}
                 </button>
                 <button 
-                    className={`modern-btn ${activeTab === 'Preventative' ? 'primary' : ''}`}
-                    onClick={() => setActiveTab('Preventative')}
-                >
-                    {isAr ? 'صيانة دورية' : 'Preventative Maintenance'}
+                className={`btn ${activeTab === 'Preventative' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('Preventative')}>
+                    {isAr ? 'صيانة وقائية' : 'Preventative Maintenance'}
                 </button>
             </div>
 
@@ -213,7 +211,7 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                     </select>
                                 </td>
                                 <td>
-                                    <button className="icon-btn danger" onClick={() => handleDelete(task.id || task._id)}>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(task.id || task._id)}>
                                         <i className="ri-delete-bin-line"></i>
                                     </button>
                                 </td>
@@ -316,8 +314,8 @@ const Maintenance = ({ currentLanguage, headers }) => {
                             </div>
 
                             <div className="modal-actions">
-                                <button type="button" className="modern-btn" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
-                                <button type="submit" className="modern-btn primary">{isAr ? 'حفظ' : 'Save'}</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+                                <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
                     </div>

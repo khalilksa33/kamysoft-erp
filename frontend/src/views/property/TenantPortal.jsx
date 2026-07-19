@@ -111,7 +111,7 @@ export default function TenantPortal() {
                                 <input type="password" className="form-control" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" />
                             </div>
                         </div>
-                        <button type="submit" className="modern-btn primary" style={{ width: '100%', padding: '12px' }}>
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>
                             Sign In
                         </button>
                     </form>
@@ -129,22 +129,22 @@ export default function TenantPortal() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Welcome, <strong>{customer?.name}</strong></span>
-                    <button onClick={handleLogout} className="modern-btn" style={{ padding: '6px 12px' }}>
+                    <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '6px 12px' }}>
                         <i className="ri-logout-box-r-line"></i> Logout
                     </button>
                 </div>
             </nav>
 
             <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
-                    <button className={`modern-btn ${activeTab === 'leases' ? 'primary' : ''}`} onClick={() => setActiveTab('leases')}>
-                        <i className="ri-file-text-line"></i> My Leases
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                    <button className={`btn ${activeTab === 'leases' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveTab('leases')}>
+                        My Leases
                     </button>
-                    <button className={`modern-btn ${activeTab === 'invoices' ? 'primary' : ''}`} onClick={() => setActiveTab('invoices')}>
-                        <i className="ri-file-list-3-line"></i> Invoices
+                    <button className={`btn ${activeTab === 'invoices' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveTab('invoices')}>
+                        My Invoices
                     </button>
-                    <button className={`modern-btn ${activeTab === 'maintenance' ? 'primary' : ''}`} onClick={() => setActiveTab('maintenance')}>
-                        <i className="ri-tools-line"></i> Maintenance
+                    <button className={`btn ${activeTab === 'maintenance' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveTab('maintenance')}>
+                        Maintenance Requests
                     </button>
                 </div>
 
@@ -231,7 +231,7 @@ export default function TenantPortal() {
                                     <label>Issue Description</label>
                                     <input type="text" className="form-control" required value={newTicket.description} onChange={e => setNewTicket({...newTicket, description: e.target.value})} placeholder="E.g., AC is leaking" />
                                 </div>
-                                <button type="submit" className="modern-btn primary" style={{ padding: '12px 24px' }}>Submit</button>
+                                <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>Submit</button>
                             </form>
 
                             <div className="table-responsive">
