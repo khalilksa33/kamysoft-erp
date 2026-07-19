@@ -212,6 +212,8 @@ const menuConfig = [
     {
         id: 'financials', icon: 'ri-money-dollar-circle-line', labelKey: 'financials',
         submenu: [
+            { id: 'receiptVoucher', labelKey: 'receiptVoucher' },
+            { id: 'paymentVoucher', labelKey: 'paymentVoucher' },
             { id: 'financialTrans', labelKey: 'financialTrans' },
             { id: 'dailyJournal', labelKey: 'dailyJournal' },
             { id: 'chartAccounts', labelKey: 'chartAccounts' },
