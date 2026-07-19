@@ -761,7 +761,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'appliances' && (currentLanguage === 'ar' ? 'مخصص لمبيعات الأجهزة الكهربائية والتكييف، يدعم تتبع الأرقام التسلسلية الفريدة لكل جهاز لمنع تداخل الضمانات، مع جدولة مواعيد التركيب المنزلي للـ HVAC.' : 'Designed for appliances and HVAC sales. Tracks unique serial numbers per unit to prevent warranty overlap, with built-in scheduling for home installations.')}
                             {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'يسهل إدارة الطلبات المخصصة وعربون الحجز، وتتبع حالة تجميع غرف النوم والمطابخ بالمستودعات، وجدولة مسارات شاحنات التوصيل والتركيب.' : 'Eases custom orders and deposit collections, tracks assembly progress of items inside the warehouse, and schedules delivery routing and technicians.')}
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'ابحث فوراً بترميز OEM أو الكود الأصلي، وتتبع توافقية قطع الغيار مع موديلات السيارات وماركات التكييف والسباكة، مع ترميز باركود رفوف المستودع.' : 'Instantly search by OEM parts or interchangeably coded items. Track compatibility across models/brands (Auto or HVAC) and scan shelf bins.')}
-                            {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'نظام متكامل لإدارة العقود والإيجارات، ومتابعة تحصيل الدفعات، وجدولة صيانة العقارات بكل احترافية.' : 'Comprehensive system for managing contracts, leases, tracking payment collections, and scheduling property maintenance professionally.')}
+                            {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'نظام متكامل لإدارة العقود والإيجارات، ومتابعة تحصيل الدفعات، وجدولة صيانة العقارات بكل احترافية، وإدارة عمليات البيع والشراء.' : 'Comprehensive system for managing contracts, leases, tracking payment collections, scheduling property maintenance professionally, and handling property sales and purchases.')}
                         </p>
                         
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -794,10 +794,16 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                 </li>
                             )}
                             {activeSector === 'realestate' && (
-                                <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
-                                    <span>{currentLanguage === 'ar' ? 'إدارة العقود والتحصيلات العقارية' : 'Lease Contracts & Asset Collections'}</span>
-                                </li>
+                                <>
+                                    <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                        <span>{currentLanguage === 'ar' ? 'إدارة العقود والتحصيلات العقارية' : 'Lease Contracts & Asset Collections'}</span>
+                                    </li>
+                                    <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
+                                        <span>{currentLanguage === 'ar' ? 'مبيعات ومشتريات العقارات' : 'Property Sales & Purchases'}</span>
+                                    </li>
+                                </>
                             )}
                             <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)' }}></i>
