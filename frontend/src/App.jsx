@@ -904,6 +904,16 @@ export default function App() {
     // ----------------------------------------------------
     // LOGIN & AUTHENTICATION HANDLERS
     // ----------------------------------------------------
+    // Dynamic Currency Exchange Formatter
+    const formatCurrency = (amountSAR) => {
+        const rates = (settings && settings.exchangeRates) || {};
+        const baseCurr = (settings && settings.baseCurrency) || 'SAR';
+        const rate = rates[baseCurr] || 1;
+        const converted = amountSAR * rate;
+        const symbol = translations[currentLanguage].currencySymbol === 'ر.س' && baseCurr !== 'SAR' ? 
+            baseCurr : translations[currentLanguage].currencySymbol;
+        return `${converted.toFixed(2)} ${symbol}`;
+    };
     const handleLogin = (e) => {
         e.preventDefault();
         setAuthError('');
@@ -974,13 +984,7 @@ export default function App() {
         return true;
     };
 
-    // Dynamic Currency Exchange Formatter
-    const formatCurrency = (amountSAR) => {
-        const rate = settings.exchangeRates[settings.baseCurrency] || 1;
-        const converted = amountSAR * rate;
-        const symbol = translations[currentLanguage].currencySymbol === 'ر.س' && settings.baseCurrency !== 'SAR' ? settings.baseCurrency : translations[currentLanguage].currencySymbol;
-        return `${converted.toFixed(2)} ${symbol}`;
-    };
+    
 
     const generateZatcaQR = (sellerName, vatNumber, dateString, totalWithVat, vatTotal) => {
         try {
