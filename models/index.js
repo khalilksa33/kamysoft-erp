@@ -350,7 +350,8 @@ const propertySchema = new mongoose.Schema({
     location: { type: String },
     status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
     ownerId: { type: String },
-    tenantId: { type: String, default: 'default', index: true }
+    tenantId: { type: String, default: 'default', index: true },
+    images: [{ type: String }] // Array of image URLs
 });
 const Property = mongoose.model('Property', propertySchema);
 

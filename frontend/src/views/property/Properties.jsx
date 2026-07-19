@@ -81,6 +81,52 @@ const Properties = ({ currentLanguage }) => {
         } catch (err) { console.error('Error deleting property', err); }
     };
 
+    const [showSellModal, setShowSellModal] = useState(false);
+    const [sellPropertyId, setSellPropertyId] = useState(null);
+    const [sellForm, setSellForm] = useState({ customerName: '', price: '' });
+
+    const handleSell = (p) => {
+        setSellPropertyId(p.id);
+        setSellForm({ customerName: '', price: '' });
+        setShowSellModal(true);
+    };
+
+    const submitSell = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/properties/${sellPropertyId}/sell`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(sellForm)
+            });
+            if (res.ok) {
+                setShowSellModal(false);
+                fetchProperties();
+                alert(isAr ? 'تم بيع العقار وإصدار فاتورة بنجاح' : 'Property sold and invoice generated successfully');
+            } else {
+                alert('Error selling property');
+            }
+        } catch (err) {
+            alert('Network error while selling');
+        }
+    };
+
+    const [showGallery, setShowGallery] = useState(false);
+    const [currentGalleryImages, setCurrentGalleryImages] = useState([]);
+    const [currentGalleryProperty, setCurrentGalleryProperty] = useState('');
+
+    const handleViewGallery = (p) => {
+        let imgs = p.images && p.images.length > 0 ? p.images : [
+            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80'
+        ];
+        setCurrentGalleryImages(imgs);
+        setCurrentGalleryProperty(p.name);
+        setShowGallery(true);
+    };
+
     const getOwnerName = (id) => {
         const owner = owners.find(o => o.id === id);
         return owner ? owner.name : (isAr ? 'مملوك للشركة' : 'Company Owned');
@@ -132,8 +178,20 @@ const Properties = ({ currentLanguage }) => {
                                 <td>{p.type}</td>
                                 <td>{p.location}</td>
                                 <td>{getOwnerName(p.ownerId)}</td>
-                                <td>{p.status}</td>
+                                <td>
+                                    {p.status === 'Sold' ? (
+                                        <span className="badge badge-success">{isAr ? 'مباع' : 'Sold'}</span>
+                                    ) : (
+                                        <span className="badge badge-primary">{p.status}</span>
+                                    )}
+                                </td>
                                 <td style={{ display: 'flex', gap: '8px' }}>
+                                    <button className="btn btn-secondary" onClick={() => handleViewGallery(p)}>
+                                        <i className="ri-image-line"></i> {isAr ? 'الصور' : 'Gallery'}
+                                    </button>
+                                    {p.status !== 'Sold' && (
+                                        <button className="btn btn-success" onClick={() => handleSell(p)}>{isAr ? 'بيع العقار' : 'Sell Property'}</button>
+                                    )}
                                     <button className="btn btn-primary" onClick={() => handleEdit(p)}>{isAr ? 'تعديل' : 'Edit'}</button>
                                     <button className="btn btn-danger" onClick={() => handleDelete(p.id)}>{isAr ? 'حذف' : 'Delete'}</button>
                                 </td>
@@ -143,6 +201,47 @@ const Properties = ({ currentLanguage }) => {
                     </tbody>
                 </table>
             </div>
+
+            {showSellModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>{isAr ? 'بيع العقار وإصدار فاتورة' : 'Sell Property & Generate Invoice'}</h3>
+                        <form onSubmit={submitSell}>
+                            <div className="form-group">
+                                <label>{isAr ? 'اسم المشتري / العميل' : 'Buyer Name'}</label>
+                                <input type="text" className="form-control" required value={sellForm.customerName} onChange={e => setSellForm({...sellForm, customerName: e.target.value})} />
+                            </div>
+                            <div className="form-group">
+                                <label>{isAr ? 'مبلغ البيع (بدون ضريبة)' : 'Sale Price (ex. VAT)'}</label>
+                                <input type="number" className="form-control" required value={sellForm.price} onChange={e => setSellForm({...sellForm, price: e.target.value})} />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowSellModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+                                <button type="submit" className="btn btn-success">{isAr ? 'بيع وإصدار' : 'Sell & Generate'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showGallery && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0 }}>{currentGalleryProperty} - {isAr ? 'معرض الصور' : 'Photo Gallery'}</h3>
+                            <button className="btn btn-icon" onClick={() => setShowGallery(false)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                            {currentGalleryImages.map((imgUrl, idx) => (
+                                <img key={idx} src={imgUrl} alt="Property" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
+                            ))}
+                        </div>
+                        <div className="modal-actions" style={{ marginTop: '20px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowGallery(false)}>{isAr ? 'إغلاق' : 'Close'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

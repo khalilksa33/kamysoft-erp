@@ -313,6 +313,18 @@ const Maintenance = ({ currentLanguage, headers }) => {
                                 />
                             </div>
 
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                                <input 
+                                    type="checkbox" 
+                                    id="billToTenant"
+                                    checked={formData.billToTenant || false} 
+                                    onChange={e => setFormData({...formData, billToTenant: e.target.checked})} 
+                                />
+                                <label htmlFor="billToTenant" style={{ margin: 0 }}>
+                                    {isAr ? 'فاتورة للمستأجر (يتم إصدار فاتورة للمستأجر بهذه التكلفة)' : 'Bill to Tenant (Generates an invoice for the tenant)'}
+                                </label>
+                            </div>
+
                             <div className="modal-actions">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
                                 <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>

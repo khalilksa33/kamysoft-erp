@@ -1,33 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Vouchers = ({ currentLanguage, translations, formatCurrency, activeTab }) => {
     const [vouchers, setVouchers] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const isReceipt = activeTab === 'receiptVoucher';
-    const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], payee: '', amount: '', description: '' });
+    const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], payee: '', amount: '', description: '', method: 'Cash' });
 
-    const handleSave = (e) => {
-        e.preventDefault();
-        const newVoucher = {
-            id: `VCH-${Date.now().toString().slice(-6)}`,
-            type: isReceipt ? 'Receipt' : 'Payment',
-            date: form.date,
-            payee: form.payee,
-            amount: parseFloat(form.amount) || 0,
-            description: form.description
-        };
-        setVouchers([...vouchers, newVoucher]);
-        setShowModal(false);
-        setForm({ date: new Date().toISOString().split('T')[0], payee: '', amount: '', description: '' });
-    };
+    useEffect(() => {
+        fetchVouchers();
+    }, []);
 
-    const handleDelete = (id) => {
-        if (confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا السند؟' : 'Are you sure you want to delete this voucher?')) {
-            setVouchers(vouchers.filter(v => v.id !== id));
+    const fetchVouchers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/vouchers', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (Array.isArray(data)) setVouchers(data);
+        } catch (err) {
+            console.error('Error fetching vouchers:', err);
         }
     };
 
-    const filteredVouchers = vouchers.filter(v => v.type === (isReceipt ? 'Receipt' : 'Payment'));
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const newVoucher = {
+            type: isReceipt ? 'RECEIPT' : 'PAYMENT',
+            date: form.date,
+            entityType: 'OTHER',
+            entityId: form.payee, // Mapping payee to entityId loosely here
+            amount: parseFloat(form.amount) || 0,
+            method: form.method,
+            description: form.description
+        };
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/vouchers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(newVoucher)
+            });
+            if (res.ok) {
+                fetchVouchers();
+                setShowModal(false);
+                setForm({ date: new Date().toISOString().split('T')[0], payee: '', amount: '', description: '', method: 'Cash' });
+            } else {
+                alert('Error saving voucher');
+            }
+        } catch (err) {
+            alert('Error saving voucher');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا السند؟' : 'Are you sure you want to delete this voucher?')) {
+            try {
+                const token = localStorage.getItem('token');
+                await fetch(`/api/vouchers/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                fetchVouchers();
+            } catch (err) {
+                alert('Error deleting voucher');
+            }
+        }
+    };
+
+    const filteredVouchers = vouchers.filter(v => v.type === (isReceipt ? 'RECEIPT' : 'PAYMENT'));
 
     return (
         <div className="glass-card">
@@ -55,14 +91,14 @@ const Vouchers = ({ currentLanguage, translations, formatCurrency, activeTab }) 
                             <tr><td colSpan="6" style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'لا توجد سندات' : 'No vouchers found'}</td></tr>
                         ) : (
                             filteredVouchers.map(v => (
-                                <tr key={v.id}>
-                                    <td>{v.id}</td>
-                                    <td>{v.date}</td>
-                                    <td>{v.payee}</td>
+                                <tr key={v.voucherId}>
+                                    <td>{v.voucherId}</td>
+                                    <td>{new Date(v.date).toISOString().split('T')[0]}</td>
+                                    <td>{v.entityId || '-'}</td>
                                     <td style={{ fontWeight: 'bold' }}>{formatCurrency(v.amount)}</td>
                                     <td>{v.description}</td>
                                     <td>
-                                        <button className="btn btn-danger" onClick={() => handleDelete(v.id)}>
+                                        <button className="btn btn-danger btn-icon" onClick={() => handleDelete(v.voucherId)} title={currentLanguage === 'ar' ? 'حذف' : 'Delete'}>
                                             <i className="ri-delete-bin-line"></i>
                                         </button>
                                     </td>

@@ -1151,6 +1151,87 @@ router.post('/api/journal', authenticateToken, async (req, res) => {
     }
 });
 
+// VOUCHERS
+router.get('/api/vouchers', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            const vouchers = await Voucher.find({ tenantId }).sort({ date: -1 });
+            res.json(vouchers);
+        } else {
+            const vouchers = mockDb.vouchers.filter(v => v.tenantId === tenantId).sort((a, b) => new Date(b.date) - new Date(a.date));
+            res.json(vouchers);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/vouchers', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        const voucherId = `VCH-${Date.now().toString().slice(-6)}`;
+        
+        // Convert string to Date if needed
+        const dateStr = req.body.date || new Date().toISOString();
+        
+        const voucherData = { 
+            ...req.body, 
+            voucherId, 
+            tenantId,
+            date: new Date(dateStr)
+        };
+        
+        let savedVoucher;
+        if (mongoose.connection.readyState === 1) {
+            const voucher = new Voucher(voucherData);
+            savedVoucher = await voucher.save();
+        } else {
+            savedVoucher = { ...voucherData };
+            mockDb.vouchers.push(savedVoucher);
+        }
+
+        // Auto-generate Journal Entry for the voucher
+        const account = savedVoucher.type === 'RECEIPT' ? '1000' : '2000'; // Cash account for Receipt, A/P for payment (simplified)
+        const description = `${savedVoucher.type} Voucher: ${savedVoucher.description || ''}`;
+        
+        const journalData = {
+            entryId: `JE-${Date.now().toString().slice(-6)}`,
+            date: savedVoucher.date || new Date(),
+            account,
+            description,
+            debit: savedVoucher.type === 'RECEIPT' ? savedVoucher.amount : 0,
+            credit: savedVoucher.type === 'PAYMENT' ? savedVoucher.amount : 0,
+            tenantId
+        };
+        
+        if (mongoose.connection.readyState === 1) {
+            await new JournalEntry(journalData).save();
+        } else {
+            mockDb.journalEntries.push(journalData);
+        }
+        
+        res.status(201).json(savedVoucher);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+router.delete('/api/vouchers/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            await Voucher.deleteOne({ voucherId: req.params.id, tenantId });
+            res.json({ success: true });
+        } else {
+            mockDb.vouchers = mockDb.vouchers.filter(v => !(v.voucherId === req.params.id && v.tenantId === tenantId));
+            res.json({ success: true });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/api/expenses', authenticateToken, async (req, res) => {
     if (req.user.role === 'Cashier') return res.status(403).json({ error: 'Forbidden' });
     try {
@@ -2347,6 +2428,79 @@ router.put('/api/properties/:id', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.post('/api/properties/:id/sell', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { customerName, price } = req.body;
+        
+        let property;
+        if (global.isMongoConnected) {
+            property = await Property.findOneAndUpdate(
+                { id: req.params.id, tenantId },
+                { $set: { status: 'Sold' } },
+                { new: true }
+            );
+        } else {
+            const index = mockDb.properties.findIndex(p => p.id === req.params.id && p.tenantId === tenantId);
+            if (index !== -1) {
+                mockDb.properties[index].status = 'Sold';
+                property = mockDb.properties[index];
+            }
+        }
+
+        if (!property) return res.status(404).json({ error: 'Property not found' });
+
+        const priceNum = parseFloat(price);
+        const vat = priceNum * 0.15;
+        const total = priceNum + vat;
+
+        // 1. Generate Sales Invoice
+        const invoiceData = {
+            id: `INV-${Date.now().toString().slice(-6)}`,
+            uuid: crypto.randomUUID(),
+            customer: customerName,
+            items: [{
+                name: `Property Sale: ${property.name}`,
+                price: priceNum,
+                qty: 1
+            }],
+            discount: 0,
+            vat,
+            total,
+            date: new Date().toISOString(),
+            zatcaStatus: 'REPORTED',
+            tenantId
+        };
+
+        if (global.isMongoConnected) {
+            await Invoice.create(invoiceData);
+            
+            // 2. Generate Journal Entry
+            await JournalEntry.create({
+                entryId: `JE-${Date.now().toString().slice(-6)}`,
+                date: new Date(),
+                account: '1000', // Assuming Cash/Bank
+                description: `Property Sale: ${property.name}`,
+                debit: total,
+                credit: 0,
+                tenantId
+            });
+        } else {
+            mockDb.invoices.push(invoiceData);
+            mockDb.journalEntries.push({
+                entryId: `JE-${Date.now().toString().slice(-6)}`,
+                date: new Date(),
+                account: '1000',
+                description: `Property Sale: ${property.name}`,
+                debit: total,
+                credit: 0,
+                tenantId
+            });
+        }
+
+        res.json({ success: true, invoice: invoiceData });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 router.delete('/api/properties/:id', authenticateToken, async (req, res) => {
     try {
@@ -2495,16 +2649,60 @@ router.post('/api/maintenance-tasks', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         const newTask = { ...req.body, tenantId, id: 'maint-' + Date.now() };
+        
         if (global.isMongoConnected) {
             await MaintenanceTask.create(newTask);
             if (newTask.unitId) {
                 await Unit.updateOne({ id: newTask.unitId, tenantId }, { status: 'Maintenance' });
             }
+            
+            // Bill to tenant if requested
+            if (newTask.billToTenant && newTask.unitId) {
+                const lease = await LeaseContract.findOne({ unitId: newTask.unitId, tenantId, status: 'Active' });
+                if (lease) {
+                    const cost = newTask.assigneeType === 'Vendor' ? newTask.vendorCost : newTask.cost;
+                    const invoiceData = {
+                        id: 'pinv-' + Date.now(),
+                        bookingId: lease.id || lease._id.toString(), // Store lease ID reference
+                        customerId: lease.customerId,
+                        issueDate: new Date(),
+                        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
+                        subtotal: cost,
+                        vat: cost * 0.15,
+                        total: cost * 1.15,
+                        status: 'Unpaid',
+                        tenantId
+                    };
+                    await PropertyInvoice.create(invoiceData);
+                }
+            }
+            
         } else {
             mockDb.maintenanceTasks.push(newTask);
             if (newTask.unitId) {
                 const unit = mockDb.units.find(u => u.id === newTask.unitId && u.tenantId === tenantId);
                 if(unit) unit.status = 'Maintenance';
+            }
+            
+            // Bill to tenant (mock)
+            if (newTask.billToTenant && newTask.unitId) {
+                const lease = mockDb.leaseContracts.find(l => l.unitId === newTask.unitId && l.tenantId === tenantId && l.status === 'Active');
+                if (lease) {
+                    const cost = newTask.assigneeType === 'Vendor' ? newTask.vendorCost : newTask.cost;
+                    const invoiceData = {
+                        id: 'pinv-' + Date.now(),
+                        bookingId: lease.id || lease._id,
+                        customerId: lease.customerId,
+                        issueDate: new Date(),
+                        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                        subtotal: cost,
+                        vat: cost * 0.15,
+                        total: cost * 1.15,
+                        status: 'Unpaid',
+                        tenantId
+                    };
+                    mockDb.propertyInvoices.push(invoiceData);
+                }
             }
         }
         res.status(201).json(newTask);
@@ -2667,10 +2865,12 @@ router.post('/api/lease-contracts', authenticateToken, async (req, res) => {
                 else if (data.paymentFrequency === 'Semi-Annually') dueDate.setMonth(dueDate.getMonth() + (i * 6));
                 else if (data.paymentFrequency === 'Yearly') dueDate.setFullYear(dueDate.getFullYear() + i);
                 
+                const invoiceId = 'pinv-' + Date.now() + '-' + i;
                 data.installments.push({
                     dueDate,
                     amount: installmentAmount,
-                    status: 'Pending'
+                    status: 'Pending',
+                    invoiceId
                 });
             }
             // Adjust last installment for rounding
@@ -2684,6 +2884,20 @@ router.post('/api/lease-contracts', authenticateToken, async (req, res) => {
             const lease = new LeaseContract(data);
             await lease.save();
             
+            // Generate PropertyInvoices for each installment
+            const propertyInvoices = data.installments.map(inst => ({
+                id: inst.invoiceId,
+                bookingId: lease._id.toString(), // storing lease id here loosely
+                customerId: data.customerId,
+                dueDate: inst.dueDate,
+                subtotal: inst.amount,
+                vat: inst.amount * 0.15, // assuming 15% VAT, or you can configure this
+                total: inst.amount * 1.15,
+                status: 'Unpaid',
+                tenantId
+            }));
+            await PropertyInvoice.insertMany(propertyInvoices);
+            
             // Also update unit status if lease is active
             if (lease.status === 'Active') {
                 await Unit.updateOne({ _id: data.unitId, tenantId }, { $set: { status: 'Occupied' }});
@@ -2691,6 +2905,20 @@ router.post('/api/lease-contracts', authenticateToken, async (req, res) => {
             res.status(201).json(lease);
         } else {
             data._id = Date.now().toString();
+            
+            const propertyInvoices = data.installments.map(inst => ({
+                id: inst.invoiceId,
+                bookingId: data._id,
+                customerId: data.customerId,
+                dueDate: inst.dueDate,
+                subtotal: inst.amount,
+                vat: inst.amount * 0.15,
+                total: inst.amount * 1.15,
+                status: 'Unpaid',
+                tenantId
+            }));
+            mockDb.propertyInvoices.push(...propertyInvoices);
+            
             mockDb.leaseContracts.push(data);
             if (data.status === 'Active') {
                 const u = mockDb.units.find(u => u.id === data.unitId && u.tenantId === tenantId);
@@ -2758,35 +2986,88 @@ router.patch('/api/lease-contracts/:id/installments/:idx/pay', authenticateToken
             return res.status(400).json({ error: 'Installment already paid' });
         }
         
-        // Generate PropertyInvoice
-        const invoiceData = {
-            tenantId,
-            leaseId: lease.id,
-            customerId: lease.customerId,
-            issueDate: new Date(),
-            dueDate: installment.dueDate,
-            subtotal: installment.amount,
-            vat: 0,
-            total: installment.amount,
-            status: 'Paid'
-        };
-        
         let savedInvoice;
+        const voucherId = `VCH-${Date.now().toString().slice(-6)}`;
+        const entryId = `JE-${Date.now().toString().slice(-6)}`;
+        const amount = installment.amount;
+        
         if (global.isMongoConnected) {
-            invoiceData.id = 'pinv-' + Date.now();
-            savedInvoice = new PropertyInvoice(invoiceData);
-            await savedInvoice.save();
+            // Update the existing invoice
+            if (installment.invoiceId) {
+                savedInvoice = await PropertyInvoice.findOneAndUpdate(
+                    { id: installment.invoiceId, tenantId },
+                    { $set: { status: 'Paid', issueDate: new Date() } },
+                    { new: true }
+                );
+            }
             
             lease.installments[installmentIndex].status = 'Paid';
-            lease.installments[installmentIndex].invoiceId = savedInvoice.id;
             await lease.save();
+            
+            // Generate Receipt Voucher
+            const voucher = new Voucher({
+                voucherId,
+                type: 'RECEIPT',
+                date: new Date(),
+                entityType: 'CUSTOMER',
+                entityId: lease.customerId,
+                amount,
+                method: 'Cash',
+                description: `Rent payment for lease ${lease._id || lease.id}`,
+                tenantId
+            });
+            await voucher.save();
+            
+            // Generate Journal Entry
+            const je = new JournalEntry({
+                entryId,
+                date: new Date(),
+                account: '1000', // Cash
+                description: `Rent Receipt Voucher ${voucherId}`,
+                debit: amount,
+                credit: 0,
+                tenantId
+            });
+            await je.save();
+            
         } else {
-            invoiceData.id = Date.now().toString();
-            mockDb.propertyInvoices.push(invoiceData);
-            savedInvoice = invoiceData;
+            // Mock DB logic
+            if (installment.invoiceId) {
+                const invIndex = mockDb.propertyInvoices.findIndex(i => i.id === installment.invoiceId && i.tenantId === tenantId);
+                if (invIndex !== -1) {
+                    mockDb.propertyInvoices[invIndex].status = 'Paid';
+                    mockDb.propertyInvoices[invIndex].issueDate = new Date();
+                    savedInvoice = mockDb.propertyInvoices[invIndex];
+                }
+            }
             
             lease.installments[installmentIndex].status = 'Paid';
-            lease.installments[installmentIndex].invoiceId = savedInvoice.id;
+            
+            // Generate Receipt Voucher
+            const voucher = {
+                voucherId,
+                type: 'RECEIPT',
+                date: new Date(),
+                entityType: 'CUSTOMER',
+                entityId: lease.customerId,
+                amount,
+                method: 'Cash',
+                description: `Rent payment for lease ${lease._id || lease.id}`,
+                tenantId
+            };
+            mockDb.vouchers.push(voucher);
+            
+            // Generate Journal Entry
+            const je = {
+                entryId,
+                date: new Date(),
+                account: '1000', // Cash
+                description: `Rent Receipt Voucher ${voucherId}`,
+                debit: amount,
+                credit: 0,
+                tenantId
+            };
+            mockDb.journalEntries.push(je);
         }
         
         res.json({ success: true, lease, invoice: savedInvoice });
