@@ -2303,6 +2303,16 @@ router.get('/api/properties', authenticateToken, async (req, res) => {
 router.post('/api/properties', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
+        
+        // Check for duplicate property name
+        if (global.isMongoConnected) {
+            const existing = await Property.findOne({ tenantId, name: { $regex: new RegExp(`^${req.body.name}$`, 'i') } });
+            if (existing) return res.status(400).json({ error: 'A property with this name already exists' });
+        } else {
+            const existing = mockDb.properties.find(p => p.tenantId === tenantId && p.name.toLowerCase() === req.body.name.toLowerCase());
+            if (existing) return res.status(400).json({ error: 'A property with this name already exists' });
+        }
+
         const newProperty = { ...req.body, tenantId, id: 'prop-' + Date.now() };
         if (global.isMongoConnected) {
             await Property.create(newProperty);
