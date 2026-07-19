@@ -127,6 +127,35 @@ const Properties = ({ currentLanguage }) => {
         setShowGallery(true);
     };
 
+    const handleImageUpload = async (e, propertyId) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('photos', files[i]);
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/properties/${propertyId}/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (res.ok) {
+                alert(isAr ? 'تم رفع الصور بنجاح!' : 'Images uploaded successfully!');
+                fetchProperties();
+            } else {
+                alert(isAr ? 'خطأ في رفع الصور' : 'Error uploading images');
+            }
+        } catch (err) {
+            console.error('Error uploading images', err);
+            alert('Network error while uploading');
+        }
+    };
+
     const getOwnerName = (id) => {
         const owner = owners.find(o => o.id === id);
         return owner ? owner.name : (isAr ? 'مملوك للشركة' : 'Company Owned');
@@ -189,6 +218,19 @@ const Properties = ({ currentLanguage }) => {
                                     <button className="btn btn-secondary" onClick={() => handleViewGallery(p)}>
                                         <i className="ri-image-line"></i> {isAr ? 'الصور' : 'Gallery'}
                                     </button>
+                                    
+                                    <input 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/*" 
+                                        style={{ display: 'none' }} 
+                                        id={`upload-${p.id}`}
+                                        onChange={(e) => handleImageUpload(e, p.id)} 
+                                    />
+                                    <label htmlFor={`upload-${p.id}`} className="btn btn-primary" style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <i className="ri-upload-2-line"></i> {isAr ? 'رفع' : 'Upload'}
+                                    </label>
+
                                     {p.status !== 'Sold' && (
                                         <button className="btn btn-success" onClick={() => handleSell(p)}>{isAr ? 'بيع العقار' : 'Sell Property'}</button>
                                     )}

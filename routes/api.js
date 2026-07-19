@@ -8,7 +8,21 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const multer = require('multer');
+const path = require('path');
 const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
+
+// Configure Multer for Property Images
+const propertyStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../public/uploads/properties'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'prop-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const propertyUpload = multer({ storage: propertyStorage });
 
 // Mock in-memory DB fallback for serverless environments (if MongoDB is disconnected)
 const mockDb = {
@@ -2425,6 +2439,31 @@ router.put('/api/properties/:id', authenticateToken, async (req, res) => {
             if (index !== -1) mockDb.properties[index] = { ...mockDb.properties[index], ...updateData };
         }
         res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/properties/:id/upload', authenticateToken, propertyUpload.array('photos', 10), async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No files uploaded.' });
+        }
+        
+        const imageUrls = req.files.map(file => `/uploads/properties/${file.filename}`);
+        
+        if (global.isMongoConnected) {
+            await Property.findOneAndUpdate(
+                { id: req.params.id, tenantId },
+                { $push: { images: { $each: imageUrls } } }
+            );
+        } else {
+            const index = mockDb.properties.findIndex(p => p.id === req.params.id && p.tenantId === tenantId);
+            if (index !== -1) {
+                if (!mockDb.properties[index].images) mockDb.properties[index].images = [];
+                mockDb.properties[index].images.push(...imageUrls);
+            }
+        }
+        res.json({ success: true, images: imageUrls });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

@@ -1087,6 +1087,7 @@ const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);
 
 const frontendBuild = path.join(__dirname, 'frontend', 'dist');
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(frontendBuild));
 
 app.get('*', (req, res) => {
