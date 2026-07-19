@@ -115,6 +115,7 @@ const Properties = ({ currentLanguage }) => {
     const [showGallery, setShowGallery] = useState(false);
     const [currentGalleryImages, setCurrentGalleryImages] = useState([]);
     const [currentGalleryProperty, setCurrentGalleryProperty] = useState('');
+    const [galleryIndex, setGalleryIndex] = useState(0);
 
     const handleViewGallery = (p) => {
         let imgs = p.images && p.images.length > 0 ? p.images : [
@@ -124,6 +125,7 @@ const Properties = ({ currentLanguage }) => {
         ];
         setCurrentGalleryImages(imgs);
         setCurrentGalleryProperty(p.name);
+        setGalleryIndex(0);
         setShowGallery(true);
     };
 
@@ -267,20 +269,34 @@ const Properties = ({ currentLanguage }) => {
             )}
 
             {showGallery && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div className="modal-overlay" onClick={() => setShowGallery(false)}>
+                    <div className="modal-content" style={{ maxWidth: '95vw', width: '95vw', height: '90vh', padding: '10px', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h3 style={{ margin: 0 }}>{currentGalleryProperty} - {isAr ? 'معرض الصور' : 'Photo Gallery'}</h3>
-                            <button className="btn btn-icon" onClick={() => setShowGallery(false)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+                            <button className="btn btn-secondary" onClick={() => setShowGallery(false)}>
+                                <i className="ri-close-line"></i>
+                            </button>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-                            {currentGalleryImages.map((imgUrl, idx) => (
-                                <img key={idx} src={imgUrl} alt="Property" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
-                            ))}
+                        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: '8px' }}>
+                            {currentGalleryImages.length > 0 ? (
+                                <img src={currentGalleryImages[galleryIndex] || currentGalleryImages[0]} alt="Property" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', cursor: 'zoom-in', transition: 'transform 0.3s' }} 
+                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.5)'} 
+                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />
+                            ) : (
+                                <p>{isAr ? 'لا توجد صور' : 'No images available'}</p>
+                            )}
                         </div>
-                        <div className="modal-actions" style={{ marginTop: '20px' }}>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowGallery(false)}>{isAr ? 'إغلاق' : 'Close'}</button>
-                        </div>
+                        {currentGalleryImages.length > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+                                <button className="btn btn-primary" onClick={() => setGalleryIndex(prev => prev > 0 ? prev - 1 : currentGalleryImages.length - 1)}>
+                                    <i className="ri-arrow-left-s-line"></i> {isAr ? 'السابق' : 'Prev'}
+                                </button>
+                                <span>{galleryIndex + 1} / {currentGalleryImages.length}</span>
+                                <button className="btn btn-primary" onClick={() => setGalleryIndex(prev => prev < currentGalleryImages.length - 1 ? prev + 1 : 0)}>
+                                    {isAr ? 'التالي' : 'Next'} <i className="ri-arrow-right-s-line"></i>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

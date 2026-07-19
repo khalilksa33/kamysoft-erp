@@ -2494,7 +2494,7 @@ router.post('/api/properties/:id/sell', authenticateToken, async (req, res) => {
         const total = priceNum + vat;
 
         // 1. Generate Sales Invoice
-        const invoiceData = {
+        let invoiceData = {
             id: `INV-${Date.now().toString().slice(-6)}`,
             uuid: crypto.randomUUID(),
             customer: customerName,
@@ -2512,6 +2512,15 @@ router.post('/api/properties/:id/sell', authenticateToken, async (req, res) => {
         };
 
         if (global.isMongoConnected) {
+            const count = await Invoice.countDocuments({ tenantId });
+            invoiceData.csn = count + 1;
+            let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
+            const lastInvs = await Invoice.find({ tenantId }).sort({ csn: -1 }).limit(1);
+            if (lastInvs.length > 0 && lastInvs[0].xmlHashBase64) {
+                pih = lastInvs[0].xmlHashBase64;
+            }
+            invoiceData.pih = pih;
+
             await Invoice.create(invoiceData);
             
             // 2. Generate Journal Entry
@@ -2525,6 +2534,15 @@ router.post('/api/properties/:id/sell', authenticateToken, async (req, res) => {
                 tenantId
             });
         } else {
+            const tenantInvs = mockDb.invoices.filter(i => i.tenantId === tenantId);
+            invoiceData.csn = tenantInvs.length + 1;
+            let pih = "NWZlY2Q1Y2QyODgyY2NmYTE5YTY1ODIzMDYyMzA5MTRmYmJhYmQ2YmQxMTBiYTkyYTk4YmM0ZTc0Y2Y5MmQ2ZQ==";
+            if (tenantInvs.length > 0) {
+                const prev = tenantInvs[tenantInvs.length - 1];
+                if (prev.xmlHashBase64) pih = prev.xmlHashBase64;
+            }
+            invoiceData.pih = pih;
+            
             mockDb.invoices.push(invoiceData);
             mockDb.journalEntries.push({
                 entryId: `JE-${Date.now().toString().slice(-6)}`,
