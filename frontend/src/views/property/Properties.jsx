@@ -94,7 +94,7 @@ const Properties = () => {
                         <option value="">-- Company Owned (No 3rd Party Owner) --</option>
                         {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                     </select>
-                    <button type="submit" className="primary-btn">Save</button>
+                    <button type="submit" className="btn btn-primary">Save</button>
                 </form>
             </div>
 
@@ -119,7 +119,7 @@ const Properties = () => {
                                 <td>{getOwnerName(p.ownerId)}</td>
                                 <td>{p.status}</td>
                                 <td>
-                                    <button className="danger-btn" onClick={() => handleDelete(p.id)}>Delete</button>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(p.id)}>Delete</button>
                                 </td>
                             </tr>
                         ))}

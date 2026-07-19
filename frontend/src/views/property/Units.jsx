@@ -75,7 +75,7 @@ const Units = () => {
                     </select>
                     <input type="number" className="form-control" placeholder="Beds" value={beds} onChange={e => setBeds(e.target.value)} required min="1" />
                     <input type="number" className="form-control" placeholder="Daily Rate" value={dailyRate} onChange={e => setDailyRate(e.target.value)} required min="0" step="0.01" />
-                    <button type="submit" className="primary-btn">Save</button>
+                    <button type="submit" className="btn btn-primary">Save</button>
                 </form>
             </div>
 
@@ -106,7 +106,7 @@ const Units = () => {
                                         <span className={`status-badge ${u.status.toLowerCase()}`}>{u.status}</span>
                                     </td>
                                     <td>
-                                        <button className="danger-btn" onClick={() => handleDelete(u.id)}>Delete</button>
+                                        <button className="btn btn-danger" onClick={() => handleDelete(u.id)}>Delete</button>
                                     </td>
                                 </tr>
                             )

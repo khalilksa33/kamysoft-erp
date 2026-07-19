@@ -73,7 +73,7 @@ const OwnerAccounting = ({ currentLanguage }) => {
                         <label style={{ display: 'block', marginBottom: '5px' }}>{isAr ? 'إلى تاريخ' : 'End Date'}</label>
                         <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
                     </div>
-                    <button className="primary-btn" onClick={generateStatement} disabled={!selectedOwner || loading}>
+                    <button className="btn btn-primary" onClick={generateStatement} disabled={!selectedOwner || loading}>
                         {loading ? (isAr ? 'جاري التوليد...' : 'Generating...') : (isAr ? 'توليد الكشف' : 'Generate Statement')}
                     </button>
                     {statement && (

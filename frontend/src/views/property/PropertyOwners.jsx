@@ -55,7 +55,7 @@ const PropertyOwners = ({ currentLanguage }) => {
                     <input type="text" className="form-control" placeholder={isAr ? 'رقم الجوال' : 'Phone'} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                     <input type="email" className="form-control" placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                     <input type="text" className="form-control" placeholder={isAr ? 'تفاصيل البنك (الايبان)' : 'Bank Details (IBAN)'} value={form.bankDetails} onChange={e => setForm({...form, bankDetails: e.target.value})} style={{ flex: '1 1 300px' }} />
-                    <button type="submit" className="primary-btn">{isAr ? 'حفظ' : 'Save'}</button>
+                    <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
                 </form>
             </div>
 
@@ -78,7 +78,7 @@ const PropertyOwners = ({ currentLanguage }) => {
                                 <td>{o.email}</td>
                                 <td>{o.bankDetails}</td>
                                 <td>
-                                    <button className="danger-btn" onClick={() => handleDelete(o.id)}>{isAr ? 'حذف' : 'Delete'}</button>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(o.id)}>{isAr ? 'حذف' : 'Delete'}</button>
                                 </td>
                             </tr>
                         ))}

@@ -132,7 +132,7 @@ const Bookings = () => {
                     </select>
                     <input type="date" className="form-control" value={checkInDate} onChange={e => setCheckInDate(e.target.value)} required title="Check-in" />
                     <input type="date" className="form-control" value={checkOutDate} onChange={e => setCheckOutDate(e.target.value)} required title="Check-out" />
-                    <button type="submit" className="primary-btn">Book</button>
+                    <button type="submit" className="btn btn-primary">Book</button>
                 </form>
             </div>
 
@@ -175,7 +175,7 @@ const Bookings = () => {
                                     <td>{b.totalAmount}</td>
                                     <td><span className={`status-badge ${b.status.toLowerCase()}`}>{b.status}</span></td>
                                     <td>
-                                        <button className="danger-btn" onClick={() => handleDelete(b.id)}>Delete</button>
+                                        <button className="btn btn-danger" onClick={() => handleDelete(b.id)}>Delete</button>
                                     </td>
                                 </tr>
                             );
