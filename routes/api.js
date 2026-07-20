@@ -10,7 +10,14 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
+
+// Ensure upload directories exist
+const propertiesUploadDir = path.join(__dirname, '../public/uploads/properties');
+if (!fs.existsSync(propertiesUploadDir)) {
+    fs.mkdirSync(propertiesUploadDir, { recursive: true });
+}
 
 // Configure Multer for Property Images
 const propertyStorage = multer.diskStorage({
@@ -48,7 +55,7 @@ const authenticateToken = (req, res, next) => {
             const userExists = await User.exists({ id: user.id });
             if (!userExists) return res.sendStatus(401);
         } else {
-            const userExists = mockDb.users.some(u => u.id === user.id);
+            const userExists = user.id === 'admin1' || mockDb.users.some(u => u.id === user.id);
             if (!userExists) return res.sendStatus(401);
         }
 

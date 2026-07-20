@@ -124,31 +124,31 @@ const Employees = (props) => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'الاسم' : 'Name'}</label>
-                                    <input type="text" value={empForm.name} onChange={e => setEmpForm({ ...empForm, name: e.target.value })} required />
+                                    <input type="text" className="form-control" value={empForm.name} onChange={e => setEmpForm({ ...empForm, name: e.target.value })} required />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'القسم' : 'Department'}</label>
-                                    <input type="text" value={empForm.dept} onChange={e => setEmpForm({ ...empForm, dept: e.target.value })} required />
+                                    <input type="text" className="form-control" value={empForm.dept} onChange={e => setEmpForm({ ...empForm, dept: e.target.value })} required />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'المنصب' : 'Position'}</label>
-                                    <input type="text" value={empForm.position} onChange={e => setEmpForm({ ...empForm, position: e.target.value })} />
+                                    <input type="text" className="form-control" value={empForm.position} onChange={e => setEmpForm({ ...empForm, position: e.target.value })} />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'رقم الهاتف' : 'Phone'}</label>
-                                    <input type="text" value={empForm.phone} onChange={e => setEmpForm({ ...empForm, phone: e.target.value })} />
+                                    <input type="text" className="form-control" value={empForm.phone} onChange={e => setEmpForm({ ...empForm, phone: e.target.value })} />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
-                                    <input type="email" value={empForm.email} onChange={e => setEmpForm({ ...empForm, email: e.target.value })} />
+                                    <input type="email" className="form-control" value={empForm.email} onChange={e => setEmpForm({ ...empForm, email: e.target.value })} />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'الراتب الأساسي' : 'Base Salary'}</label>
-                                    <input type="number" min="0" step="0.01" value={empForm.salary} onChange={e => setEmpForm({ ...empForm, salary: parseFloat(e.target.value) || 0 })} />
+                                    <input type="number" className="form-control" min="0" step="0.01" value={empForm.salary} onChange={e => setEmpForm({ ...empForm, salary: parseFloat(e.target.value) || 0 })} />
                                 </div>
                                 <div className="form-group">
                                     <label>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</label>
-                                    <select value={empForm.status} onChange={e => setEmpForm({ ...empForm, status: e.target.value })}>
+                                    <select className="form-control" value={empForm.status} onChange={e => setEmpForm({ ...empForm, status: e.target.value })}>
                                         <option value="Active">{currentLanguage === 'ar' ? 'نشط' : 'Active'}</option>
                                         <option value="Inactive">{currentLanguage === 'ar' ? 'غير نشط' : 'Inactive'}</option>
                                     </select>

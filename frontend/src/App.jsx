@@ -752,6 +752,34 @@ export default function App() {
     const [salesStartDate, setSalesStartDate] = useState('');
     const [salesEndDate, setSalesEndDate] = useState('');
 
+    useEffect(() => {
+        if (!token) return;
+        
+        // Fetch settings
+        fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(data => setSettings(data))
+            .catch(() => console.log("Using default fallback settings"));
+
+        // Fetch products
+        fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(data => setProducts(data))
+            .catch(() => console.log("Failed to fetch products"));
+
+        // Fetch invoices
+        fetch('/api/invoices', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(data => setInvoices(data.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i)))
+            .catch(() => console.log("Failed to fetch invoices"));
+
+        // Fetch customers
+        fetch('/api/customers', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(data => setCustomers(data))
+            .catch(() => console.log("Failed to fetch customers"));
+    }, [token]);
+
     // Modal Triggers
     const [activeInvoice, setActiveInvoice] = useState(null);
     const [invoiceFormat, setInvoiceFormat] = useState('thermal');
@@ -808,19 +836,19 @@ export default function App() {
         if (!token) return;
         
         // Fetch settings
-        fetch('/api/settings')
+        fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setSettings(data))
             .catch(() => console.log("Using default fallback settings"));
 
         // Fetch products
-        fetch('/api/products')
+        fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setProducts(data))
             .catch(() => console.log("Failed to fetch products"));
 
         // Fetch invoices
-        fetch('/api/invoices')
+        fetch('/api/invoices', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => setInvoices(data.filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i)))
             .catch(() => console.log("Failed to fetch invoices"));

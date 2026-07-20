@@ -93,7 +93,8 @@ body[dir="rtl"] {
 .app-container {
     display: grid;
     grid-template-columns: 1fr 260px;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 body[dir="rtl"] .app-container {

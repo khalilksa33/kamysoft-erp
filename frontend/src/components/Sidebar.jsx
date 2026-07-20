@@ -183,8 +183,7 @@ const menuConfig = [
     {
         id: 'customers', icon: 'ri-user-smile-line', labelKey: 'customers',
         submenu: [
-            { id: 'customersManagement', labelKey: 'management' },
-            { id: 'receiptVoucher', labelKey: 'receiptVoucher' }
+            { id: 'customersManagement', labelKey: 'management' }
         ]
     },
     {
@@ -198,8 +197,7 @@ const menuConfig = [
     {
         id: 'suppliers', icon: 'ri-truck-line', labelKey: 'suppliers',
         submenu: [
-            { id: 'suppliersManagement', labelKey: 'management' },
-            { id: 'paymentVoucher', labelKey: 'paymentVoucher' }
+            { id: 'suppliersManagement', labelKey: 'management' }
         ]
     },
     {
