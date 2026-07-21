@@ -205,13 +205,17 @@ const getBaseDomain = (host) => {
 
 router.post('/api/auth/register-tenant', async (req, res) => {
     try {
-        const { tenantId, businessName, businessType, adminUsername, adminPassword, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
+        const { tenantId, businessName, businessType, adminUsername, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
         const host = (req.headers.host || '').split(':')[0].toLowerCase();
         const baseDomain = getBaseDomain(host);
         
-        if (!tenantId || !businessName || !businessType || !adminUsername || !adminPassword) {
+        if (!tenantId || !businessName || !businessType || !adminUsername || !email) {
             return res.status(400).json({ error: 'All fields are required' });
         }
+        
+        const crypto = require('crypto');
+        const generatedPassword = crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 8) + 'X1!';
+        const adminPassword = generatedPassword;
         
         // Normalize tenantId (lowercase alphanumeric and dash only)
         const normalizedTenantId = tenantId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -242,7 +246,6 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         }
         
         // Generate License Key & Expiration
-        const crypto = require('crypto');
         const licenseKey = 'SME-' + crypto.randomUUID().toUpperCase().split('-').slice(1, 4).join('-');
         
         // Expiration Logic (Monthly vs Yearly)
@@ -362,6 +365,49 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         if (process.env.CF_ACCOUNT_ID && baseDomain) {
             global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
         }        
+
+        // Send Welcome Email
+        if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+            try {
+                const nodemailer = require('nodemailer');
+                let transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST,
+                    port: process.env.SMTP_PORT || 587,
+                    secure: process.env.SMTP_PORT == 465,
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS,
+                    },
+                });
+                
+                const storeUrl = `http://${normalizedTenantId}.${baseDomain}`;
+                const htmlContent = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border-radius: 10px;">
+                        <h2 style="color: #333;">Welcome to KamySoft ERP!</h2>
+                        <p>Hi ${fullName || adminUsername},</p>
+                        <p>Your store <strong>${businessName}</strong> has been successfully created.</p>
+                        <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 20px 0;">
+                            <h3 style="margin-top: 0; color: #555;">Your Login Credentials</h3>
+                            <p><strong>Store URL:</strong> <a href="${storeUrl}">${storeUrl}</a></p>
+                            <p><strong>Username:</strong> ${adminUsername}</p>
+                            <p><strong>Password:</strong> <span style="font-family: monospace; background: #eee; padding: 3px 6px; border-radius: 4px;">${generatedPassword}</span></p>
+                        </div>
+                        <p>We highly recommend logging in and changing your password immediately from the Settings page.</p>
+                        <p>Best regards,<br>KamySoft Team</p>
+                    </div>
+                `;
+
+                await transporter.sendMail({
+                    from: process.env.EMAIL_FROM || '"KamySoft ERP" <info@26i.uk>',
+                    to: email,
+                    subject: 'Welcome to KamySoft ERP - Your Login Credentials',
+                    html: htmlContent,
+                });
+                console.log(`Welcome email sent to ${email} for tenant ${normalizedTenantId}`);
+            } catch (emailErr) {
+                console.error('Error sending welcome email:', emailErr);
+            }
+        }
         res.status(201).json({ 
             success: true, 
             tenantId: normalizedTenantId,
