@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smtp-relay
+  namespace: default
+  labels:
+    app: smtp-relay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smtp-relay
+  template:
+    metadata:
+      labels:
+        app: smtp-relay
+    spec:
+      containers:
+      - name: postfix
+        image: mwader/postfix-relay
+        ports:
+        - containerPort: 25
+        env:
+        - name: POSTFIX_MYNETWORKS
+          value: "10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12" # Allow internal cluster IPs
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi

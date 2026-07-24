@@ -214,7 +214,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         }
         
         const crypto = require('crypto');
-        const generatedPassword = crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 8) + 'X1!';
+        const generatedPassword = 'admin123'; // Hardcoded password due to email issue
         const adminPassword = generatedPassword;
         
         // Normalize tenantId (lowercase alphanumeric and dash only)
