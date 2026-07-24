@@ -16,7 +16,7 @@ const Dashboard = (props) => {
                                         <h3 data-i18n="totalSales">{translations[currentLanguage].totalSales}</h3>
                                         <div className="stat-value">{formatCurrency(invoices.reduce((a, b) => a + b.total, 0))}</div>
                                     </div>
-                                    <div className="stat-icon"><i class="ri-money-dollar-circle-line"></i></div>
+                                    <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
                                 </div>
                             </div>
                             <div className="glass-card cyan">
@@ -25,7 +25,7 @@ const Dashboard = (props) => {
                                         <h3 data-i18n="activeProducts">{translations[currentLanguage].activeProducts}</h3>
                                         <div className="stat-value">{products.length}</div>
                                     </div>
-                                    <div className="stat-icon"><i class="ri-archive-line"></i></div>
+                                    <div className="stat-icon"><i className="ri-archive-line"></i></div>
                                 </div>
                             </div>
                             <div className="glass-card gold">
@@ -34,7 +34,7 @@ const Dashboard = (props) => {
                                         <h3 data-i18n="invoicesGenerated">{translations[currentLanguage].invoicesGenerated}</h3>
                                         <div className="stat-value">{invoices.length}</div>
                                     </div>
-                                    <div className="stat-icon"><i class="ri-file-paper-2-line"></i></div>
+                                    <div className="stat-icon"><i className="ri-file-paper-2-line"></i></div>
                                 </div>
                             </div>
                         </div>
