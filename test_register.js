@@ -5,6 +5,7 @@ const data = JSON.stringify({
     businessName: 'Test Store 123',
     businessType: 'retail',
     adminUsername: 'admin',
+    password: 'admin123',
     email: 'test@example.com',
     mobile: '0500000000',
     nationalAddress: 'Test Address',

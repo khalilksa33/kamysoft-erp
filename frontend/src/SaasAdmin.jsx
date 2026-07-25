@@ -49,7 +49,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
     // Create Store Modal
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createData, setCreateData] = useState({
-        tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', email: '', mobile: '',
+        tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', password: '', email: '', mobile: '',
         nationalAddress: '', vatNumber: '', crNumber: '', billingCycle: 'monthly', fullName: ''
     });
     
@@ -221,8 +221,8 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
             const data = await res.json();
             if (data.success) {
                 setShowCreateModal(false);
-                setActionMsg(`Store ${data.tenantId} created successfully! Password sent to email.`);
-                setCreateData({ tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', email: '', mobile: '', nationalAddress: '', vatNumber: '', crNumber: '', billingCycle: 'monthly', fullName: '' });
+                setActionMsg(`Store ${data.tenantId} created successfully!`);
+                setCreateData({ tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', password: '', email: '', mobile: '', nationalAddress: '', vatNumber: '', crNumber: '', billingCycle: 'monthly', fullName: '' });
                 loadData();
             } else {
                 setActionMsg(`Error: ${data.error}`);
@@ -694,6 +694,13 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                                     <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Admin Email *</label>
                                     <input required type="email" value={createData.email} onChange={e => setCreateData({ ...createData, email: e.target.value })}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Password *</label>
+                                    <input required type="password" value={createData.password} onChange={e => setCreateData({ ...createData, password: e.target.value })}
                                         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                                 </div>
                             </div>

@@ -276,6 +276,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
         fullName: '',
         businessType: 'retail',
         adminUsername: 'admin',
+        password: '',
         email: '',
         mobile: '',
         nationalAddress: '',
@@ -293,6 +294,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             businessName: '',
             businessType: 'retail',
             adminUsername: 'admin',
+            password: '',
             email: '',
             mobile: '',
             nationalAddress: '',
@@ -1560,10 +1562,19 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
                                         />
                                     </div>
-                                    <div style={{ marginTop: '10px' }}>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                            {isRtl ? 'سيتم إنشاء كلمة مرور قوية وإرسالها إلى بريدك الإلكتروني.' : 'A strong password will be generated and emailed to you.'}
-                                        </p>
+                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                                            {isRtl ? 'كلمة المرور' : 'Password'}
+                                        </label>
+                                        <input 
+                                            type="password" 
+                                            name="password"
+                                            value={registerForm.password}
+                                            onChange={handleRegisterChange}
+                                            required
+                                            placeholder="Enter strong password"
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
+                                        />
                                     </div>
                                 </div>
 

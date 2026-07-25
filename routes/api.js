@@ -205,17 +205,16 @@ const getBaseDomain = (host) => {
 
 router.post('/api/auth/register-tenant', async (req, res) => {
     try {
-        const { tenantId, businessName, businessType, adminUsername, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
+        const { tenantId, businessName, businessType, adminUsername, password, email, mobile, nationalAddress, vatNumber, crNumber, billingCycle, fullName } = req.body;
         const host = (req.headers.host || '').split(':')[0].toLowerCase();
         const baseDomain = getBaseDomain(host);
         
-        if (!tenantId || !businessName || !businessType || !adminUsername || !email) {
+        if (!tenantId || !businessName || !businessType || !adminUsername || !password || !email) {
             return res.status(400).json({ error: 'All fields are required' });
         }
         
         const crypto = require('crypto');
-        const generatedPassword = 'admin123'; // Hardcoded password due to email issue
-        const adminPassword = generatedPassword;
+        const adminPassword = password;
         
         // Normalize tenantId (lowercase alphanumeric and dash only)
         const normalizedTenantId = tenantId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');

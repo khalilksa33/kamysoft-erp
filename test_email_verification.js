@@ -4,6 +4,7 @@ const postData = JSON.stringify({
   tenantId: 'test-email-v1',
   email: 'test@kamysoft.com',
   adminUsername: 'admin',
+  password: 'admin123',
   adminPassword: 'password123',
   businessName: 'Test V1',
   businessType: 'retail'

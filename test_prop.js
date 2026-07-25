@@ -7,6 +7,7 @@ async function test() {
             businessName: 'My Prop Biz',
             businessType: 'Retail',
             adminUsername: 'admin',
+            password: 'admin123',
             adminPassword: 'password123',
             email: 'test@mypropbiz.com',
             mobile: '123456789',
