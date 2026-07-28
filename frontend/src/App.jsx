@@ -2140,6 +2140,51 @@ const handleB2BSubmit = () => {
                                 </select>
                             </div>
                         </div>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
+                                {currentLanguage === 'ar' ? 'مسح الباركود' : 'Scan Barcode'}
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder={currentLanguage === 'ar' ? 'امسح الباركود هنا...' : 'Scan barcode here...'}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const barcode = e.target.value.trim();
+                                        if (!barcode) return;
+                                        
+                                        const prod = products.find(p => p.barcode === barcode || p.sku === barcode || p.id === barcode);
+                                        if (prod) {
+                                            const newItems = [...b2bForm.items];
+                                            const existingIndex = newItems.findIndex(item => item.productId === prod.id);
+                                            
+                                            if (existingIndex >= 0) {
+                                                newItems[existingIndex].qty += 1;
+                                                newItems[existingIndex].total = newItems[existingIndex].qty * newItems[existingIndex].price;
+                                            } else {
+                                                let emptyIndex = newItems.findIndex(item => !item.productId);
+                                                if (emptyIndex === -1) {
+                                                    emptyIndex = newItems.length;
+                                                    newItems.push({ id: Date.now().toString(), productId: '', name: '', qty: 1, price: 0, vatRate: 15, total: 0 });
+                                                }
+                                                newItems[emptyIndex].productId = prod.id;
+                                                newItems[emptyIndex].name = currentLanguage === 'ar' ? prod.nameAR : prod.nameEN;
+                                                newItems[emptyIndex].price = prod.price;
+                                                newItems[emptyIndex].qty = 1;
+                                                newItems[emptyIndex].total = prod.price;
+                                            }
+                                            
+                                            setB2bForm({ ...b2bForm, items: newItems });
+                                            e.target.value = '';
+                                        } else {
+                                            alert(currentLanguage === 'ar' ? 'المنتج غير موجود' : 'Product not found');
+                                            e.target.value = '';
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
 
                         <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'visible', maxHeight: 'none' }}>
                             <table>
