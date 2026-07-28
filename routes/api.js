@@ -389,7 +389,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
                             <h3 style="margin-top: 0; color: #555;">Your Login Credentials</h3>
                             <p><strong>Store URL:</strong> <a href="${storeUrl}">${storeUrl}</a></p>
                             <p><strong>Username:</strong> ${adminUsername}</p>
-                            <p><strong>Password:</strong> <span style="font-family: monospace; background: #eee; padding: 3px 6px; border-radius: 4px;">${generatedPassword}</span></p>
+                            <p><strong>Password:</strong> <span style="font-family: monospace; background: #eee; padding: 3px 6px; border-radius: 4px;">${adminPassword}</span></p>
                         </div>
                         <p>We highly recommend logging in and changing your password immediately from the Settings page.</p>
                         <p>Best regards,<br>KamySoft Team</p>
