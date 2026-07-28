@@ -29,8 +29,11 @@ const Inventory = (props) => {
 
     const handleSaveProduct = (e) => {
         e.preventDefault();
-        fetch('/api/products', {
-            method: 'POST',
+        const method = prodForm.id ? 'PUT' : 'POST';
+        const url = prodForm.id ? `/api/products/${prodForm.id}` : '/api/products';
+        
+        fetch(url, {
+            method: method,
             headers: headers,
             body: JSON.stringify(prodForm)
         })
@@ -39,14 +42,31 @@ const Inventory = (props) => {
             return res.json();
         })
         .then(data => {
-            setProducts([...products, data]);
+            if (prodForm.id) {
+                setProducts(products.map(p => p.id === data.id ? data : p));
+            } else {
+                setProducts([...products, data]);
+            }
             setShowProductModal(false);
+            setProdForm({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
         })
         .catch(() => {
-            const mock = { ...prodForm, id: (2000 + products.length).toString() };
-            setProducts([...products, mock]);
+            const mock = { ...prodForm, id: prodForm.id || (2000 + products.length).toString() };
+            if (prodForm.id) {
+                setProducts(products.map(p => p.id === mock.id ? mock : p));
+            } else {
+                setProducts([...products, mock]);
+            }
             setShowProductModal(false);
+            setProdForm({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
         });
+    };
+
+    const handleDeleteProduct = (id) => {
+        if (!window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذا المنتج؟' : 'Are you sure you want to delete this product?')) return;
+        fetch(`/api/products/${id}`, { method: 'DELETE', headers })
+            .then(() => setProducts(products.filter(p => p.id !== id)))
+            .catch(() => setProducts(products.filter(p => p.id !== id)));
     };
 
     const handleSaveCategory = (e) => {
@@ -61,6 +81,11 @@ const Inventory = (props) => {
         setCategoryForm({ id: '', nameAR: '', nameEN: '' });
     };
 
+    const handleDeleteCategory = (id) => {
+        if (!window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذه الفئة؟' : 'Are you sure you want to delete this category?')) return;
+        setCategories(categories.filter(c => c.id !== id));
+    };
+
     const handleSaveUnit = (e) => {
         e.preventDefault();
         const mock = { ...unitForm, id: unitForm.id || Date.now().toString() };
@@ -71,6 +96,11 @@ const Inventory = (props) => {
         }
         setShowUnitModal(false);
         setUnitForm({ id: '', nameAR: '', nameEN: '' });
+    };
+
+    const handleDeleteUnit = (id) => {
+        if (!window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذه الوحدة؟' : 'Are you sure you want to delete this unit?')) return;
+        setUnits(units.filter(u => u.id !== id));
     };
 
     const handleExportCSV = () => {
@@ -159,6 +189,7 @@ const Inventory = (props) => {
                             <th>{translations[currentLanguage].prodStock}</th>
                             <th>{translations[currentLanguage].purchaseCost}</th>
                             <th>{translations[currentLanguage].sellingPrice}</th>
+                            <th>{currentLanguage === 'ar' ? 'إجراءات' : 'Actions'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -175,6 +206,16 @@ const Inventory = (props) => {
                                 </td>
                                 <td>{formatCurrency(p.cost || 0)}</td>
                                 <td>{formatCurrency(p.price)}</td>
+                                <td>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-secondary" onClick={() => { setProdForm(p); setShowProductModal(true); }}>
+                                            <i className="ri-edit-line"></i>
+                                        </button>
+                                        <button className="btn btn-danger" onClick={() => handleDeleteProduct(p.id)}>
+                                            <i className="ri-delete-bin-line"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -209,9 +250,14 @@ const Inventory = (props) => {
                                 <td>{c.nameAR}</td>
                                 <td>{c.nameEN}</td>
                                 <td>
-                                    <button className="btn btn-secondary" onClick={() => { setCategoryForm(c); setShowCategoryModal(true); }}>
-                                        <i className="ri-edit-line"></i>
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-secondary" onClick={() => { setCategoryForm(c); setShowCategoryModal(true); }}>
+                                            <i className="ri-edit-line"></i>
+                                        </button>
+                                        <button className="btn btn-danger" onClick={() => handleDeleteCategory(c.id)}>
+                                            <i className="ri-delete-bin-line"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -247,9 +293,14 @@ const Inventory = (props) => {
                                 <td>{u.nameAR}</td>
                                 <td>{u.nameEN}</td>
                                 <td>
-                                    <button className="btn btn-secondary" onClick={() => { setUnitForm(u); setShowUnitModal(true); }}>
-                                        <i className="ri-edit-line"></i>
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-secondary" onClick={() => { setUnitForm(u); setShowUnitModal(true); }}>
+                                            <i className="ri-edit-line"></i>
+                                        </button>
+                                        <button className="btn btn-danger" onClick={() => handleDeleteUnit(u.id)}>
+                                            <i className="ri-delete-bin-line"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

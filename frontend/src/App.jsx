@@ -1843,7 +1843,7 @@ const handleB2BSubmit = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        demo.26i.uk (Demo)
+                        Demo Tenant
                     </button>
                     <button 
                         onClick={() => { setSimulatedDomain('customer'); }}
@@ -2186,7 +2186,7 @@ const handleB2BSubmit = () => {
                             />
                         </div>
 
-                        <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'visible', maxHeight: 'none' }}>
+                        <div className="table-container" style={{ marginBottom: '24px', border: '1px solid var(--glass-border)', borderRadius: '12px', maxHeight: '400px', overflowY: 'auto' }}>
                             <table>
                                 <thead>
                                     <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
