@@ -964,6 +964,7 @@ export default function App() {
             setToken(data.token);
             setUser(data.user);
             setActiveTab('dashboard');
+            window.history.pushState({}, '', '/');
         })
         .catch(err => {
             if (err.message === 'Failed to fetch') {
@@ -984,6 +985,7 @@ export default function App() {
                     setToken('mock-token-secret');
                     setUser(mockUser);
                     setActiveTab('dashboard');
+                    window.history.pushState({}, '', '/');
                 } else {
                     setAuthError(currentLanguage === 'ar' ? 'خطأ في الاتصال بالشبكة' : 'Network error or backend unreachable.');
                 }
