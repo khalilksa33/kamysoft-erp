@@ -48,7 +48,7 @@ const authenticateToken = (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
     if (token == null) return res.sendStatus(401);
     jwt.verify(token, process.env.JWT_SECRET || 'kamysoft_super_secret_key_2026', async (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.status(401).json({ error: 'Session expired or invalid' });
         
         // Verify user still exists (prevents deleted tenants from using active tokens)
         if (global.isMongoConnected) {

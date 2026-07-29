@@ -89,7 +89,17 @@ window.fetch = function (url, options = {}) {
             options.headers['x-tenant-id'] = tenant;
         }
     }
-    return originalFetch(url, options);
+    
+    return originalFetch(url, options).then(response => {
+        if (response.status === 401 || response.status === 403) {
+            if (typeof url === 'string' && url.includes('/api/') && !url.includes('/api/auth/login')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/';
+            }
+        }
+        return response;
+    });
 };
 
 // Unified Translations Dictionary
