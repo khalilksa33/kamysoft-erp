@@ -28,7 +28,7 @@ jobs:
           CONFIG
       - name: Run Diagnostics
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk 'echo "*/*cloud*/*" | sudo -S sh -c "
+          ssh -v cloud@ssh-cloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
             echo \"--- which kubectl ---\"
             which kubectl
             ls -l \$(which kubectl)

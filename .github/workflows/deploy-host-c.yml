@@ -68,7 +68,7 @@ jobs:
 
       - name: Deploy via Host C k8s Cluster
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk 'echo "*/*cloud*/*" | sudo -S sh -c "
+          ssh -v cloud@ssh-cloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
             if [ -f /etc/kubernetes/admin.conf ]; then
               export KUBECONFIG=/etc/kubernetes/admin.conf
             elif [ -f /etc/rancher/k3s/k3s.yaml ]; then
