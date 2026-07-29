@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { marked } from 'marked';
+import { enArticles, arArticles } from './data/blogArticles.js';
 
 // Landing Page translations dictionary
 const landingTranslations = {
