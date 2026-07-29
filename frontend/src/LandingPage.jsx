@@ -262,7 +262,9 @@ const landingTranslations = {
         
         footerText: "© 2026 26i للحلول التقنية العالمية. جميع الحقوق محفوظة."
     }
-};
+,
+        blogArticles: arArticles
+    };
 
 export default function LandingPage({ currentLanguage, setCurrentLanguage, theme, setTheme, onLaunchApp, onRegisterSuccess, baseDomain = '26i.uk' }) {
     const t = landingTranslations[currentLanguage];

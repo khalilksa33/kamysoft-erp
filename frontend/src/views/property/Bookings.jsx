@@ -71,17 +71,23 @@ const Bookings = () => {
             });
             const newBooking = await res.json();
             
-            // Create corresponding property invoice
-            await fetch('/api/property-invoices', {
+            const customerObj = customers.find(c => c.id === customerId);
+            
+            // Create corresponding standard invoice
+            await fetch('/api/invoices', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
-                    bookingId: newBooking.id,
+                    date: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
+                    customer: customerObj ? customerObj.name : 'Real Estate Customer',
                     customerId,
-                    dueDate: end.toISOString(),
-                    subtotal: totalAmount,
+                    items: [{ name: `Booking for ${unit.name}`, qty: days, price: unit.dailyRate }],
+                    total: totalAmount * 1.15,
                     vat: totalAmount * 0.15,
-                    total: totalAmount * 1.15
+                    paymentMethod: 'Bank Transfer',
+                    status: 'PAID',
+                    branch: 'Real Estate Branch',
+                    zatcaStatus: 'PENDING'
                 })
             });
 

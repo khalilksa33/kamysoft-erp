@@ -150,6 +150,30 @@ Cloud infrastructure offers 99.99% uptime guarantees. But what happens if your s
 
 ### Conclusion
 The transition from legacy systems to cloud-based solutions is accelerating because the financial logic is undeniable. By adopting 26i ERP, you are not just buying a cash register; you are investing in an operational framework designed to cut costs, automate labor, and protect your margins. In the highly competitive world of retail, minimizing operational costs is the most direct path to maximizing profitability.`
+    },
+    {
+        slug: 'inventory-management',
+        image: 'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80',
+        category: 'المخزون',
+        title: 'إدارة المخزون الذكية للتجزئة',
+        desc: 'تحسين مستويات المخزون وتقليل تكاليف الاحتفاظ به.',
+        content: 'دليل تفصيلي لإدارة المخزون.'
+    },
+    {
+        slug: 'crm-strategies',
+        image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80',
+        category: 'علاقات العملاء',
+        title: 'بناء ولاء العملاء مع إدارة علاقات العملاء',
+        desc: 'الاستفادة من البيانات لتعزيز تجربة العملاء.',
+        content: 'دليل تفصيلي لعلاقات العملاء.'
+    },
+    {
+        slug: 'financial-reporting',
+        image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+        category: 'المالية',
+        title: 'التقارير المالية المتقدمة',
+        desc: 'احصل على رؤى حول أداء عملك.',
+        content: 'دليل تفصيلي للتقارير.'
     }
 ];
 
@@ -256,5 +280,29 @@ export const arArticles = [
 *   حساب التزامات ضريبة القيمة المضافة الدقيقة.
 
 من خلال أتمتة هذه العمليات، يمكنك تقليل الساعات الإدارية المطلوبة لتشغيل عملك بشكل كبير، مما يسمح لك بإعادة توجيه الموظفين إلى الأنشطة المدرة للدخل.`
+    },
+    {
+        slug: 'inventory-management',
+        image: 'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80',
+        category: 'المخزون',
+        title: 'إدارة المخزون الذكية للتجزئة',
+        desc: 'تحسين مستويات المخزون وتقليل تكاليف الاحتفاظ به.',
+        content: 'دليل تفصيلي لإدارة المخزون.'
+    },
+    {
+        slug: 'crm-strategies',
+        image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80',
+        category: 'علاقات العملاء',
+        title: 'بناء ولاء العملاء مع إدارة علاقات العملاء',
+        desc: 'الاستفادة من البيانات لتعزيز تجربة العملاء.',
+        content: 'دليل تفصيلي لعلاقات العملاء.'
+    },
+    {
+        slug: 'financial-reporting',
+        image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+        category: 'المالية',
+        title: 'التقارير المالية المتقدمة',
+        desc: 'احصل على رؤى حول أداء عملك.',
+        content: 'دليل تفصيلي للتقارير.'
     }
 ];
