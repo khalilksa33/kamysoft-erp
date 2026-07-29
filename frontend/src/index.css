@@ -885,9 +885,10 @@ tr:hover td {
     }
     
     #invoicePrintArea.invoice-thermal-layout {
-        width: 80mm !important;
-        max-width: 80mm !important;
-        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
     .invoice-a4-layout {
@@ -897,10 +898,11 @@ tr:hover td {
     }
     
     .invoice-thermal-layout {
-        width: 80mm !important;
+        width: 100% !important;
         background: white !important;
         color: #333 !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
     .no-print {

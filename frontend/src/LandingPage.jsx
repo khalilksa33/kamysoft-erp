@@ -116,22 +116,110 @@ const landingTranslations = {
         blogReadMore: "Read More",
         blogArticles: [
             {
+                slug: "zatca-phase-2-guide",
+                image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
                 category: "Compliance & Tax",
                 title: "ZATCA Phase 2 E-Invoicing: The Ultimate Guide for Saudi Retailers",
                 desc: "Ensure your POS system is fully compliant with ZATCA Phase 2 regulations. Learn about cryptographic stamps, QR codes, and seamless integration.",
-                link: "#blog-zatca-phase-2"
+                content: `### Understanding ZATCA Phase 2 Requirements
+Phase 2 (the Integration Phase) of e-invoicing by the Zakat, Tax and Customs Authority (ZATCA) introduces fundamental changes to how businesses operate in Saudi Arabia. Unlike Phase 1, which primarily mandated digital generation of invoices, Phase 2 requires direct integration with ZATCA's FATOORA portal.
+
+**Key Components Include:**
+- **Cryptographic Stamps:** Every invoice must be digitally signed.
+- **Dynamic QR Codes:** Ensuring that invoices can be easily verified by customers and inspectors.
+- **XML Formats:** All B2B and B2C invoices must comply strictly with UBL 2.1 XML standards.
+- **Direct API Integration:** A seamless connection between your POS/ERP and ZATCA is no longer optional.
+
+### How Kamysoft ERP Keeps You Compliant
+Our ecosystem is engineered to automatically handle cryptographic hashing and direct API submissions in the background. Your cashiers continue selling just as they always have, while the software takes care of the compliance heavy-lifting.`
             },
             {
+                slug: "multi-branch-inventory",
+                image: "https://images.unsplash.com/photo-1586528116311-ad8ed7fcce28?auto=format&fit=crop&w=800&q=80",
                 category: "Business Strategy",
                 title: "Scaling Your Business: Mastering Multi-Branch Inventory Management",
                 desc: "Discover how cloud ERP solutions eliminate stockouts, streamline inter-branch transfers, and provide real-time sales visibility across all locations.",
-                link: "#blog-multi-branch"
+                content: `### The Challenge of Growth
+Opening a new branch is exciting, but managing inventory across multiple locations can quickly become a logistical nightmare. Without a centralized system, businesses suffer from stockouts, overstocking, and lost sales.
+
+### The Power of Cloud Inventory
+A modern, cloud-based ERP gives you a unified view of your entire supply chain. 
+- **Real-Time Visibility:** Know exactly what is in stock at Branch A vs. Branch B.
+- **Automated Reordering:** Set minimum threshold alerts so you never run out of your best sellers.
+- **Inter-branch Transfers:** Easily move stock from a slow-moving location to a high-demand store.
+
+With Kamsoft's centralized dashboards, managers can monitor performance across all stores from a single device, allowing you to scale your retail footprint with confidence.`
             },
             {
+                slug: "reduce-operational-costs",
+                image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80",
                 category: "Technology & Retail",
                 title: "Top 5 Ways Cloud POS Systems Reduce Operational Costs",
                 desc: "From automated capital asset depreciation to minimizing IT hardware costs, find out how switching to a cloud POS can dramatically improve your bottom line.",
-                link: "#blog-reduce-costs"
+                content: `### 1. Minimal IT Infrastructure
+Traditional legacy systems require expensive on-premise servers and dedicated IT staff to maintain them. Cloud POS systems run on standard hardware (like tablets and basic PCs) and shift the heavy lifting to secure remote servers.
+
+### 2. Automatic Updates
+No more paying technicians to install the latest software patches. Cloud systems update automatically, ensuring you always have the latest features and security enhancements.
+
+### 3. Integrated Operations
+When your POS talks directly to your accounting, inventory, and HR modules, you eliminate manual data entry. This reduces labor costs and significantly cuts down on human error.
+
+### 4. Reduced Downtime
+Cloud infrastructure boasts high availability. Even if your local internet drops, offline-capable systems (like ours) let you continue making sales and sync automatically when you're back online.
+
+### 5. Better Decision Making
+Access to real-time analytics allows you to optimize staffing schedules and purchasing decisions, preventing waste and maximizing ROI.`
+            },
+            {
+                slug: "customer-loyalty-programs",
+                image: "https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?auto=format&fit=crop&w=800&q=80",
+                category: "Marketing",
+                title: "Building Customer Loyalty: Moving Beyond the Points System",
+                desc: "Loyalty programs have evolved. Discover how data-driven insights and personalized rewards can turn one-time buyers into lifelong brand advocates.",
+                content: `### The Evolution of Loyalty
+Points-based systems are standard, but they often fail to engage modern consumers who expect personalization. Today's successful loyalty programs leverage data to deliver targeted value.
+
+### Data-Driven Personalization
+By integrating your CRM with your POS, you can track purchase histories and preferences. This allows you to:
+- **Send Targeted Offers:** Offer a discount on a customer's favorite product category.
+- **Celebrate Milestones:** Automatically send anniversary or birthday rewards.
+- **Tiered Rewards:** Create VIP tiers that offer exclusive early access to sales or special services.
+
+Investing in a smart CRM integration pays massive dividends in customer retention and lifetime value.`
+            },
+            {
+                slug: "ai-in-retail",
+                image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80",
+                category: "Future Tech",
+                title: "The Role of AI in Modern Retail Forecasting",
+                desc: "Artificial Intelligence is no longer just for tech giants. Learn how AI-driven predictive analytics are revolutionizing inventory planning for mid-sized retailers.",
+                content: `### Beyond Historical Data
+Traditional forecasting relies on looking backwards—what sold last year? AI models look at historical data but also incorporate external factors like weather patterns, local events, and broader economic trends.
+
+### The Benefits for Retailers
+- **Accurate Demand Prediction:** AI algorithms can predict spikes in demand for specific items with incredible accuracy.
+- **Dynamic Pricing:** Automatically adjust pricing based on demand, inventory levels, and competitor pricing.
+- **Waste Reduction:** Especially critical for grocery and perishable goods, AI forecasting significantly reduces spoilage and waste.
+
+As AI tools become more integrated into ERP systems, retailers who adopt them will gain a massive competitive edge.`
+            },
+            {
+                slug: "employee-management",
+                image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80",
+                category: "Human Resources",
+                title: "Optimizing Staff Schedules with Integrated HR Modules",
+                desc: "Labor is often a retailer's biggest expense. Find out how integrating your HR module with sales data can help you optimize scheduling and reduce overhead.",
+                content: `### The High Cost of Poor Scheduling
+Overstaffing during slow periods eats into your profits, while understaffing during rushes damages the customer experience. Striking the right balance is incredibly difficult without the right tools.
+
+### Sales-Driven Scheduling
+When your POS is linked directly to your HR and scheduling module, you can align staffing levels directly with projected sales volume.
+- **Identify Peak Hours:** Data easily reveals your busiest times of day and days of the week.
+- **Automate Roster Creation:** Some systems can suggest optimized schedules based on historical sales and employee availability.
+- **Track Performance:** Measure individual employee performance metrics (like sales per hour) to reward top performers and identify coaching opportunities.
+
+Integrated HR isn't just about payroll; it's a strategic tool for maximizing your workforce's efficiency.`
             }
         ],
         
@@ -264,22 +352,110 @@ const landingTranslations = {
         blogReadMore: "اقرأ المزيد",
         blogArticles: [
             {
+                slug: "zatca-phase-2-guide",
+                image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
                 category: "الامتثال والضرائب",
                 title: "الفوترة الإلكترونية المرحلة الثانية (فاتورة): الدليل الشامل لقطاع التجزئة",
                 desc: "تأكد من توافق نظام نقاط البيع الخاص بك مع متطلبات المرحلة الثانية لهيئة الزكاة. تعرف على الختم التشفيري ورموز الاستجابة السريعة والربط المباشر.",
-                link: "#blog-zatca-phase-2"
+                content: `### فهم متطلبات المرحلة الثانية (فاتورة)
+تُحدث المرحلة الثانية من الفوترة الإلكترونية التي أطلقتها هيئة الزكاة والضريبة والجمارك (ZATCA) تغييرات جذرية في كيفية عمل الشركات في المملكة العربية السعودية. على عكس المرحلة الأولى التي كانت تتطلب في المقام الأول إنشاء الفواتير رقميًا، تتطلب المرحلة الثانية تكاملًا مباشرًا مع منصة "فاتورة" التابعة للهيئة.
+
+**تشمل المكونات الرئيسية:**
+- **الختم التشفيري:** يجب توقيع كل فاتورة رقميًا.
+- **رموز الاستجابة السريعة الديناميكية (QR):** ضمان سهولة التحقق من الفواتير من قبل العملاء والمفتشين.
+- **صيغ XML:** يجب أن تتوافق جميع فواتير B2B و B2C بشكل صارم مع معايير UBL 2.1 XML.
+- **الربط المباشر ببرمجة التطبيقات (API):** الاتصال السلس بين نظام نقاط البيع/تخطيط موارد المؤسسات الخاص بك وهيئة الزكاة لم يعد اختياريًا.
+
+### كيف يحافظ نظامنا على امتثالك؟
+تم تصميم نظامنا للتعامل التلقائي مع الختم التشفيري وعمليات الإرسال المباشرة إلى واجهة برمجة التطبيقات (API) في الخلفية. يستمر الصرافون في العمل والبيع كما فعلوا دائمًا، بينما يتولى البرنامج عبء الامتثال بالكامل.`
             },
             {
+                slug: "multi-branch-inventory",
+                image: "https://images.unsplash.com/photo-1586528116311-ad8ed7fcce28?auto=format&fit=crop&w=800&q=80",
                 category: "استراتيجيات الأعمال",
                 title: "توسيع نطاق عملك: إتقان إدارة مخزون الفروع المتعددة",
                 desc: "اكتشف كيف تساهم حلول تخطيط الموارد السحابية في منع نفاد المخزون وتسهيل تحويل البضائع وتوفير رؤية حية للمبيعات في كافة الفروع.",
-                link: "#blog-multi-branch"
+                content: `### تحديات النمو
+افتتاح فرع جديد هو أمر مثير، ولكن إدارة المخزون عبر مواقع متعددة يمكن أن تتحول بسرعة إلى كابوس لوجستي. بدون نظام مركزي، تعاني الشركات من نفاد المخزون، أو تكدسه، وضياع فرص المبيعات.
+
+### قوة إدارة المخزون السحابية
+يمنحك نظام تخطيط موارد المؤسسات السحابي الحديث رؤية موحدة لسلسلة التوريد الخاصة بك بأكملها.
+- **رؤية في الوقت الفعلي:** تعرف بالضبط على ما يتوفر في الفرع (أ) مقارنة بالفرع (ب).
+- **إعادة الطلب التلقائي:** قم بتعيين تنبيهات للحد الأدنى حتى لا تنفد المنتجات الأكثر مبيعًا لديك.
+- **التحويلات بين الفروع:** انقل المخزون بسهولة من موقع بطيء الحركة إلى متجر ذو طلب مرتفع.
+
+من خلال لوحات المعلومات المركزية، يمكن للمديرين مراقبة الأداء عبر جميع المتاجر من جهاز واحد، مما يتيح لك توسيع نطاق أعمال التجزئة بثقة.`
             },
             {
+                slug: "reduce-operational-costs",
+                image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80",
                 category: "التقنية والتجزئة",
                 title: "أفضل 5 طرق تساهم بها أنظمة نقاط البيع السحابية في خفض التكاليف التشغيلية",
                 desc: "بدءاً من الأتمتة لعمليات الإهلاك للأصول الثابتة وصولاً لتقليل تكاليف الأجهزة، اكتشف كيف يحسن التحول لنظام سحابي من أرباحك بشكل جذري.",
-                link: "#blog-reduce-costs"
+                content: `### 1. الحد الأدنى من البنية التحتية لتكنولوجيا المعلومات
+تتطلب الأنظمة التقليدية خوادم محلية باهظة الثمن وموظفي تكنولوجيا معلومات مخصصين لصيانتها. تعمل أنظمة نقاط البيع السحابية على أجهزة قياسية (مثل الأجهزة اللوحية وأجهزة الكمبيوتر الأساسية) وتحول العبء إلى خوادم عن بعد آمنة.
+
+### 2. تحديثات تلقائية
+لا مزيد من الدفع للفنيين لتثبيت أحدث تصحيحات البرامج. يتم تحديث الأنظمة السحابية تلقائيًا، مما يضمن حصولك دائمًا على أحدث الميزات والتحسينات الأمنية.
+
+### 3. عمليات متكاملة
+عندما تتواصل نقاط البيع الخاصة بك مباشرة مع وحدات المحاسبة والمخزون والموارد البشرية، فإنك تتخلص من إدخال البيانات يدويًا. وهذا يقلل من تكاليف العمالة ويحد بشكل كبير من الخطأ البشري.
+
+### 4. تقليل وقت التوقف عن العمل
+تتميز البنية التحتية السحابية بتوافر عالٍ. حتى إذا انقطعت شبكة الإنترنت المحلية، تتيح لك الأنظمة القادرة على العمل دون اتصال بالإنترنت مواصلة المبيعات والمزامنة التلقائية عند عودة الاتصال.
+
+### 5. اتخاذ قرارات أفضل
+يسمح لك الوصول إلى التحليلات في الوقت الفعلي بتحسين جداول الموظفين وقرارات الشراء، مما يمنع الهدر ويزيد العائد على الاستثمار.`
+            },
+            {
+                slug: "customer-loyalty-programs",
+                image: "https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?auto=format&fit=crop&w=800&q=80",
+                category: "التسويق",
+                title: "بناء ولاء العملاء: تجاوز نظام النقاط التقليدي",
+                desc: "لقد تطورت برامج الولاء. اكتشف كيف يمكن للرؤى المستندة إلى البيانات والمكافآت المخصصة تحويل المشترين لمرة واحدة إلى دعاة للعلامة التجارية مدى الحياة.",
+                content: `### تطور برامج الولاء
+الأنظمة القائمة على النقاط أصبحت معياراً قديماً، وغالبًا ما تفشل في إشراك المستهلكين المعاصرين الذين يتوقعون التخصيص. تستفيد برامج الولاء الناجحة اليوم من البيانات لتقديم قيمة مستهدفة.
+
+### التخصيص المبني على البيانات
+من خلال دمج نظام إدارة علاقات العملاء (CRM) الخاص بك مع نقاط البيع، يمكنك تتبع سجلات الشراء والتفضيلات. وهذا يتيح لك:
+- **إرسال عروض مستهدفة:** تقديم خصم على فئة المنتجات المفضلة للعميل.
+- **الاحتفال بالمناسبات:** إرسال مكافآت سنوية أو هدايا أعياد الميلاد تلقائيًا.
+- **مكافآت متدرجة:** إنشاء مستويات لكبار الشخصيات (VIP) تقدم وصولًا حصريًا مبكرًا إلى المبيعات أو الخدمات الخاصة.
+
+الاستثمار في تكامل CRM ذكي يحقق أرباحًا هائلة في الاحتفاظ بالعملاء وقيمتهم على المدى الطويل.`
+            },
+            {
+                slug: "ai-in-retail",
+                image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80",
+                category: "تقنيات المستقبل",
+                title: "دور الذكاء الاصطناعي في التنبؤ بقطاع التجزئة الحديث",
+                desc: "لم يعد الذكاء الاصطناعي مقتصرًا على عمالقة التكنولوجيا. تعرف على كيف تُحدث التحليلات التنبؤية القائمة على الذكاء الاصطناعي ثورة في تخطيط المخزون لتجار التجزئة من الشركات المتوسطة.",
+                content: `### ما وراء البيانات التاريخية
+يعتمد التنبؤ التقليدي على النظر إلى الماضي—ما الذي تم بيعه العام الماضي؟ تنظر نماذج الذكاء الاصطناعي إلى البيانات التاريخية ولكنها تدمج أيضًا العوامل الخارجية مثل أنماط الطقس والأحداث المحلية والاتجاهات الاقتصادية الأوسع.
+
+### فوائد لتجار التجزئة
+- **التنبؤ الدقيق بالطلب:** يمكن لخوارزميات الذكاء الاصطناعي التنبؤ بارتفاع الطلب على عناصر محددة بدقة مذهلة.
+- **التسعير الديناميكي:** ضبط الأسعار تلقائيًا بناءً على الطلب ومستويات المخزون وأسعار المنافسين.
+- **الحد من الهدر:** يُعد التنبؤ بالذكاء الاصطناعي بالغ الأهمية بشكل خاص للسلع التموينية والقابلة للتلف، حيث يقلل التلف والهدر بشكل كبير.
+
+مع ازدياد دمج أدوات الذكاء الاصطناعي في أنظمة تخطيط موارد المؤسسات، سيكتسب تجار التجزئة الذين يتبنونها ميزة تنافسية هائلة.`
+            },
+            {
+                slug: "employee-management",
+                image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80",
+                category: "الموارد البشرية",
+                title: "تحسين جداول الموظفين باستخدام وحدات الموارد البشرية المتكاملة",
+                desc: "غالبًا ما تكون العمالة هي أكبر نفقات بائع التجزئة. اكتشف كيف يمكن أن يساعد دمج وحدة الموارد البشرية لديك مع بيانات المبيعات في تحسين الجدولة وتقليل النفقات العامة.",
+                content: `### التكلفة العالية للجدولة السيئة
+يؤدي تكدس الموظفين خلال الفترات البطيئة إلى تآكل أرباحك، في حين يؤدي نقص الموظفين أثناء أوقات الذروة إلى الإضرار بتجربة العملاء. من الصعب للغاية تحقيق التوازن الصحيح بدون الأدوات المناسبة.
+
+### الجدولة المدفوعة بالمبيعات
+عندما تكون نقاط البيع الخاصة بك مرتبطة مباشرة بوحدة الموارد البشرية والجدولة، يمكنك مواءمة مستويات التوظيف مباشرة مع حجم المبيعات المتوقع.
+- **تحديد ساعات الذروة:** تكشف البيانات بسهولة عن أكثر الأوقات ازدحامًا في اليوم وأيام الأسبوع.
+- **أتمتة إنشاء القوائم:** يمكن لبعض الأنظمة اقتراح جداول محسنة بناءً على المبيعات التاريخية وتوافر الموظفين.
+- **تتبع الأداء:** قياس مقاييس أداء الموظف الفردي (مثل المبيعات لكل ساعة) لمكافأة أصحاب الأداء الأفضل وتحديد فرص التدريب.
+
+الموارد البشرية المتكاملة ليست فقط للرواتب؛ إنها أداة استراتيجية لزيادة كفاءة القوى العاملة لديك إلى أقصى حد.`
             }
         ],
         
@@ -418,6 +594,9 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     // Accordion State
     const [openFaq, setOpenFaq] = useState(null);
     
+    // Blog State
+    const [selectedArticle, setSelectedArticle] = useState(null);
+
     const handleInputChange = (e) => {
         setFormData({
             ...formData,
@@ -1249,29 +1428,47 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             
             {/* BLOG SECTION */}
             <section id="blog" style={{ maxWidth: '1200px', margin: '80px auto', padding: '0 20px' }}>
-                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.blogTitle}</h2>
-                    <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.blogSub}</p>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-                    {t.blogArticles.map((article, index) => (
-                        <div key={index} className="glass-card feature-card-glow" style={{ borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
-                            <div style={{ height: '160px', background: `linear-gradient(45deg, var(--accent-purple), var(--accent-cyan))`, opacity: 0.8 }}></div>
-                            <div style={{ padding: '24px' }}>
-                                <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '8px', fontWeight: 'bold' }}>{article.category}</div>
-                                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-                                    {article.title}
-                                </h3>
-                                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>
-                                    {article.desc}
-                                </p>
-                                <a href={article.link} style={{ color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {t.blogReadMore} <i className={currentLanguage === 'ar' ? "ri-arrow-left-line" : "ri-arrow-right-line"}></i>
-                                </a>
-                            </div>
+                {selectedArticle ? (
+                    <div style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--bg-secondary)', borderRadius: '12px', overflow: 'hidden', padding: '0 0 40px 0', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+                        <button onClick={() => setSelectedArticle(null)} className="btn btn-secondary" style={{ margin: '20px' }}>
+                            <i className={currentLanguage === 'ar' ? "ri-arrow-right-line" : "ri-arrow-left-line"}></i> {currentLanguage === 'ar' ? "العودة للمقالات" : "Back to Articles"}
+                        </button>
+                        {selectedArticle.image && (
+                            <img src={selectedArticle.image} alt={selectedArticle.title} style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'cover' }} />
+                        )}
+                        <div style={{ padding: '40px' }}>
+                            <div style={{ fontSize: '14px', color: 'var(--accent-cyan)', marginBottom: '16px', fontWeight: 'bold' }}>{selectedArticle.category}</div>
+                            <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '24px' }}>{selectedArticle.title}</h2>
+                            <div style={{ color: 'var(--text-secondary)', lineHeight: '1.8', fontSize: '16px' }} dangerouslySetInnerHTML={{ __html: selectedArticle.content.replace(/\n/g, '<br/>') }} />
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                            <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.blogTitle}</h2>
+                            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.blogSub}</p>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                            {t.blogArticles.map((article, index) => (
+                                <div key={index} className="glass-card feature-card-glow" style={{ borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.3s' }} onClick={() => setSelectedArticle(article)} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                                    <div style={{ height: '200px', background: article.image ? `url(${article.image}) center/cover` : `linear-gradient(45deg, var(--accent-purple), var(--accent-cyan))`, opacity: 0.9 }}></div>
+                                    <div style={{ padding: '24px' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '8px', fontWeight: 'bold' }}>{article.category}</div>
+                                        <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
+                                            {article.title}
+                                        </h3>
+                                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>
+                                            {article.desc}
+                                        </p>
+                                        <div style={{ color: 'var(--accent-purple)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            {t.blogReadMore} <i className={currentLanguage === 'ar' ? "ri-arrow-left-line" : "ri-arrow-right-line"}></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </section>
             
             {/* FAQ ACCORDION */}
