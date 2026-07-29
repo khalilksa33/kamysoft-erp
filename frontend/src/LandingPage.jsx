@@ -114,6 +114,26 @@ const landingTranslations = {
         blogTitle: "Our Latest Articles",
         blogSub: "Insights, updates, and comprehensive guides for growing your business.",
         blogReadMore: "Read More",
+        blogArticles: [
+            {
+                category: "Compliance & Tax",
+                title: "ZATCA Phase 2 E-Invoicing: The Ultimate Guide for Saudi Retailers",
+                desc: "Ensure your POS system is fully compliant with ZATCA Phase 2 regulations. Learn about cryptographic stamps, QR codes, and seamless integration.",
+                link: "#blog-zatca-phase-2"
+            },
+            {
+                category: "Business Strategy",
+                title: "Scaling Your Business: Mastering Multi-Branch Inventory Management",
+                desc: "Discover how cloud ERP solutions eliminate stockouts, streamline inter-branch transfers, and provide real-time sales visibility across all locations.",
+                link: "#blog-multi-branch"
+            },
+            {
+                category: "Technology & Retail",
+                title: "Top 5 Ways Cloud POS Systems Reduce Operational Costs",
+                desc: "From automated capital asset depreciation to minimizing IT hardware costs, find out how switching to a cloud POS can dramatically improve your bottom line.",
+                link: "#blog-reduce-costs"
+            }
+        ],
         
         // FAQs
         faqTitle: "Frequently Asked Questions",
@@ -242,6 +262,26 @@ const landingTranslations = {
         blogTitle: "أحدث مقالاتنا",
         blogSub: "رؤى، وتحديثات، وأدلة شاملة لتنمية أعمالك.",
         blogReadMore: "اقرأ المزيد",
+        blogArticles: [
+            {
+                category: "الامتثال والضرائب",
+                title: "الفوترة الإلكترونية المرحلة الثانية (فاتورة): الدليل الشامل لقطاع التجزئة",
+                desc: "تأكد من توافق نظام نقاط البيع الخاص بك مع متطلبات المرحلة الثانية لهيئة الزكاة. تعرف على الختم التشفيري ورموز الاستجابة السريعة والربط المباشر.",
+                link: "#blog-zatca-phase-2"
+            },
+            {
+                category: "استراتيجيات الأعمال",
+                title: "توسيع نطاق عملك: إتقان إدارة مخزون الفروع المتعددة",
+                desc: "اكتشف كيف تساهم حلول تخطيط الموارد السحابية في منع نفاد المخزون وتسهيل تحويل البضائع وتوفير رؤية حية للمبيعات في كافة الفروع.",
+                link: "#blog-multi-branch"
+            },
+            {
+                category: "التقنية والتجزئة",
+                title: "أفضل 5 طرق تساهم بها أنظمة نقاط البيع السحابية في خفض التكاليف التشغيلية",
+                desc: "بدءاً من الأتمتة لعمليات الإهلاك للأصول الثابتة وصولاً لتقليل تكاليف الأجهزة، اكتشف كيف يحسن التحول لنظام سحابي من أرباحك بشكل جذري.",
+                link: "#blog-reduce-costs"
+            }
+        ],
         
         // FAQs
         faqTitle: "الأسئلة الشائعة",
@@ -1214,18 +1254,18 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.blogSub}</p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="glass-card feature-card-glow" style={{ borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+                    {t.blogArticles.map((article, index) => (
+                        <div key={index} className="glass-card feature-card-glow" style={{ borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
                             <div style={{ height: '160px', background: `linear-gradient(45deg, var(--accent-purple), var(--accent-cyan))`, opacity: 0.8 }}></div>
                             <div style={{ padding: '24px' }}>
-                                <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '8px', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'تحديثات النظام' : 'System Updates'}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '8px', fontWeight: 'bold' }}>{article.category}</div>
                                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-                                    {currentLanguage === 'ar' ? `كيف تستفيد من تحديثات ${t.brandName} لنمو مبيعاتك (${i})` : `How to Leverage ${t.brandName} Updates for Sales Growth (${i})`}
+                                    {article.title}
                                 </h3>
                                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>
-                                    {currentLanguage === 'ar' ? 'اكتشف أفضل الممارسات لتحسين كفاءة العمليات اليومية وتقليل التكاليف التشغيلية باستخدام أدواتنا السحابية المتطورة...' : 'Discover best practices to improve daily operational efficiency and reduce costs using our advanced cloud tools...'}
+                                    {article.desc}
                                 </p>
-                                <a href="#" style={{ color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <a href={article.link} style={{ color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     {t.blogReadMore} <i className={currentLanguage === 'ar' ? "ri-arrow-left-line" : "ri-arrow-right-line"}></i>
                                 </a>
                             </div>
