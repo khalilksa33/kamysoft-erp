@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { marked } from 'marked';
 import { enArticles, arArticles } from './data/blogArticles.js';
 
@@ -386,6 +386,34 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     
     // Blog State
     const [selectedArticle, setSelectedArticle] = useState(null);
+
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash;
+            if (hash.startsWith('#article-')) {
+                const slug = hash.replace('#article-', '');
+                const article = t.blogArticles.find(a => a.slug === slug);
+                if (article) setSelectedArticle(article);
+            } else if (!hash || hash === '#blog') {
+                setSelectedArticle(null);
+            }
+        };
+        
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange(); // Run on mount
+        
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, [t.blogArticles]);
+    
+    useEffect(() => {
+        if (selectedArticle) {
+            window.history.replaceState(null, '', `#article-${selectedArticle.slug}`);
+        } else {
+            if (window.location.hash.startsWith('#article-')) {
+                window.history.replaceState(null, '', '#blog');
+            }
+        }
+    }, [selectedArticle]);
 
     const handleInputChange = (e) => {
         setFormData({
