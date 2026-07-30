@@ -2765,6 +2765,7 @@ const handleB2BSubmit = () => {
                             const activeVat = activeInvoice.vat !== undefined && activeInvoice.vat !== null ? activeInvoice.vat : (activeInvoice.total - (activeInvoice.total / 1.15));
                             const activeSubtotal = activeInvoice.total - activeVat;
                             return (
+                                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '20px' }}>
                                 <div id="invoicePrintArea" className={invoiceFormat === 'a4' ? 'invoice-a4-layout' : 'invoice-thermal-layout'} style={{ direction: 'ltr', background: 'white', color: 'black' }}>
                                     {invoiceFormat === 'a4' ? (
                                         <div style={{ padding: '16px 24px', color: '#333', background: 'white', fontFamily: 'Cairo, sans-serif' }}>
@@ -3043,6 +3044,7 @@ const handleB2BSubmit = () => {
                                             </div>
                                         </div>
                                     )}
+                                </div>
                                 </div>
                             );
                         })()}
