@@ -278,7 +278,14 @@ const Settings = (props) => {
                             </div>
                             <div className="form-group">
                                 <label>{translations[currentLanguage].zatcaEnv || 'ZATCA Environment'}</label>
-                                <select className="form-control" value={zatcaConn?.env || 'sandbox'} onChange={e => setZatcaConn({ ...zatcaConn, env: e.target.value })}>
+                                <select className="form-control" value={zatcaConn?.env || 'sandbox'} onChange={e => {
+                                    const env = e.target.value;
+                                    let endpoint = zatcaConn?.endpoint || '';
+                                    if (env === 'sandbox') endpoint = 'https://developer-core.zatca.gov.sa/e-invoicing/developer-portal/invoices';
+                                    if (env === 'simulation') endpoint = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation/invoices';
+                                    if (env === 'production') endpoint = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core/invoices';
+                                    setZatcaConn({ ...zatcaConn, env, endpoint });
+                                }}>
                                     <option value="sandbox">Sandbox / بيئة التطوير (فاتورة)</option>
                                     <option value="simulation">Simulation / بيئة المحاكاة للإنتاج</option>
                                     <option value="production">Production / البيئة الفعلية للإنتاج</option>

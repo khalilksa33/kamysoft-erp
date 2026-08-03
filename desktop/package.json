@@ -1,0 +1,27 @@
+{
+  "name": "kamysoft-erp-desktop",
+  "version": "1.0.0",
+  "description": "KamySoft ERP Desktop Application",
+  "main": "main.js",
+  "author": "KamySoft",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.kamysoft.erp",
+    "productName": "KamySoft ERP",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}
