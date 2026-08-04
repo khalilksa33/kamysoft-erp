@@ -3,8 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Store keys locally for this initial phase
-// Use process.env.UPLOADS_DIR if running inside packaged electron app (ASAR read-only), otherwise default keys folder
-const KEYS_DIR = process.env.UPLOADS_DIR ? path.join(process.env.UPLOADS_DIR, '..', 'keys') : path.join(__dirname, '..', 'keys');
+const KEYS_DIR = path.join(__dirname, '..', 'keys');
 
 // Helper to encode TLV
 function toTLV(tag, value) {

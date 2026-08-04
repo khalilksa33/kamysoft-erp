@@ -1,0 +1,470 @@
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    username: { type: String, required: true },
+    passwordHash: { type: String, required: true },
+    role: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true },
+    isActive: { type: Boolean, default: true }
+});
+userSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+userSchema.index({ username: 1, tenantId: 1 }, { unique: true });
+const User = mongoose.model('User', userSchema);
+
+const productSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    nameEN: { type: String, required: true },
+    nameAR: { type: String, required: true },
+    price: { type: Number, required: true },
+    cost: { type: Number, required: true },
+    stock: { type: Number, required: true },
+    category: { type: String, required: true },
+    emoji: { type: String },
+    barcode: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+productSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Product = mongoose.model('Product', productSchema);
+
+const invoiceItemSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    qty: { type: Number, required: true }
+});
+const invoiceSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    uuid: { type: String, required: true },
+    csn: { type: Number, required: true },
+    pih: { type: String, required: true },
+    xmlHashBase64: { type: String },
+    xmlHash: { type: String },
+    xml: { type: String },
+    signature: { type: String },
+    publicKey: { type: String },
+    certSignature: { type: String },
+    customer: { type: String, required: true },
+    items: [invoiceItemSchema],
+    discount: { type: Number, default: 0 },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    date: { type: String, required: true },
+    zatcaStatus: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+invoiceSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+const quotationItemSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    qty: { type: Number, required: true }
+});
+const quotationSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    date: { type: String, required: true },
+    customer: { type: String, required: true },
+    items: [quotationItemSchema],
+    discount: { type: Number, default: 0 },
+    total: { type: Number, required: true },
+    vat: { type: Number, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+quotationSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Quotation = mongoose.model('Quotation', quotationSchema);
+
+const expenseSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    date: { type: String, required: true },
+    category: { type: String, required: true },
+    amount: { type: Number, required: true },
+    description: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+expenseSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Expense = mongoose.model('Expense', expenseSchema);
+
+const assetSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    cost: { type: Number, required: true },
+    salvage: { type: Number, default: 0 },
+    life: { type: Number, required: true },
+    date: { type: String, required: true },
+    status: { type: String, required: true },
+    department: { type: String, required: true },
+    serial: { type: String },
+    supplier: { type: String },
+    assignedTo: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+assetSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Asset = mongoose.model('Asset', assetSchema);
+
+const customerSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    phone: { type: String },
+    email: { type: String },
+    points: { type: Number, default: 0 },
+    spent: { type: Number, default: 0 },
+    portalPassword: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+customerSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Customer = mongoose.model('Customer', customerSchema);
+
+const employeeSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    dept: { type: String, required: true },
+    position: { type: String, default: '' },
+    email: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    salary: { type: Number, default: 0 },
+    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+employeeSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Employee = mongoose.model('Employee', employeeSchema);
+
+const supplierSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    company: { type: String, required: true },
+    contact: { type: String },
+    phone: { type: String },
+    items: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+supplierSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Supplier = mongoose.model('Supplier', supplierSchema);
+
+const orderSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    date: { type: String, required: true },
+    customer: { type: String, required: true },
+    items: { type: String, required: true },
+    total: { type: Number, required: true },
+    status: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+orderSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const Order = mongoose.model('Order', orderSchema);
+
+const settingsSchema = new mongoose.Schema({
+    tenantId: { type: String, default: 'default', index: true, unique: true },
+    businessName: { type: String, required: true },
+    vatNumber: { type: String, required: true },
+    taxRate: { type: Number, required: true },
+    baseCurrency: { type: String, required: true },
+    businessAddress: { type: String },
+    crNumber: { type: String },
+    contactNumber: { type: String },
+    exchangeRates: {
+        type: Map,
+        of: Number
+    },
+    branches: [
+        {
+            name: String,
+            address: String,
+            phone: String
+        }
+    ],
+    currentBranch: { type: String, default: 'Main Branch - Riyadh' },
+    businessType: { type: String, default: 'retail' },
+    enableTables: { type: Boolean, default: false },
+    enableServiceDuration: { type: Boolean, default: false },
+    enabledModules: { type: Object, default: {} },
+    visibleModules: { type: Object, default: {} },
+    smtp: {
+        provider: { type: String, default: 'smtp' }, // 'smtp' or 'sendgrid'
+        host: { type: String },
+        port: { type: Number },
+        user: { type: String },
+        password: { type: String },
+        fromEmail: { type: String },
+        sendgridApiKey: { type: String }
+    },
+    
+    // SaaS Registration Details
+    email: { type: String },
+    fullName: { type: String },
+    mobile: { type: String },
+    nationalAddress: { type: String },
+    
+    // License Tracking
+    licenseKey: { type: String },
+    licenseStatus: { type: String, default: 'active' }, // 'active', 'expired', 'pending_verification'
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    licenseExpiresAt: { type: Date }
+});
+const Settings = mongoose.model('Settings', settingsSchema);
+
+const inquirySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String },
+    businessName: { type: String },
+    businessType: { type: String },
+    branches: { type: Number, default: 1 },
+    message: { type: String },
+    createdAt: { type: Date, default: Date.now }
+});
+const Inquiry = mongoose.model('Inquiry', inquirySchema);
+
+const subscriptionPaymentSchema = new mongoose.Schema({
+    tenantId: { type: String, required: true, index: true },
+    amount: { type: Number, required: true },
+    date: { type: Date, default: Date.now },
+    status: { type: String, enum: ['Paid', 'Pending', 'Failed'], default: 'Paid' },
+    method: { type: String, default: 'Bank Transfer' },
+    reference: { type: String }
+});
+const SubscriptionPayment = mongoose.model('SubscriptionPayment', subscriptionPaymentSchema);
+
+// --- NEW SCHEMAS FOR MODERNIZATION ---
+
+const warehouseSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    location: { type: String },
+    manager: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Warehouse = mongoose.model('Warehouse', warehouseSchema);
+
+const inventoryTxSchema = new mongoose.Schema({
+    txId: { type: String, required: true },
+    date: { type: Date, default: Date.now },
+    type: { type: String, enum: ['IN', 'OUT', 'TRANSFER', 'ADJUST'], required: true },
+    productId: { type: String, required: true },
+    qty: { type: Number, required: true },
+    warehouseId: { type: String, required: true },
+    toWarehouseId: { type: String }, // For transfers
+    tenantId: { type: String, default: 'default', index: true }
+});
+const InventoryTx = mongoose.model('InventoryTx', inventoryTxSchema);
+
+const journalEntrySchema = new mongoose.Schema({
+    entryId: { type: String, required: true },
+    date: { type: Date, default: Date.now },
+    description: { type: String, required: true },
+    account: { type: String, required: true },
+    debit: { type: Number, default: 0 },
+    credit: { type: Number, default: 0 },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const JournalEntry = mongoose.model('JournalEntry', journalEntrySchema);
+
+const accountSchema = new mongoose.Schema({
+    code: { type: String, required: true },
+    nameEN: { type: String, required: true },
+    nameAR: { type: String, required: true },
+    type: { type: String, enum: ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'], required: true },
+    balance: { type: Number, default: 0 },
+    tenantId: { type: String, default: 'default', index: true }
+});
+accountSchema.index({ code: 1, tenantId: 1 }, { unique: true });
+const Account = mongoose.model('Account', accountSchema);
+
+
+const voucherSchema = new mongoose.Schema({
+    voucherId: { type: String, required: true },
+    type: { type: String, enum: ['RECEIPT', 'PAYMENT'], required: true },
+    date: { type: Date, default: Date.now },
+    entityType: { type: String, enum: ['CUSTOMER', 'SUPPLIER', 'OTHER'], required: true },
+    entityId: { type: String },
+    amount: { type: Number, required: true },
+    method: { type: String, required: true },
+    description: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Voucher = mongoose.model('Voucher', voucherSchema);
+
+const salarySchema = new mongoose.Schema({
+    salaryId: { type: String, required: true },
+    employeeId: { type: String, required: true },
+    date: { type: Date, default: Date.now },
+    amount: { type: Number, required: true },
+    deductions: { type: Number, default: 0 },
+    bonuses: { type: Number, default: 0 },
+    netPay: { type: Number, required: true },
+    month: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Salary = mongoose.model('Salary', salarySchema);
+
+const purchaseInvoiceSchema = new mongoose.Schema({
+    invoiceId: { type: String, required: true },
+    supplierId: { type: String, required: true },
+    date: { type: Date, default: Date.now },
+    items: [
+        {
+            productId: { type: String, required: true },
+            qty: { type: Number, required: true },
+            cost: { type: Number, required: true }
+        }
+    ],
+    subtotal: { type: Number, required: true },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const PurchaseInvoice = mongoose.model('PurchaseInvoice', purchaseInvoiceSchema);
+
+const returnInvoiceSchema = new mongoose.Schema({
+    returnId: { type: String, required: true },
+    originalInvoiceId: { type: String, required: true },
+    type: { type: String, enum: ['SALES', 'PURCHASE'], required: true },
+    date: { type: Date, default: Date.now },
+    items: [
+        {
+            productId: { type: String, required: true },
+            qty: { type: Number, required: true },
+            price: { type: Number, required: true }
+        }
+    ],
+    totalReturn: { type: Number, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const ReturnInvoice = mongoose.model('ReturnInvoice', returnInvoiceSchema);
+
+const propertyOwnerSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    phone: { type: String },
+    email: { type: String },
+    bankDetails: { type: String },
+    tenantId: { type: String, default: 'default', index: true }
+});
+propertyOwnerSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const PropertyOwner = mongoose.model('PropertyOwner', propertyOwnerSchema);
+
+const propertySchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, enum: ['Resort', 'Building', 'Hotel', 'Compound'], required: true },
+    location: { type: String },
+    status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
+    ownerId: { type: String },
+    tenantId: { type: String, default: 'default', index: true },
+    images: [{ type: String }] // Array of image URLs
+});
+const Property = mongoose.model('Property', propertySchema);
+
+const unitSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    propertyId: { type: String, required: true },
+    unitNumber: { type: String, required: true },
+    type: { type: String, enum: ['Room', 'Suite', 'Apartment', 'Villa'], required: true },
+    beds: { type: Number, default: 1 },
+    dailyRate: { type: Number, required: true },
+    status: { type: String, enum: ['Available', 'Occupied', 'Maintenance', 'Reserved'], default: 'Available' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Unit = mongoose.model('Unit', unitSchema);
+
+const bookingSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    unitId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    checkInDate: { type: Date, required: true },
+    checkOutDate: { type: Date, required: true },
+    totalAmount: { type: Number, required: true },
+    status: { type: String, enum: ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'], default: 'Pending' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const Booking = mongoose.model('Booking', bookingSchema);
+
+const maintenanceTaskSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    propertyId: { type: String }, // For Facility maintenance
+    unitId: { type: String }, // Optional, since it could be facility-wide
+    maintenanceType: { type: String, enum: ['Corrective', 'Preventative'], default: 'Corrective' },
+    frequency: { type: String, enum: ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'], default: 'None' },
+    nextScheduledDate: { type: Date },
+    description: { type: String, required: true },
+    reportedDate: { type: Date, default: Date.now },
+    resolvedDate: { type: Date },
+    status: { type: String, enum: ['Pending', 'InProgress', 'Completed'], default: 'Pending' },
+    cost: { type: Number, default: 0 },
+    assignedTo: { type: String }, // references Employee ID
+    assignedSupplierId: { type: String }, // references Supplier ID
+    vendorCost: { type: Number, default: 0 },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const MaintenanceTask = mongoose.model('MaintenanceTask', maintenanceTaskSchema);
+
+const propertyInvoiceSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    bookingId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    issueDate: { type: Date, default: Date.now },
+    dueDate: { type: Date, required: true },
+    subtotal: { type: Number, required: true },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    status: { type: String, enum: ['Unpaid', 'Paid', 'Cancelled'], default: 'Unpaid' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const PropertyInvoice = mongoose.model('PropertyInvoice', propertyInvoiceSchema);
+
+// Leasing & Contracts (Real Estate expansion)
+const leaseContractSchema = new mongoose.Schema({
+    tenantId: { type: String, default: 'default', index: true },
+    unitId: { type: String, required: true },
+    customerId: { type: String, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    rentAmount: { type: Number, required: true },
+    paymentFrequency: { type: String, enum: ['Monthly', 'Quarterly', 'Semi-Annually', 'Yearly', 'One-time'], default: 'Monthly' },
+    installments: [{
+        dueDate: { type: Date, required: true },
+        amount: { type: Number, required: true },
+        status: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
+        invoiceId: { type: String }
+    }],
+    managementFeeType: { type: String, enum: ['Percentage', 'Fixed'], default: 'Percentage' },
+    managementFeeValue: { type: Number, default: 0 },
+    status: { type: String, enum: ['Active', 'Expired', 'Terminated'], default: 'Active' },
+    createdAt: { type: Date, default: Date.now }
+});
+const LeaseContract = mongoose.model('LeaseContract', leaseContractSchema);
+
+// Real Estate CRM Leads
+const leadSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true },
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String },
+    source: { type: String, enum: ['Website', 'Referral', 'Walk-in', 'Social Media', 'Other'], default: 'Website' },
+    status: { type: String, enum: ['New', 'Contacted', 'Viewing Scheduled', 'Negotiation', 'Won', 'Lost'], default: 'New' },
+    interestedPropertyId: { type: String }, // optional ref to Property
+    budget: { type: Number },
+    notes: [{
+        date: { type: Date, default: Date.now },
+        user: { type: String }, // who added the note
+        content: { type: String, required: true }
+    }],
+    createdAt: { type: Date, default: Date.now }
+});
+const Lead = mongoose.model('Lead', leadSchema);
+
+module.exports = {
+    User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
+    Warehouse,
+    InventoryTx,
+    JournalEntry,
+    Voucher,
+    Salary,
+    PurchaseInvoice,
+    ReturnInvoice,
+    SubscriptionPayment,
+    Account,
+    PropertyOwner,
+    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead
+};

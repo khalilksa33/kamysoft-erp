@@ -14,9 +14,7 @@ const fs = require('fs');
 const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
 
 // Ensure upload directories exist
-const baseUploadDir = process.env.UPLOADS_DIR || path.join(__dirname, '../public/uploads');
-const propertiesUploadDir = path.join(baseUploadDir, 'properties');
-
+const propertiesUploadDir = path.join(__dirname, '../public/uploads/properties');
 if (!fs.existsSync(propertiesUploadDir)) {
     fs.mkdirSync(propertiesUploadDir, { recursive: true });
 }
@@ -24,7 +22,7 @@ if (!fs.existsSync(propertiesUploadDir)) {
 // Configure Multer for Property Images
 const propertyStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, propertiesUploadDir);
+        cb(null, path.join(__dirname, '../public/uploads/properties'));
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

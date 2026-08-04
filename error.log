@@ -1,0 +1,15 @@
+Failed to start local server: Error: ENOTDIR, not a directory
+    at createError (node:electron/js2c/node_init:2:2095)
+    at t.mkdirSync (node:electron/js2c/node_init:2:16249)
+    at Object.<anonymous> (F:\kamysoft-erp\dist-desktop\win-unpacked\resources\app.asar\routes\api.js:19:8)
+    at Module._compile (node:internal/modules/cjs/loader:1373:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1432:10)
+    at Module.load (node:internal/modules/cjs/loader:1215:32)
+    at Module._load (node:internal/modules/cjs/loader:1031:12)
+    at c._load (node:electron/js2c/node_init:2:17025)
+    at Module.require (node:internal/modules/cjs/loader:1240:19)
+    at require (node:internal/modules/helpers:179:18) {
+  code: 'ENOTDIR',
+  errno: -20
+}
+[33580:0803/154939.595:ERROR:network_service_instance_impl.cc(600)] Network service crashed, restarting service.

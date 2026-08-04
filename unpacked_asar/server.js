@@ -1088,9 +1088,6 @@ app.use('/', apiRoutes);
 
 const frontendBuild = path.join(__dirname, 'frontend', 'dist');
 app.use(express.static(path.join(__dirname, 'public')));
-if (process.env.UPLOADS_DIR) {
-    app.use('/uploads', express.static(process.env.UPLOADS_DIR));
-}
 app.use(express.static(frontendBuild));
 
 app.get('*', (req, res) => {

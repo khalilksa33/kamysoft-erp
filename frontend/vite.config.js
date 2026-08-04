@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'logo.png'],
       manifest: {
-        name: 'KamySoft ERP',
-        short_name: 'KamySoft',
-        description: 'KamySoft ERP and Property Management System',
+        name: '26i ERP',
+        short_name: '26i ERP',
+        description: '26i ERP and Property Management System',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',

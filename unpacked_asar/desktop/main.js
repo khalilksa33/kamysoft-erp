@@ -43,9 +43,6 @@ async function startDatabase() {
     
     // 4. Use a dedicated port for the offline app to avoid clashing with dev servers
     process.env.PORT = '8099';
-    
-    // 5. Set upload directory to user data path since ASAR is read-only
-    process.env.UPLOADS_DIR = path.join(userDataPath, 'uploads');
 
     // Wait a brief moment for mongod to initialize
     return new Promise(resolve => setTimeout(resolve, 3000));
