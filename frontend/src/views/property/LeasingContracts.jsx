@@ -12,7 +12,11 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
         unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0
     });
     
+
     const [showInstallments, setShowInstallments] = useState(null); // stores the lease object to show installments
+    const [printContract, setPrintContract] = useState(null); // stores lease for contract printing
+    const [printReceipt, setPrintReceipt] = useState(null); // stores { lease, installment } for receipt printing
+
 
     useEffect(() => {
         if (activeTab === 'property_leasing') {
@@ -136,6 +140,9 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                     <button className="btn btn-info" onClick={() => setShowInstallments(lease)} title={isAr ? 'الأقساط' : 'Installments'}>
                                         <i className="ri-money-dollar-circle-line"></i>
                                     </button>
+                                    <button className="btn btn-primary" onClick={() => setPrintContract(lease)} title={isAr ? 'طباعة العقد' : 'Print Contract'} style={{ marginLeft: '8px' }}>
+                                        <i className="ri-printer-line"></i>
+                                    </button>
                                     <button className="btn btn-secondary" onClick={() => handleSetPassword(lease.customerId)} title={isAr ? 'تعيين كلمة مرور البوابة' : 'Set Portal Password'} style={{ marginLeft: '8px', color: 'var(--accent-purple)' }}>
                                         <i className="ri-key-2-line"></i>
                                     </button>
@@ -192,7 +199,12 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                                     {isAr ? 'دفع' : 'Pay'}
                                                 </button>
                                             ) : (
-                                                <span style={{ fontSize: '12px', color: 'var(--accent-green)' }}><i className="ri-check-line"></i> Paid</span>
+                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                    <span style={{ fontSize: '12px', color: 'var(--accent-green)' }}><i className="ri-check-line"></i> Paid</span>
+                                                    <button className="btn btn-secondary" style={{ padding: '2px 6px', fontSize: '12px' }} onClick={() => setPrintReceipt({ lease: showInstallments, installment: inst, index: idx + 1 })}>
+                                                        <i className="ri-printer-line"></i>
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
@@ -287,6 +299,120 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                     </div>
                 </div>
             )}
+
+            {/* PRINT CONTRACT MODAL */}
+            {printContract && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="print-area" style={{ padding: '40px', background: '#fff', color: '#000', minHeight: '800px' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '2px solid #000', paddingBottom: '20px' }}>
+                                <h1 style={{ margin: 0, fontSize: '28px' }}>{isAr ? 'عقد إيجار' : 'Lease Contract'}</h1>
+                                <p style={{ fontSize: '14px', color: '#666' }}>ID: {printContract._id || printContract.id}</p>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+                                <div>
+                                    <h3 style={{ borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>{isAr ? 'تفاصيل المالك / الإدارة' : 'Landlord / Management Details'}</h3>
+                                    <p><strong>{isAr ? 'الإدارة:' : 'Management:'}</strong> 26i ERP Real Estate</p>
+                                </div>
+                                <div>
+                                    <h3 style={{ borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>{isAr ? 'بيانات المستأجر' : 'Tenant Details'}</h3>
+                                    <p><strong>{isAr ? 'الاسم:' : 'Name:'}</strong> {getCustomerName(printContract.customerId)}</p>
+                                </div>
+                            </div>
+
+                            <h3 style={{ borderBottom: '1px solid #ccc', paddingBottom: '8px' }}>{isAr ? 'تفاصيل العقد' : 'Contract Details'}</h3>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px' }}>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontWeight: 'bold', width: '30%' }}>{isAr ? 'الوحدة:' : 'Unit:'}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>{getUnitName(printContract.unitId)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{isAr ? 'تاريخ البداية:' : 'Start Date:'}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>{new Date(printContract.startDate).toLocaleDateString()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{isAr ? 'تاريخ النهاية:' : 'End Date:'}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>{new Date(printContract.endDate).toLocaleDateString()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{isAr ? 'الإيجار الإجمالي:' : 'Total Rent:'}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontSize: '18px', fontWeight: 'bold' }}></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{isAr ? 'تكرار الدفع:' : 'Payment Frequency:'}</td>
+                                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>{printContract.paymentFrequency}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div style={{ marginTop: '100px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', textAlign: 'center' }}>
+                                <div>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px', margin: '0 20px' }}>
+                                        <strong>{isAr ? 'توقيع المستأجر' : 'Tenant Signature'}</strong>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px', margin: '0 20px' }}>
+                                        <strong>{isAr ? 'توقيع المالك/المدير' : 'Landlord/Manager Signature'}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="no-print" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '20px' }}>
+                            <button className="btn btn-secondary" onClick={() => setPrintContract(null)}>{isAr ? 'إغلاق' : 'Close'}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{isAr ? 'طباعة' : 'Print'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PRINT RECEIPT MODAL */}
+            {printReceipt && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="print-area" style={{ padding: '40px', background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '800px', margin: '0 auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px' }}>
+                                <div>
+                                    <h1 style={{ margin: 0, fontSize: '28px', color: '#166534' }}>{isAr ? 'سند قبض' : 'Receipt Voucher'}</h1>
+                                    <p style={{ margin: '5px 0 0 0', color: '#666' }}>No. #{printReceipt.index} - {printReceipt.lease._id?.substring(0,6)}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: 0 }}><strong>{isAr ? 'التاريخ:' : 'Date:'}</strong> {new Date().toLocaleDateString()}</p>
+                                    <p style={{ margin: '5px 0 0 0' }}><strong>{isAr ? 'تاريخ استحقاق القسط:' : 'Installment Due:'}</strong> {new Date(printReceipt.installment.dueDate).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
+                                <p style={{ fontSize: '18px', lineHeight: '1.8' }}>
+                                    {isAr ? 'استلمنا من السيد/السادة:' : 'Received from Mr./M/s:'} <strong>{getCustomerName(printReceipt.lease.customerId)}</strong><br/>
+                                    {isAr ? 'مبلغ وقدره:' : 'The sum of:'} <strong style={{ fontSize: '22px' }}></strong><br/>
+                                    {isAr ? 'وذلك عن إيجار الوحدة:' : 'Being rent for unit:'} <strong>{getUnitName(printReceipt.lease.unitId)}</strong>
+                                </p>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '80px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                                <div style={{ textAlign: 'center', width: '200px' }}>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                                        <strong>{isAr ? 'المستلم' : 'Receiver'}</strong>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'center', width: '200px' }}>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                                        <strong>{isAr ? 'الختم' : 'Stamp'}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="no-print" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '20px' }}>
+                            <button className="btn btn-secondary" onClick={() => setPrintReceipt(null)}>{isAr ? 'إغلاق' : 'Close'}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{isAr ? 'طباعة' : 'Print'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

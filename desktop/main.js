@@ -77,8 +77,9 @@ function createWindow() {
 
     const port = process.env.PORT || 8089;
     
-    const loadWithRetry = () => {
-        mainWindow.loadURL(`http://localhost:${port}`).catch((e) => {
+    const loadWithRetry = async () => {
+        await mainWindow.webContents.session.clearStorageData({ storages: ['serviceworkers', 'cachestorage'] });
+        mainWindow.loadURL(`http://localhost:${port}/?desktop=true`).catch((e) => {
             console.log('Server not ready, retrying in 1s...');
             setTimeout(loadWithRetry, 1000);
         });
@@ -103,6 +104,8 @@ app.whenReady().then(async () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
+
+
 
 // Ensure graceful shutdown of the database engine
 app.on('before-quit', () => {

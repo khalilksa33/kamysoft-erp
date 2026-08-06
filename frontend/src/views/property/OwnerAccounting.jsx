@@ -7,8 +7,11 @@ const OwnerAccounting = ({ currentLanguage }) => {
     const [selectedOwner, setSelectedOwner] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
     const [statement, setStatement] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [printVoucher, setPrintVoucher] = useState(false); // toggle payment voucher modal
+
 
     useEffect(() => {
         fetchOwners();
@@ -77,9 +80,14 @@ const OwnerAccounting = ({ currentLanguage }) => {
                         {loading ? (isAr ? 'جاري التوليد...' : 'Generating...') : (isAr ? 'توليد الكشف' : 'Generate Statement')}
                     </button>
                     {statement && (
-                        <button className="btn btn-secondary" onClick={handlePrint}>
-                            <i className="ri-printer-line" style={{ marginRight: '5px' }}></i> {isAr ? 'طباعة' : 'Print'}
-                        </button>
+                        <>
+                            <button className="btn btn-secondary" onClick={handlePrint}>
+                                <i className="ri-printer-line" style={{ marginRight: '5px' }}></i> {isAr ? 'طباعة الكشف' : 'Print Statement'}
+                            </button>
+                            <button className="btn btn-info" onClick={() => setPrintVoucher(true)}>
+                                <i className="ri-money-dollar-circle-line" style={{ marginRight: '5px' }}></i> {isAr ? 'سند صرف للمالك' : 'Owner Payment Voucher'}
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
@@ -160,8 +168,54 @@ const OwnerAccounting = ({ currentLanguage }) => {
                     </table>
                 </div>
             )}
+
+            {/* PRINT PAYMENT VOUCHER MODAL */}
+            {printVoucher && statement && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="print-area" style={{ padding: '40px', background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '800px', margin: '0 auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px' }}>
+                                <div>
+                                    <h1 style={{ margin: 0, fontSize: '28px', color: '#b91c1c' }}>{isAr ? 'سند صرف' : 'Payment Voucher'}</h1>
+                                    <p style={{ margin: '5px 0 0 0', color: '#666' }}>{isAr ? 'تصفية حساب مالك' : 'Owner Settlement'}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: 0 }}><strong>{isAr ? 'التاريخ:' : 'Date:'}</strong> {new Date().toLocaleDateString()}</p>
+                                    <p style={{ margin: '5px 0 0 0' }}><strong>{isAr ? 'فترة الحساب:' : 'Statement Period:'}</strong> {startDate} to {endDate}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
+                                <p style={{ fontSize: '18px', lineHeight: '1.8' }}>
+                                    {isAr ? 'يصرف للسيد/السادة:' : 'Pay to Mr./M/s:'} <strong>{owners.find(o => o.id === selectedOwner)?.name}</strong><br/>
+                                    {isAr ? 'مبلغ وقدره:' : 'The sum of:'} <strong style={{ fontSize: '22px' }}></strong><br/>
+                                    {isAr ? 'وذلك عن تصفية إيرادات العقارات للفترة المذكورة أعلاه.' : 'Being the settlement of property income for the above period.'}
+                                </p>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '80px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                                <div style={{ textAlign: 'center', width: '200px' }}>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                                        <strong>{isAr ? 'توقيع المستلم' : 'Receiver Signature'}</strong>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'center', width: '200px' }}>
+                                    <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                                        <strong>{isAr ? 'اعتماد الإدارة' : 'Management Approval'}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="no-print" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '20px' }}>
+                            <button className="btn btn-secondary" onClick={() => setPrintVoucher(false)}>{isAr ? 'إغلاق' : 'Close'}</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>{isAr ? 'طباعة' : 'Print'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
 
 export default OwnerAccounting;

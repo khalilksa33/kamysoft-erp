@@ -609,33 +609,37 @@ export default function App() {
     };
 
     // Hostname Routing Calculations
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || (!hostname.includes('26i.uk') && !hostname.includes('localhost'));
+    let isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || (!hostname.includes('26i.uk') && !hostname.includes('localhost'));
     
     // Determine active route mode: 'marketing', 'demo', or 'customer'
     let routeMode = 'marketing';
+    const isDesktop = new URLSearchParams(window.location.search).get('desktop') === 'true' || localStorage.getItem('isDesktop') === 'true';
     let tenantId = null;
+    if (isDesktop) { localStorage.setItem('isDesktop', 'true'); isLocalhost = false; routeMode = 'customer'; tenantId = 'offline'; }
 
+    if (!isDesktop) {
     if (isLocalhost && simulatedDomain) {
-        routeMode = simulatedDomain;
-        if (routeMode === 'customer') {
-            tenantId = simulatedTenant;
-        }
-    } else {
-        // Live hostname parsing
-        const host = hostname.toLowerCase();
-        if (host === `demo.${baseDomain}` || host.startsWith('demo.')) {
-            routeMode = 'demo';
+            routeMode = simulatedDomain;
+            if (routeMode === 'customer') {
+                tenantId = simulatedTenant;
+            }
         } else {
-            if (host.endsWith(`.${baseDomain}`)) {
-                const subdomain = host.slice(0, -(baseDomain.length + 1));
-                if (subdomain !== 'www' && subdomain !== 'demo' && subdomain !== 'ssh-erp' && subdomain !== 'ssh-cloud') {
-                    routeMode = 'customer';
-                    tenantId = subdomain;
+            // Live hostname parsing
+            const host = hostname.toLowerCase();
+            if (host === `demo.${baseDomain}` || host.startsWith('demo.')) {
+                routeMode = 'demo';
+            } else {
+                if (host.endsWith(`.${baseDomain}`)) {
+                    const subdomain = host.slice(0, -(baseDomain.length + 1));
+                    if (subdomain !== 'www' && subdomain !== 'demo' && subdomain !== 'ssh-erp' && subdomain !== 'ssh-cloud') {
+                        routeMode = 'customer';
+                        tenantId = subdomain;
+                    } else {
+                        routeMode = 'marketing';
+                    }
                 } else {
                     routeMode = 'marketing';
                 }
-            } else {
-                routeMode = 'marketing';
             }
         }
     }
@@ -2020,11 +2024,9 @@ const handleB2BSubmit = () => {
 
     const props = { handleB2BAddItem, setHostname, products, settings, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal, translations, headers };
 
-    const b2bProductOptions = React.useMemo(() => {
-        return products.map(p => (
-            <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
-        ));
-    }, [products, currentLanguage]);
+    const b2bProductOptions = products.map(p => (
+        <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
+    ));
 
     return (
         <div className="app-container">

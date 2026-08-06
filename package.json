@@ -55,7 +55,9 @@
       {
         "from": "mongodb-bin",
         "to": "mongodb-bin",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
