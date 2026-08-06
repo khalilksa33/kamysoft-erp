@@ -44,10 +44,15 @@ const Vouchers = ({ currentLanguage, translations, formatCurrency, activeTab }) 
                 setShowModal(false);
                 setForm({ date: new Date().toISOString().split('T')[0], payee: '', amount: '', description: '', method: 'Cash' });
             } else {
-                alert('Error saving voucher');
+                let errMsg = 'Error saving voucher';
+                try {
+                    const errData = await res.json();
+                    if (errData.error) errMsg = `Error: ${errData.error}`;
+                } catch(e) {}
+                alert(errMsg);
             }
         } catch (err) {
-            alert('Error saving voucher');
+            alert(`Error saving voucher: ${err.message}`);
         }
     };
 

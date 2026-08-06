@@ -178,6 +178,13 @@ const Properties = ({ currentLanguage }) => {
                         <option value="Building">{isAr ? 'مبنى' : 'Building'}</option>
                         <option value="Hotel">{isAr ? 'فندق' : 'Hotel'}</option>
                         <option value="Compound">{isAr ? 'مجمع' : 'Compound'}</option>
+                        <option value="Commercial Market">{isAr ? 'سوق تجاري' : 'Commercial Market'}</option>
+                        <option value="Closed Commercial Complex">{isAr ? 'مجمع تجاري مغلق' : 'Closed Commercial Complex'}</option>
+                        <option value="Open Commercial Complex">{isAr ? 'مجمع تجاري مفتوح' : 'Open Commercial Complex'}</option>
+                        <option value="Commercial Showrooms">{isAr ? 'معارض تجاري' : 'Commercial Showrooms'}</option>
+                        <option value="Commercial Hangar">{isAr ? 'هنغر تجاري' : 'Commercial Hangar'}</option>
+                        <option value="Residential Compound">{isAr ? 'مجمع كمباوند سكني' : 'Residential Compound'}</option>
+                        <option value="Palm Complex">{isAr ? 'مجمع نخيل' : 'Palm Complex'}</option>
                     </select>
                     <input type="text" className="form-control" placeholder={isAr ? 'الموقع' : 'Location'} value={location} onChange={e => setLocation(e.target.value)} />
                     
