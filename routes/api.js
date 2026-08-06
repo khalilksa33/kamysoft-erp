@@ -1286,6 +1286,22 @@ router.post('/api/vouchers', authenticateToken, async (req, res) => {
     }
 });
 
+router.put('/api/vouchers/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = req.user.tenantId;
+        if (mongoose.connection.readyState === 1) {
+            await Voucher.updateOne({ voucherId: req.params.id, tenantId }, req.body);
+            res.json({ success: true });
+        } else {
+            const idx = mockDb.vouchers.findIndex(v => v.voucherId === req.params.id && v.tenantId === tenantId);
+            if (idx >= 0) mockDb.vouchers[idx] = { ...mockDb.vouchers[idx], ...req.body };
+            res.json({ success: true });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.delete('/api/vouchers/:id', authenticateToken, async (req, res) => {
     try {
         const tenantId = req.user.tenantId;

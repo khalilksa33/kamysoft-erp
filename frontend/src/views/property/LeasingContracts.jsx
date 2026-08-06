@@ -8,6 +8,8 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
     const [customers, setCustomers] = useState([]);
     
     const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [viewContract, setViewContract] = useState(null);
     const [formData, setFormData] = useState({
         unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0
     });
@@ -42,8 +44,13 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/lease-contracts', formData, { headers });
+            if (editingId) {
+                await axios.put(`/api/lease-contracts/${editingId}`, formData, { headers });
+            } else {
+                await axios.post('/api/lease-contracts', formData, { headers });
+            }
             setShowModal(false);
+            setEditingId(null);
             setFormData({ unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0 });
             fetchData();
         } catch (err) {
@@ -104,9 +111,9 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
     return (
         <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2>{isAr ? 'عقود الإيجار' : 'Leasing & Contracts'}</h2>
-                <button onClick={() => setShowModal(true)} className="btn btn-primary">
-                    <i className="ri-add-line"></i> {isAr ? 'عقد جديد' : 'New Lease Contract'}
+                <h2>{isAr ? 'بيانات بداية عقد الإيجار' : 'Data of Starting Lease Contract'}</h2>
+                <button onClick={() => { setEditingId(null); setFormData({ unitId: '', customerId: '', startDate: '', endDate: '', rentAmount: '', paymentFrequency: 'Monthly', status: 'Active', managementFeeType: 'Percentage', managementFeeValue: 0 }); setShowModal(true); }} className="btn btn-primary">
+                    <i className="ri-add-line"></i> {isAr ? 'إضافة عقد جديد' : 'New Contract'}
                 </button>
             </div>
 
@@ -137,18 +144,40 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="btn btn-info" onClick={() => setShowInstallments(lease)} title={isAr ? 'الأقساط' : 'Installments'}>
-                                        <i className="ri-money-dollar-circle-line"></i>
-                                    </button>
-                                    <button className="btn btn-primary" onClick={() => setPrintContract(lease)} title={isAr ? 'طباعة العقد' : 'Print Contract'} style={{ marginLeft: '8px' }}>
-                                        <i className="ri-printer-line"></i>
-                                    </button>
-                                    <button className="btn btn-secondary" onClick={() => handleSetPassword(lease.customerId)} title={isAr ? 'تعيين كلمة مرور البوابة' : 'Set Portal Password'} style={{ marginLeft: '8px', color: 'var(--accent-purple)' }}>
-                                        <i className="ri-key-2-line"></i>
-                                    </button>
-                                    <button className="btn btn-danger" onClick={() => handleDelete(lease._id || lease.id)} style={{ marginLeft: '8px' }}>
-                                        <i className="ri-delete-bin-line"></i>
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        <button className="btn btn-info btn-icon" onClick={() => setViewContract(lease)} title={isAr ? 'عرض' : 'View'}>
+                                            <i className="ri-eye-line"></i>
+                                        </button>
+                                        <button className="btn btn-warning btn-icon" onClick={() => {
+                                            setEditingId(lease._id || lease.id);
+                                            setFormData({
+                                                unitId: lease.unitId,
+                                                customerId: lease.customerId,
+                                                startDate: new Date(lease.startDate).toISOString().split('T')[0],
+                                                endDate: new Date(lease.endDate).toISOString().split('T')[0],
+                                                rentAmount: lease.rentAmount,
+                                                paymentFrequency: lease.paymentFrequency,
+                                                status: lease.status,
+                                                managementFeeType: lease.managementFeeType || 'Percentage',
+                                                managementFeeValue: lease.managementFeeValue || 0
+                                            });
+                                            setShowModal(true);
+                                        }} title={isAr ? 'تعديل' : 'Edit'}>
+                                            <i className="ri-edit-line"></i>
+                                        </button>
+                                        <button className="btn btn-primary btn-icon" onClick={() => setPrintContract(lease)} title={isAr ? 'طباعة العقد' : 'Print Contract'}>
+                                            <i className="ri-printer-line"></i>
+                                        </button>
+                                        <button className="btn btn-success btn-icon" onClick={() => setShowInstallments(lease)} title={isAr ? 'الأقساط' : 'Installments'}>
+                                            <i className="ri-money-dollar-circle-line"></i>
+                                        </button>
+                                        <button className="btn btn-secondary btn-icon" onClick={() => handleSetPassword(lease.customerId)} title={isAr ? 'تعيين كلمة مرور البوابة' : 'Set Portal Password'} style={{ color: 'var(--accent-purple)' }}>
+                                            <i className="ri-key-2-line"></i>
+                                        </button>
+                                        <button className="btn btn-danger btn-icon" onClick={() => handleDelete(lease._id || lease.id)} title={isAr ? 'حذف' : 'Delete'}>
+                                            <i className="ri-delete-bin-line"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -224,7 +253,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h3>{isAr ? 'إضافة عقد جديد' : 'Add New Lease Contract'}</h3>
+                        <h3>{editingId ? (isAr ? 'تعديل بيانات العقد' : 'Edit Contract Data') : (isAr ? 'إضافة بيانات عقد إيجار جديد' : 'Add Data of Starting Lease Contract')}</h3>
                         <form onSubmit={handleSave}>
                             <div className="form-group">
                                 <label>{isAr ? 'الوحدة' : 'Unit'}</label>
@@ -292,7 +321,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                                 </select>
                             </div>
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); setEditingId(null); }}>{isAr ? 'إلغاء' : 'Cancel'}</button>
                                 <button type="submit" className="btn btn-primary">{isAr ? 'حفظ' : 'Save'}</button>
                             </div>
                         </form>
@@ -306,7 +335,7 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                     <div className="modal">
                         <div className="print-area" style={{ padding: '40px', background: '#fff', color: '#000', minHeight: '800px' }}>
                             <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '2px solid #000', paddingBottom: '20px' }}>
-                                <h1 style={{ margin: 0, fontSize: '28px' }}>{isAr ? 'عقد إيجار' : 'Lease Contract'}</h1>
+                                <h1 style={{ margin: 0, fontSize: '28px' }}>{isAr ? 'بيانات بداية عقد الإيجار' : 'Data of Starting Lease Contract'}</h1>
                                 <p style={{ fontSize: '14px', color: '#666' }}>ID: {printContract._id || printContract.id}</p>
                             </div>
                             
@@ -408,6 +437,29 @@ export default function LeasingContracts({ currentLanguage, headers, activeTab }
                         <div className="no-print" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '20px' }}>
                             <button className="btn btn-secondary" onClick={() => setPrintReceipt(null)}>{isAr ? 'إغلاق' : 'Close'}</button>
                             <button className="btn btn-primary" onClick={() => window.print()}>{isAr ? 'طباعة' : 'Print'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* VIEW CONTRACT MODAL */}
+            {viewContract && (
+                <div className="modal-overlay">
+                    <div className="modal" style={{ maxWidth: '600px' }}>
+                        <h3>{isAr ? 'تفاصيل العقد' : 'Contract Details'}</h3>
+                        <div style={{ marginTop: '20px', lineHeight: '1.8' }}>
+                            <p><strong>{isAr ? 'الوحدة:' : 'Unit:'}</strong> {getUnitName(viewContract.unitId)}</p>
+                            <p><strong>{isAr ? 'المستأجر:' : 'Tenant:'}</strong> {getCustomerName(viewContract.customerId)}</p>
+                            <p><strong>{isAr ? 'تاريخ البداية:' : 'Start Date:'}</strong> {new Date(viewContract.startDate).toLocaleDateString()}</p>
+                            <p><strong>{isAr ? 'تاريخ النهاية:' : 'End Date:'}</strong> {new Date(viewContract.endDate).toLocaleDateString()}</p>
+                            <p><strong>{isAr ? 'الإيجار الإجمالي:' : 'Total Rent:'}</strong> {viewContract.rentAmount}</p>
+                            <p><strong>{isAr ? 'تكرار الدفع:' : 'Payment Frequency:'}</strong> {viewContract.paymentFrequency}</p>
+                            <p><strong>{isAr ? 'الحالة:' : 'Status:'}</strong> {viewContract.status}</p>
+                            <p><strong>{isAr ? 'نوع رسوم الإدارة:' : 'Management Fee Type:'}</strong> {viewContract.managementFeeType}</p>
+                            <p><strong>{isAr ? 'قيمة رسوم الإدارة:' : 'Management Fee Value:'}</strong> {viewContract.managementFeeValue}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                            <button className="btn btn-secondary" onClick={() => setViewContract(null)}>{isAr ? 'إغلاق' : 'Close'}</button>
                         </div>
                     </div>
                 </div>
