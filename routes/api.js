@@ -11,6 +11,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
 
 // Ensure upload directories exist
