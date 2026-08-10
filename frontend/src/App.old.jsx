@@ -12,6 +12,15 @@ const getBaseDomain = (host) => {
     return host;
 };
 
+const originalPrint = window.print;
+window.print = function() {
+    if (window.electronAPI && window.electronAPI.printPreview) {
+        window.electronAPI.printPreview();
+    } else {
+        originalPrint();
+    }
+};
+
 const originalFetch = window.fetch;
 window.fetch = function (url, options = {}) {
     if (typeof url === 'string' && url.startsWith('/api/')) {

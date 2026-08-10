@@ -1,7 +1,8 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 
 require('dotenv').config();
 
@@ -69,7 +70,8 @@ function createWindow() {
         icon: path.join(__dirname, 'build', 'icon.png'),
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -98,6 +100,36 @@ app.whenReady().then(async () => {
     // Orchestration Flow
     await startDatabase();
     await startServer();
+
+    ipcMain.handle('print-preview', async (event) => {
+        try {
+            const win = BrowserWindow.fromWebContents(event.sender);
+            const data = await win.webContents.printToPDF({
+                printBackground: true,
+                pageSize: 'A4'
+            });
+            const tempPath = path.join(os.tmpdir(), `kamysoft_invoice_${Date.now()}.pdf`);
+            fs.writeFileSync(tempPath, data);
+            
+            const previewWin = new BrowserWindow({
+                width: 1000,
+                height: 800,
+                title: 'Print Preview',
+                autoHideMenuBar: true,
+                parent: win,
+                modal: true,
+                webPreferences: {
+                    plugins: true
+                }
+            });
+            previewWin.loadURL(`file://${tempPath}`);
+            return { success: true };
+        } catch (e) {
+            console.error('Print preview failed', e);
+            return { success: false, error: e.message };
+        }
+    });
+
     createWindow();
 
     app.on('activate', function () {

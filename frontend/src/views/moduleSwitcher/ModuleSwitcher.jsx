@@ -18,7 +18,10 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
     const handleToggle = (moduleId) => {
         setSettings(prev => {
             const currentModules = prev.enabledModules || {};
-            const isCurrentlyEnabled = currentModules[moduleId] ?? true;
+            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+            const isCurrentlyEnabled = currentModules[moduleId] !== undefined 
+                ? currentModules[moduleId] 
+                : !defaultOffModules.includes(moduleId);
             const updatedSettings = {
                 ...prev,
                 enabledModules: {
@@ -51,7 +54,10 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {modulesList.map(mod => {
-                    const isEnabled = settings?.enabledModules?.[mod.id] ?? true;
+                    const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+                    const isEnabled = settings?.enabledModules?.[mod.id] !== undefined 
+                        ? settings.enabledModules[mod.id] 
+                        : !defaultOffModules.includes(mod.id);
                     return (
                         <div key={mod.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--glass-bg)' }}>
                             <span style={{ fontWeight: '500' }}>{mod.label}</span>

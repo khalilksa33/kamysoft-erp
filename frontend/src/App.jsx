@@ -1920,6 +1920,7 @@ const handleB2BSubmit = () => {
                     onLaunchApp={handleLaunchApp} 
                     onRegisterSuccess={handleRegisterSuccess}
                     baseDomain={baseDomain}
+                    settings={settings}
                 />
                 {renderDevToolbar()}
             </>
@@ -2719,7 +2720,7 @@ const handleB2BSubmit = () => {
                 )}
 
                 {/* TAB: SETTINGS & CURRENCY CONFIG */}
-                {['settings', 'basicData', 'generalSettings'].includes(activeTab) && <Settings {...props} />}
+                {['settings', 'generalSettings'].includes(activeTab) && <Settings {...props} />}
                     {activeTab === 'programActivation' && (
                         <div className="glass-card" style={{textAlign: 'center', padding: '50px'}}>
                             <h2>{currentLanguage === 'ar' ? 'تفعيل البرنامج' : 'Program Activation'}</h2>
@@ -2784,11 +2785,7 @@ const handleB2BSubmit = () => {
 
                                                 {/* Center Side: Logo */}
                                                 <div style={{ textAlign: 'center' }}>
-                                                    {settings.logo ? (
-                                                        <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
-                                                    ) : (
-                                                        <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#94a3b8' }}>LOGO</div>
-                                                    )}
+                                                    <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                                 </div>
 
                                                 {/* Right Side: Arabic Details (RTL) */}
@@ -2968,11 +2965,9 @@ const handleB2BSubmit = () => {
                                     ) : (
                                         /* Redesigned Centered Thermal Layout */
                                         <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
-                                            {settings.logo && (
-                                                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
-                                                </div>
-                                            )}
+                                            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                                                <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
+                                            </div>
                                             <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
@@ -3270,11 +3265,7 @@ const handleB2BSubmit = () => {
 
                                             {/* Center Side: Logo */}
                                             <div style={{ textAlign: 'center' }}>
-                                                {settings.logo ? (
-                                                    <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
-                                                ) : (
-                                                    <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#94a3b8' }}>LOGO</div>
-                                                )}
+                                                <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                             </div>
 
                                             {/* Right Side: Arabic Details (RTL) */}
@@ -3425,11 +3416,9 @@ const handleB2BSubmit = () => {
                                     </div>
                                 ) : (
                                     <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
-                                        {settings.logo && (
-                                            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                                <img src={settings.logo} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
-                                            </div>
-                                        )}
+                                        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                                            <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
+                                        </div>
                                         <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Quotation / عرض سعر</p>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>

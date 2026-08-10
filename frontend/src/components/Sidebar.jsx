@@ -249,7 +249,6 @@ const menuConfig = [
             { id: 'programActivation', labelKey: 'programActivation' },
             { id: 'techSupport', labelKey: 'techSupport' },
             { id: 'zatcaIntegration', labelKey: 'zatcaIntegration' },
-            { id: 'basicData', labelKey: 'basicData' },
             { id: 'moduleSwitch', labelKey: 'moduleSwitch' }
         ]
     }
@@ -296,14 +295,22 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                 </div>
                 
                 <div className="modern-brand">
-                    <img src="/logo.png" alt="26i ERP" style={{ height: '32px', width: 'auto', marginRight: '8px' }} />
+                    <img src={settings?.logo || "./logo.png"} alt="26i ERP" style={{ height: '32px', width: 'auto', marginRight: '8px', objectFit: 'contain' }} />
                 </div>
                 
                 <div className="modern-nav-container">
                     <ul className="modern-nav-links">
                         {menuConfig.map((item) => {
-                            // Hide if SaaS Admin disabled it
-                            if (item.id !== 'dashboard' && item.id !== 'settings' && settings?.enabledModules && settings.enabledModules[item.id] === false) return null;
+                            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+                            
+                            // Check if module is enabled by SaaS Admin (default logic applies if undefined)
+                            if (item.id !== 'dashboard' && item.id !== 'settings') {
+                                const isEnabled = settings?.enabledModules && settings.enabledModules[item.id] !== undefined
+                                    ? settings.enabledModules[item.id]
+                                    : !defaultOffModules.includes(item.id);
+                                if (!isEnabled) return null;
+                            }
+
                             // Hide if Tenant disabled it locally
                             if (item.id !== 'dashboard' && item.id !== 'settings' && settings?.visibleModules && settings.visibleModules[item.id] === false) return null;
 

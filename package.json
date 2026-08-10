@@ -47,6 +47,7 @@
       "controllers/**/*",
       "utils/**/*",
       "desktop/main.js",
+      "desktop/preload.js",
       "desktop/build/**/*",
       "frontend/dist/**/*",
       "node_modules/**/*"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { marked } from 'marked';
 import { enArticles, arArticles } from './data/blogArticles.js';
+import StoreCreationModal from './components/StoreCreationModal';
 
 // Landing Page translations dictionary
 const landingTranslations = {
@@ -266,7 +267,7 @@ const landingTranslations = {
         blogArticles: arArticles
     };
 
-export default function LandingPage({ currentLanguage, setCurrentLanguage, theme, setTheme, onLaunchApp, onRegisterSuccess, baseDomain = '26i.uk' }) {
+export default function LandingPage({ currentLanguage, setCurrentLanguage, theme, setTheme, onLaunchApp, onRegisterSuccess, baseDomain = '26i.uk', settings }) {
     const t = landingTranslations[currentLanguage];
     const isRtl = currentLanguage === 'ar';
     
@@ -274,100 +275,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
     const [billingCycle, setBillingCycle] = useState('yearly'); // 'monthly' or 'yearly'
     const [activeSector, setActiveSector] = useState('retail'); // 'retail', 'grocery', 'restaurant', 'apparel'
     
-    // Custom SaaS Store Registration states
     const [showRegisterModal, setShowRegisterModal] = useState(false);
-    const [registerForm, setRegisterForm] = useState({
-        tenantId: '',
-        businessName: '',
-        fullName: '',
-        businessType: 'retail',
-        adminUsername: 'admin',
-        password: '',
-        email: '',
-        mobile: '',
-        nationalAddress: '',
-        vatNumber: '',
-        crNumber: ''
-    });
-    const [registerStatus, setRegisterStatus] = useState(null); // 'submitting', 'success', 'error'
-    const [registerError, setRegisterError] = useState('');
-    const [registeredTenantId, setRegisteredTenantId] = useState('');
-    const [generatedLicenseKey, setGeneratedLicenseKey] = useState('');
-
-    const openRegisterModal = () => {
-        setRegisterForm({
-            tenantId: '',
-            businessName: '',
-            businessType: 'retail',
-            adminUsername: 'admin',
-            password: '',
-            email: '',
-            mobile: '',
-            nationalAddress: '',
-            vatNumber: '',
-            crNumber: ''
-        });
-        setRegisterStatus(null);
-        setRegisterError('');
-        setRegisteredTenantId('');
-        setGeneratedLicenseKey('');
-        setShowRegisterModal(true);
-    };
-
-    const handleRegisterChange = (e) => {
-        setRegisterForm({
-            ...registerForm,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleRegisterSubmit = async (e) => {
-        e.preventDefault();
-        setRegisterStatus('submitting');
-        setRegisterError('');
-        try {
-            // Clean tenantId to lowercase alphanumeric and dash
-            const cleanTenantId = registerForm.tenantId.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-            if (!cleanTenantId) {
-                setRegisterStatus('error');
-                setRegisterError(isRtl ? 'الرابط الفرعي غير صالح' : 'Invalid subdomain format');
-                return;
-            }
-            
-            const payload = {
-                ...registerForm,
-                tenantId: cleanTenantId,
-                billingCycle: billingCycle
-            };
-            if (registerForm.nationalAddressObj) {
-                payload.nationalAddress = JSON.stringify(registerForm.nationalAddressObj);
-            }
-
-            const response = await fetch('/api/auth/register-tenant', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setRegisterStatus('success');
-                setRegisteredTenantId(cleanTenantId);
-                localStorage.setItem('lastRegisteredUsername', registerForm.adminUsername);
-                if (data.licenseKey) {
-                    setGeneratedLicenseKey(data.licenseKey);
-                }
-                // Store cleanTenantId so the "Launch My Store" button can use it
-                // (onRegisterSuccess is called from the button, not here, so the success screen stays visible)
-
-            } else {
-                setRegisterStatus('error');
-                setRegisterError(data.error || (isRtl ? 'حدث خطأ أثناء الإنشاء' : 'Error creating store'));
-            }
-        } catch (err) {
-            setRegisterStatus('error');
-            setRegisterError(isRtl ? 'خطأ في الاتصال بالخادم' : 'Server connection failed');
-        }
-    };
     
     // Contact Form States
     const [formData, setFormData] = useState({
@@ -484,7 +392,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 borderRadius: '8px'
             }}>
                 <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <img src="/logo.png" alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
+                    <img src={settings?.logo || "./logo.png"} alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
                     <span>{t.brandName}</span>
                 </div>
                 
@@ -521,7 +429,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     {/* App CTA */}
                     <button 
                         className="btn btn-primary" 
-                        onClick={openRegisterModal}
+                        onClick={() => setShowRegisterModal(true)}
                         style={{ padding: '8px 16px', fontSize: '13px', background: 'var(--accent-cyan)' }}
                     >
                         <i className="ri-add-box-line"></i>
@@ -576,7 +484,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                     </p>
                     
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }} className="hero-ctas">
-                        <button className="btn btn-primary glow-button" style={{ padding: '14px 28px', fontSize: '15px' }} onClick={openRegisterModal}>
+                        <button className="btn btn-primary glow-button" style={{ padding: '14px 28px', fontSize: '15px' }} onClick={() => setShowRegisterModal(true)}>
                             <i className="ri-store-2-line" style={{ fontSize: '18px' }}></i>
                             <span>{currentLanguage === 'ar' ? 'أنشئ متجرك الخاص' : 'Create My Store'}</span>
                         </button>
@@ -1361,301 +1269,12 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </footer>
 
             {/* Store Registration Onboarding Modal */}
-            {showRegisterModal && (
-                <div className="modal-overlay" onClick={() => registerStatus !== 'submitting' && setShowRegisterModal(false)}>
-                    <div className="modal glass-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px', borderRadius: '12px', border: '1px solid var(--glass-border)', maxHeight: '90vh', overflowY: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
-                            <h3 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>
-                                {registerStatus === 'success' 
-                                    ? (isRtl ? 'تم تهيئة المتجر بنجاح!' : 'Store Provisioned!') 
-                                    : (isRtl ? 'أنشئ متجرك السحابي الخاص' : 'Create Your Cloud Store')}
-                            </h3>
-                            {registerStatus !== 'submitting' && (
-                                <button onClick={() => setShowRegisterModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--text-secondary)' }}>
-                                    <i className="ri-close-line"></i>
-                                </button>
-                            )}
-                        </div>
-
-                        {registerStatus === 'success' ? (
-                            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                                <div style={{ fontSize: '64px', color: 'var(--accent-success)', marginBottom: '16px' }}>
-                                    <i className="ri-checkbox-circle-line"></i>
-                                </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '12px' }}>
-                                    {isRtl ? 'تم إنشاء متجرك وتخصيصه!' : 'Your Store is Ready!'}
-                                </h4>
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>
-                                    {isRtl 
-                                        ? `تم إنشاء قاعدة بيانات معزولة لمتجرك وتعبئته بالمنتجات التجريبية.`
-                                        : `Your isolated database workspace is ready and loaded with demo products.`}
-                                </p>
-                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                                     {isRtl ? 'اسم مستخدم المدير:' : 'Admin Username:'} <strong style={{ color: '#fff' }}>{registerForm.adminUsername}</strong>
-                                </div>
-                                <div style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '14px', color: '#a78bfa', wordBreak: 'break-all' }}>
-                                    https://{registerForm.tenantId.toLowerCase()}.{baseDomain}
-                                </div>
-
-                                {generatedLicenseKey && (
-                                    <div style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px' }}>
-                                        <div style={{ fontSize: '12px', color: '#34d399', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{isRtl ? 'حالة المتجر' : 'Store Status'}</div>
-                                        <div style={{ fontFamily: 'sans-serif', fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{isRtl ? 'تجربة مجانية لمدة 14 يومًا' : '14-Day Free Trial Active'}</div>
-                                    </div>
-                                )}
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button 
-                                        className="btn btn-primary glow-button" 
-                                        onClick={() => {
-                                            setShowRegisterModal(false);
-                                            window.location.href = `http://${registeredTenantId || registerForm.tenantId.toLowerCase()}.${baseDomain}/login`;
-                                        }}
-                                        style={{ flex: 1, padding: '12px', fontSize: '15px' }}
-                                    >
-                                        <i className="ri-login-box-line"></i>
-                                        <span>{isRtl ? 'الانتقال لصفحة الدخول' : 'Go to Login Page'}</span>
-                                    </button>
-                                    <button 
-                                        onClick={() => setShowRegisterModal(false)}
-                                        style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px' }}
-                                    >
-                                        {isRtl ? 'إغلاق' : 'Close'}
-                                    </button>
-                                </div>
-                            </div>
-
-                        ) : (
-                            <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {registerStatus === 'error' && (
-                                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-danger)', borderRadius: '4px', padding: '10px 14px', color: 'var(--accent-danger)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <i className="ri-error-warning-line"></i>
-                                        <span>{registerError}</span>
-                                    </div>
-                                )}
-                                
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'رابط المتجر الفرعي (الأحرف اللاتينية والأرقام والشرطة فقط)' : 'Store Subdomain (Alphanumeric/hyphen only)'}
-                                    </label>
-                                    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', overflow: 'hidden' }}>
-                                        <input 
-                                            type="text" 
-                                            name="tenantId"
-                                            value={registerForm.tenantId}
-                                            onChange={handleRegisterChange}
-                                            required
-                                            placeholder="my-store"
-                                            style={{ flexGrow: 1, background: 'none', border: 'none', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
-                                        />
-                                        <span style={{ padding: '0 12px', fontSize: '13px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderLeft: isRtl ? 'none' : '1px solid var(--glass-border)', borderRight: isRtl ? '1px solid var(--glass-border)' : 'none' }}>.{baseDomain}</span>
-                                    </div>
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
-                                    </label>
-                                    <input 
-                                        type="email" 
-                                        name="email"
-                                        value={registerForm.email}
-                                        onChange={handleRegisterChange}
-                                        required
-                                        placeholder="owner@mystore.com"
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
-                                    />
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'رقم الجوال' : 'Mobile Number'}
-                                    </label>
-                                    <input 
-                                        type="tel" 
-                                        name="mobile"
-                                        value={registerForm.mobile}
-                                        onChange={handleRegisterChange}
-                                        required
-                                        placeholder="+966 5X XXX XXXX"
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', outline: 'none', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px' }}
-                                    />
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'الاسم الكامل للمالك' : 'Owner Full Name'}
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        name="fullName"
-                                        value={registerForm.fullName}
-                                        onChange={handleRegisterChange}
-                                        required
-                                        placeholder={isRtl ? 'خليل الغامدي' : 'Khalil Al-Ghamdi'}
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'اسم المتجر / المنشأة' : 'Store / Business Name'}
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        name="businessName"
-                                        value={registerForm.businessName}
-                                        onChange={handleRegisterChange}
-                                        required
-                                        placeholder={isRtl ? 'معرض الأمل للأجهزة' : 'Al-Amal Store'}
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'نوع النشاط التجاري' : 'Business Sector'}
-                                    </label>
-                                    <select 
-                                        name="businessType"
-                                        value={registerForm.businessType}
-                                        onChange={handleRegisterChange}
-                                        style={{ background: '#0a0a12', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', width: '100%' }}
-                                    >
-                                        <option value="retail">{isRtl ? 'تجارة تجزئة عامة' : 'General Retail'}</option>
-                                        <option value="grocery">{isRtl ? 'سوبرماركت ومواد غذائية' : 'Supermarket & Grocery'}</option>
-                                        <option value="restaurant">{isRtl ? 'مطعم ومقهى' : 'Restaurant & Cafe'}</option>
-                                        <option value="apparel">{isRtl ? 'ملابس وأزياء' : 'Apparel & Garments'}</option>
-                                        <option value="appliances">{isRtl ? 'أجهزة منزلية وإلكترونيات' : 'Home Appliances & Electronics'}</option>
-                                        <option value="furniture">{isRtl ? 'معرض أثاث ومفروشات' : 'Furniture & Home Decor'}</option>
-                                        <option value="spareparts">{isRtl ? 'قطع غيار (سيارات/تكييف/سباكة/كهرباء)' : 'Spare Parts (Auto/HVAC/Plumbing)'}</option>
-                                        <option value="realestate">{isRtl ? 'إدارة أملاك وعقارات' : 'Real Estate Management'}</option>
-                                    </select>
-                                </div>
-
-                                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                        {isRtl ? 'العنوان الوطني' : 'National Address'}
-                                    </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        <input type="text" placeholder={isRtl ? 'رقم المبنى (4 أرقام)' : 'Building No (4 digits)'} 
-                                            value={registerForm.nationalAddressObj?.buildingNo || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, buildingNo: e.target.value } })}
-                                            required pattern="\d{4}" maxLength="4" title="4 digits"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                        <input type="text" placeholder={isRtl ? 'اسم الشارع' : 'Street Name'} 
-                                            value={registerForm.nationalAddressObj?.street || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, street: e.target.value } })}
-                                            required
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                        <input type="text" placeholder={isRtl ? 'الحي' : 'District'} 
-                                            value={registerForm.nationalAddressObj?.district || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, district: e.target.value } })}
-                                            required
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                        <input type="text" placeholder={isRtl ? 'المدينة' : 'City'} 
-                                            value={registerForm.nationalAddressObj?.city || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, city: e.target.value } })}
-                                            required
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                        <input type="text" placeholder={isRtl ? 'الرمز البريدي (5 أرقام)' : 'Postal Code (5 digits)'} 
-                                            value={registerForm.nationalAddressObj?.postalCode || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, postalCode: e.target.value } })}
-                                            required pattern="\d{5}" maxLength="5" title="5 digits"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                        <input type="text" placeholder={isRtl ? 'الرقم الإضافي (اختياري)' : 'Additional No'} 
-                                            value={registerForm.nationalAddressObj?.additionalNo || ''}
-                                            onChange={e => setRegisterForm({ ...registerForm, nationalAddressObj: { ...registerForm.nationalAddressObj, additionalNo: e.target.value } })}
-                                            pattern="\d{4}" maxLength="4" title="4 digits"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }} />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                            {isRtl ? 'الرقم الضريبي (VAT)' : 'VAT Number'}
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            name="vatNumber"
-                                            value={registerForm.vatNumber}
-                                            onChange={handleRegisterChange}
-                                            required
-                                            placeholder="310..."
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                            {isRtl ? 'السجل التجاري (CR)' : 'CR Number'}
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            name="crNumber"
-                                            value={registerForm.crNumber}
-                                            onChange={handleRegisterChange}
-                                            required
-                                            placeholder="1010..."
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                            {isRtl ? 'اسم مستخدم المدير' : 'Admin Username'}
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            name="adminUsername"
-                                            value={registerForm.adminUsername}
-                                            onChange={handleRegisterChange}
-                                            required
-                                            placeholder="admin"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                            {isRtl ? 'كلمة المرور' : 'Password'}
-                                        </label>
-                                        <input 
-                                            type="password" 
-                                            name="password"
-                                            value={registerForm.password}
-                                            onChange={handleRegisterChange}
-                                            required
-                                            placeholder="Enter strong password"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <button 
-                                    type="submit" 
-                                    className="btn btn-primary glow-button"
-                                    disabled={registerStatus === 'submitting'}
-                                    style={{ marginTop: '12px', padding: '12px', fontSize: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', width: '100%' }}
-                                >
-                                    {registerStatus === 'submitting' ? (
-                                        <>
-                                            <span style={{ width: '16px', height: '16px', border: '2px solid', borderRightColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.75s linear infinite' }}></span>
-                                            <span>{isRtl ? 'جاري تهيئة النظام...' : 'Provisioning store...'}</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="ri-checkbox-circle-line"></i>
-                                            <span>{isRtl ? 'إنشاء متجري وتفعيله' : 'Create & Activate My Store'}</span>
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            )}
+            <StoreCreationModal 
+                isOpen={showRegisterModal} 
+                onClose={() => setShowRegisterModal(false)} 
+                isRtl={isRtl} 
+                baseDomain={baseDomain} 
+            />
             
             <style>{`
                 @keyframes spin {

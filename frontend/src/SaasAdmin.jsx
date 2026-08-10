@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import StoreCreationModal from './components/StoreCreationModal';
 
 const ADMIN_KEY_STORAGE = 'saas_admin_key';
 
@@ -48,10 +49,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
     
     // Create Store Modal
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [createData, setCreateData] = useState({
-        tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', password: '', email: '', mobile: '',
-        nationalAddress: '', vatNumber: '', crNumber: '', billingCycle: 'monthly', fullName: ''
-    });
+
     
     const apiHeaders = useCallback(() => ({
         'Content-Type': 'application/json',
@@ -209,30 +207,6 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
         }
     };
 
-    const handleCreateStore = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const res = await fetch('/api/auth/register-tenant', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(createData)
-            });
-            const data = await res.json();
-            if (data.success) {
-                setShowCreateModal(false);
-                setActionMsg(`Store ${data.tenantId} created successfully!`);
-                setCreateData({ tenantId: '', businessName: '', businessType: 'retail', adminUsername: '', password: '', email: '', mobile: '', nationalAddress: '', vatNumber: '', crNumber: '', billingCycle: 'monthly', fullName: '' });
-                loadData();
-            } else {
-                setActionMsg(`Error: ${data.error}`);
-            }
-        } catch (err) {
-            setActionMsg('Error creating store');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const filteredStores = stores.filter(s =>
         !search || s.tenantId?.includes(search.toLowerCase()) || s.businessName?.toLowerCase().includes(search.toLowerCase())
@@ -667,68 +641,17 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
             )}
             
 
-            {/* Create Store Modal */}
-            {showCreateModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '32px 36px', width: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-                        <h3 style={{ color: '#fff', fontWeight: '700', marginBottom: '16px' }}>Create New Store</h3>
-                        <form onSubmit={handleCreateStore} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Subdomain (Tenant ID) *</label>
-                                    <input required value={createData.tenantId} onChange={e => setCreateData({ ...createData, tenantId: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Business Name *</label>
-                                    <input required value={createData.businessName} onChange={e => setCreateData({ ...createData, businessName: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Admin Username *</label>
-                                    <input required value={createData.adminUsername} onChange={e => setCreateData({ ...createData, adminUsername: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Admin Email *</label>
-                                    <input required type="email" value={createData.email} onChange={e => setCreateData({ ...createData, email: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Password *</label>
-                                    <input required type="password" value={createData.password} onChange={e => setCreateData({ ...createData, password: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Business Type *</label>
-                                    <select required value={createData.businessType} onChange={e => setCreateData({ ...createData, businessType: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }}>
-                                        {Object.entries(SECTOR_LABELS).map(([k, v]) => <option key={k} value={k} style={{ color: '#000' }}>{v}</option>)}
-                                    </select>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Mobile</label>
-                                    <input value={createData.mobile} onChange={e => setCreateData({ ...createData, mobile: e.target.value })}
-                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                                <button type="button" onClick={() => setShowCreateModal(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
-                                <button type="submit" disabled={loading} style={{ flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', borderRadius: '8px', padding: '10px', color: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '14px', opacity: loading ? 0.7 : 1 }}>
-                                    {loading ? 'Creating...' : 'Create Store'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <StoreCreationModal 
+                isOpen={showCreateModal} 
+                onClose={() => setShowCreateModal(false)} 
+                isRtl={false} 
+                baseDomain="kamysoft.com"
+                onSuccess={() => { 
+                    setShowCreateModal(false); 
+                    loadData(); 
+                    setActionMsg('Store created successfully!'); 
+                }} 
+            />
         </div>
     );
 }
