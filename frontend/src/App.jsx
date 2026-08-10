@@ -2785,7 +2785,7 @@ const handleB2BSubmit = () => {
 
                                                 {/* Center Side: Logo */}
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
+                                                    <img src={settings.logo || "/logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                                 </div>
 
                                                 {/* Right Side: Arabic Details (RTL) */}
@@ -2966,7 +2966,7 @@ const handleB2BSubmit = () => {
                                         /* Redesigned Centered Thermal Layout */
                                         <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
                                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                                <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
+                                                <img src={settings.logo || "/logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
                                             </div>
                                             <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                             <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
@@ -3059,7 +3059,7 @@ const handleB2BSubmit = () => {
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                             <button className="btn btn-secondary" onClick={() => setShowInvoiceModal(false)}>{translations[currentLanguage].close}</button>
                             
-                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                            <button className="btn btn-primary" onClick={() => window.electronAPI ? window.electronAPI.printPreview() : window.print()}>{translations[currentLanguage].print}</button>
                         </div>
                         {showEmailModal && (
                             <div style={{ marginTop: '20px', padding: '15px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
@@ -3231,7 +3231,7 @@ const handleB2BSubmit = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                             <button className="btn btn-secondary" onClick={() => setShowAssetQrModal(false)}>{translations[currentLanguage].close}</button>
-                            <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                            <button className="btn btn-primary" onClick={() => window.electronAPI ? window.electronAPI.printPreview() : window.print()}>{translations[currentLanguage].print}</button>
                         </div>
                     </div>
                 </div>
@@ -3265,7 +3265,7 @@ const handleB2BSubmit = () => {
 
                                             {/* Center Side: Logo */}
                                             <div style={{ textAlign: 'center' }}>
-                                                <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
+                                                <img src={settings.logo || "/logo.png"} alt="Company Logo" style={{ maxHeight: '90px', maxWidth: '160px', objectFit: 'contain' }} />
                                             </div>
 
                                             {/* Right Side: Arabic Details (RTL) */}
@@ -3417,7 +3417,7 @@ const handleB2BSubmit = () => {
                                 ) : (
                                     <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
                                         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                            <img src={settings.logo || "./logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
+                                            <img src={settings.logo || "/logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
                                         </div>
                                         <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
                                         <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>Quotation / عرض سعر</p>
@@ -3492,7 +3492,7 @@ const handleB2BSubmit = () => {
 
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                                 <button className="btn btn-secondary" onClick={() => setShowQuotationModal(false)}>{translations[currentLanguage].close}</button>
-                                <button className="btn btn-primary" onClick={() => window.print()}>{translations[currentLanguage].print}</button>
+                                <button className="btn btn-primary" onClick={() => window.electronAPI ? window.electronAPI.printPreview() : window.print()}>{translations[currentLanguage].print}</button>
                             </div>
                         </div>
                     </div>
