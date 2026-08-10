@@ -392,7 +392,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 borderRadius: '8px'
             }}>
                 <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <img src={settings?.logo || "/logo.png"} alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
+                    <img src="/logo.png" alt={t.brandName} style={{ height: '32px', width: 'auto' }} />
                     <span>{t.brandName}</span>
                 </div>
                 

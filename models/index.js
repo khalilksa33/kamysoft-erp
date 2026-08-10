@@ -158,6 +158,7 @@ const settingsSchema = new mongoose.Schema({
     vatNumber: { type: String, required: true },
     taxRate: { type: Number, required: true },
     baseCurrency: { type: String, required: true },
+    logo: { type: String },
     businessAddress: { type: String },
     crNumber: { type: String },
     contactNumber: { type: String },
