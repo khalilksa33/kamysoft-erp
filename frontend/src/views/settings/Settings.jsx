@@ -12,6 +12,7 @@ const Settings = (props) => {
         { id: 'branch', label: currentLanguage === 'ar' ? 'تهيئة الفروع ونوع النشاط' : 'Branch & Business Configuration', icon: 'ri-building-line', color: 'var(--accent-gold)' },
         { id: 'zatca', label: translations[currentLanguage].zatcaSettings || 'ZATCA Connection Settings', icon: 'ri-cloud-line', color: 'var(--accent-cyan)' },
         { id: 'email', label: currentLanguage === 'ar' ? 'إعدادات البريد' : 'Email / SMTP Settings', icon: 'ri-mail-send-line', color: 'var(--accent-primary)' },
+        { id: 'storefront', label: currentLanguage === 'ar' ? 'إعدادات الواجهة' : 'Storefront Settings', icon: 'ri-store-2-line', color: '#ec4899' },
         { id: 'danger', label: currentLanguage === 'ar' ? 'إغلاق الحساب' : 'Close Account', icon: 'ri-error-warning-line', color: '#f87171' }
     ];
 
@@ -460,6 +461,61 @@ const Settings = (props) => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                )}
+
+                {activeSettingsTab === 'storefront' && (
+                    <div className="glass-card fade-in">
+                        <h3 style={{ marginBottom: '20px', color: '#ec4899', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ri-store-2-line"></i> {currentLanguage === 'ar' ? 'إعدادات الواجهة والمتجر' : 'Storefront Settings'}
+                        </h3>
+                        
+                        <div style={{ marginBottom: '30px' }}>
+                            <h4 style={{ color: 'var(--text-primary)', marginBottom: '15px' }}>{currentLanguage === 'ar' ? 'النطاق المخصص' : 'Custom Domain'}</h4>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input type="text" id="newCustomDomain" className="form-control" placeholder="e.g. www.mystore.com" style={{ flexGrow: 1 }} />
+                                <button className="btn btn-primary" onClick={() => {
+                                    const domain = document.getElementById('newCustomDomain').value;
+                                    if (!domain) return;
+                                    fetch('/api/domains/add', {
+                                        method: 'POST',
+                                        headers: props.headers,
+                                        body: JSON.stringify({ domain })
+                                    }).then(res => res.json()).then(data => {
+                                        if (data.error) alert(data.error);
+                                        else alert(data.message);
+                                    });
+                                }}>{currentLanguage === 'ar' ? 'إضافة النطاق' : 'Add Domain'}</button>
+                            </div>
+                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                                {currentLanguage === 'ar' ? 'يرجى توجيه CNAME الخاص بك إلى 26i.uk قبل الإضافة.' : 'Please point your CNAME to 26i.uk before adding.'}
+                            </p>
+                        </div>
+
+                        <hr style={{ borderColor: 'var(--glass-border)', margin: '20px 0' }} />
+
+                        <div>
+                            <h4 style={{ color: 'var(--text-primary)', marginBottom: '15px' }}>{currentLanguage === 'ar' ? 'مظهر المتجر' : 'Store Theme'}</h4>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'المظهر النشط' : 'Active Theme'}</label>
+                                <select className="form-control" value={settings.activeTheme || 'default'} onChange={e => {
+                                    const newTheme = e.target.value;
+                                    setSettings({ ...settings, activeTheme: newTheme });
+                                    fetch('/api/themes/update', {
+                                        method: 'POST',
+                                        headers: props.headers,
+                                        body: JSON.stringify({ activeTheme: newTheme })
+                                    }).then(res => res.json()).then(data => {
+                                        if (data.success) {
+                                            alert(currentLanguage === 'ar' ? 'تم تغيير المظهر بنجاح. يرجى تحديث الصفحة لتطبيق المظهر.' : 'Theme updated successfully. Please refresh the page to apply.');
+                                        }
+                                    });
+                                }}>
+                                    <option value="default">Default ERP</option>
+                                    <option value="salla">SaaS Store (Salla-like)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 )}
 

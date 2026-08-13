@@ -22,6 +22,9 @@ const productSchema = new mongoose.Schema({
     category: { type: String, required: true },
     emoji: { type: String },
     barcode: { type: String },
+    isDigital: { type: Boolean, default: false },
+    digitalAssetUrl: { type: String, default: '' },
+    digitalAssetInstructions: { type: String, default: '' },
     tenantId: { type: String, default: 'default', index: true }
 });
 productSchema.index({ id: 1, tenantId: 1 }, { unique: true });
@@ -200,7 +203,11 @@ const settingsSchema = new mongoose.Schema({
     licenseStatus: { type: String, default: 'active' }, // 'active', 'expired', 'pending_verification'
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
-    licenseExpiresAt: { type: Date }
+    licenseExpiresAt: { type: Date },
+    
+    // SaaS Themes
+    activeTheme: { type: String, default: 'default' },
+    themeConfig: { type: Object, default: {} }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -455,6 +462,15 @@ const leadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model('Lead', leadSchema);
 
+// SaaS Custom Domains
+const customDomainSchema = new mongoose.Schema({
+    domain: { type: String, required: true, unique: true },
+    tenantId: { type: String, required: true, index: true },
+    status: { type: String, enum: ['pending', 'verified'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now }
+});
+const CustomDomain = mongoose.model('CustomDomain', customDomainSchema);
+
 module.exports = {
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
     Warehouse,
@@ -467,5 +483,5 @@ module.exports = {
     SubscriptionPayment,
     Account,
     PropertyOwner,
-    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead
+    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain
 };

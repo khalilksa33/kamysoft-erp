@@ -12,6 +12,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const { uploadFile, getPresignedUrl } = require('../services/s3Service');
 const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
 
 // Ensure upload directories exist
@@ -31,8 +32,11 @@ const propertyStorage = multer.diskStorage({
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, 'prop-' + uniqueSuffix + path.extname(file.originalname));
     }
-});
-const propertyUpload = multer({ storage: propertyStorage });
+});const propertyUpload = multer({ storage: propertyStorage });
+
+// Configure Multer for memory storage (S3 Uploads)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage, limits: { fileSize: 100 * 1024 * 1024 } }); // 100MB max
 
 // Mock in-memory DB fallback for serverless environments (if MongoDB is disconnected)
 const mockDb = {
@@ -636,6 +640,266 @@ router.post('/api/settings', authenticateToken, async (req, res) => {
             res.json(mockDb.settingsTenant[tenantId]);
         }
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- SAAS: CUSTOM DOMAINS ---
+router.post('/api/domains/add', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const { domain } = req.body;
+        const tenantId = getTenantId(req);
+        if (!domain) return res.status(400).json({ error: 'Domain is required' });
+
+        if (global.isMongoConnected) {
+            const existing = await CustomDomain.findOne({ domain });
+            if (existing) return res.status(400).json({ error: 'Domain already in use' });
+
+            const newDomain = new CustomDomain({ domain, tenantId, status: 'pending' });
+            await newDomain.save();
+            res.json({ success: true, message: 'Domain added. Please point CNAME to 26i.uk', domain: newDomain });
+        } else {
+            res.json({ success: true, message: 'Domain added (Mock Mode)' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/domains/verify', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const { domain } = req.body;
+        const tenantId = getTenantId(req);
+        
+        if (global.isMongoConnected) {
+            const customDomain = await CustomDomain.findOne({ domain, tenantId });
+            if (!customDomain) return res.status(404).json({ error: 'Domain not found' });
+            
+            // In a real app, verify DNS here.
+            customDomain.status = 'verified';
+            await customDomain.save();
+            res.json({ success: true, message: 'Domain verified successfully', domain: customDomain });
+        } else {
+            res.json({ success: true, message: 'Domain verified (Mock Mode)' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- SAAS: THEMES ---
+router.post('/api/themes/update', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const { activeTheme, themeConfig } = req.body;
+        const tenantId = getTenantId(req);
+        
+        if (global.isMongoConnected) {
+            let settings = await Settings.findOne({ tenantId });
+            if (!settings) return res.status(404).json({ error: 'Settings not found' });
+            
+            if (activeTheme) settings.activeTheme = activeTheme;
+            if (themeConfig) settings.themeConfig = themeConfig;
+            
+            await settings.save();
+            res.json({ success: true, activeTheme: settings.activeTheme, themeConfig: settings.themeConfig });
+        } else {
+            if (mockDb.settingsTenant && mockDb.settingsTenant[tenantId]) {
+                if (activeTheme) mockDb.settingsTenant[tenantId].activeTheme = activeTheme;
+                if (themeConfig) mockDb.settingsTenant[tenantId].themeConfig = themeConfig;
+                res.json({ success: true, activeTheme: mockDb.settingsTenant[tenantId].activeTheme, themeConfig: mockDb.settingsTenant[tenantId].themeConfig });
+            } else {
+                res.status(404).json({ error: 'Settings not found (Mock Mode)' });
+            }
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/api/themes/active', async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const settings = await Settings.findOne({ tenantId });
+            if (settings) {
+                res.json({ activeTheme: settings.activeTheme || 'default', themeConfig: settings.themeConfig || {} });
+            } else {
+                res.json({ activeTheme: 'default', themeConfig: {} });
+            }
+        } else {
+            const settings = mockDb.settingsTenant && mockDb.settingsTenant[tenantId];
+            if (settings) {
+                res.json({ activeTheme: settings.activeTheme || 'default', themeConfig: settings.themeConfig || {} });
+            } else {
+                res.json({ activeTheme: 'default', themeConfig: {} });
+            }
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// FILE UPLOAD APIs
+router.post('/api/upload/image', upload.single('file'), async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const extension = req.file.originalname.split('.').pop();
+        const fileName = `${tenantId}/images/${Date.now()}-${Math.round(Math.random() * 1000)}.${extension}`;
+        
+        // Upload to S3 as public
+        const fileUrl = await uploadFile(req.file.buffer, fileName, req.file.mimetype, true);
+        
+        res.json({ success: true, url: fileUrl });
+    } catch (err) {
+        console.error('S3 Image Upload Error:', err);
+        res.status(500).json({ error: 'Failed to upload image' });
+    }
+});
+
+router.post('/api/upload/digital-asset', upload.single('file'), async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const extension = req.file.originalname.split('.').pop();
+        const fileName = `${tenantId}/digital-assets/${Date.now()}-${Math.round(Math.random() * 1000)}.${extension}`;
+        
+        // Upload to S3 as private
+        const objectKey = await uploadFile(req.file.buffer, fileName, req.file.mimetype, false);
+        
+        res.json({ success: true, key: objectKey });
+    } catch (err) {
+        console.error('S3 Digital Asset Upload Error:', err);
+        res.status(500).json({ error: 'Failed to upload digital asset' });
+    }
+});
+
+// STOREFRONT APIs (Publicly accessible but scoped to tenant)
+router.get('/api/storefront/products', async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const products = await Product.find({ tenantId });
+            res.json(products);
+        } else {
+            const products = mockDb.products.filter(p => p.tenantId === tenantId);
+            res.json(products);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/api/storefront/orders', async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { customer, email, phone, address, items, paymentMethod, total } = req.body;
+        
+        // Basic validation
+        if (!items || !items.length) {
+            return res.status(400).json({ error: 'Order must contain items' });
+        }
+        
+        const orderId = `SF-${Date.now().toString().slice(-6)}`;
+        const newOrder = {
+            id: orderId,
+            tenantId,
+            customer: customer || 'Storefront Guest',
+            email: email || '',
+            phone: phone || '',
+            address: address || '',
+            items,
+            paymentMethod: paymentMethod || 'Mock Payment',
+            total,
+            status: 'Pending',
+            date: new Date().toISOString()
+        };
+
+        if (global.isMongoConnected) {
+            const orderDoc = new Order(newOrder);
+            await orderDoc.save();
+        } else {
+            mockDb.orders.push(newOrder);
+        }
+
+        // Process digital assets delivery
+        const digitalItems = items.filter(i => i.isDigital);
+        if (digitalItems.length > 0 && email) {
+            let linksHtml = '<ul>';
+            
+            // Generate presigned URLs for each digital asset
+            for (const di of digitalItems) {
+                let downloadLink = di.digitalAssetUrl;
+                
+                // If the URL is actually an S3 key (doesn't start with http), generate a presigned link
+                if (di.digitalAssetUrl && !di.digitalAssetUrl.startsWith('http')) {
+                    try {
+                        downloadLink = await getPresignedUrl(di.digitalAssetUrl, 7 * 24 * 3600); // Link valid for 7 days
+                    } catch (s3Err) {
+                        console.error('Failed to generate presigned URL for:', di.digitalAssetUrl, s3Err);
+                    }
+                }
+                
+                linksHtml += `<li><b>${di.nameEN || di.name}</b>: <a href="${downloadLink}">Download Link</a><br/><small>${di.digitalAssetInstructions || ''}</small></li>`;
+            }
+            linksHtml += '</ul>';
+
+            const emailHtml = `
+                <h3>Thank you for your order!</h3>
+                <p>Order ID: ${orderId}</p>
+                <p>Your digital products are ready for download:</p>
+                ${linksHtml}
+            `;
+            
+            // Send email
+            let settings = null;
+            if (global.isMongoConnected) {
+                settings = await Settings.findOne({ tenantId });
+            } else {
+                settings = mockDb.settingsTenant[tenantId] || mockDb.settings;
+            }
+
+            if (settings && settings.smtp && (settings.smtp.host || settings.smtp.provider === 'sendgrid')) {
+                const smtp = settings.smtp;
+                if (smtp.provider === 'sendgrid' && smtp.sendgridApiKey) {
+                    const sgMail = require('@sendgrid/mail');
+                    sgMail.setApiKey(smtp.sendgridApiKey);
+                    await sgMail.send({
+                        to: email,
+                        from: smtp.fromEmail || 'test@example.com',
+                        subject: 'Your Digital Goods Order #' + orderId,
+                        html: emailHtml,
+                    }).catch(e => console.error(e));
+                } else if (smtp.host && smtp.user) {
+                    const nodemailer = require('nodemailer');
+                    let transporter = nodemailer.createTransport({
+                        host: smtp.host,
+                        port: smtp.port,
+                        secure: smtp.port == 465,
+                        auth: { user: smtp.user, pass: smtp.password },
+                    });
+                    await transporter.sendMail({
+                        from: smtp.fromEmail || smtp.user,
+                        to: email,
+                        subject: 'Your Digital Goods Order #' + orderId,
+                        html: emailHtml,
+                    }).catch(e => console.error(e));
+                }
+            }
+        }
+
+        res.json({ success: true, orderId: orderId, message: 'Order placed successfully' });
+    } catch (err) {
+        console.error('Storefront Order Error:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -1,10 +1,12 @@
 import html2pdf from 'html2pdf.js';
 import React, { useState, useEffect } from 'react';
-import ForgotPassword from './ForgotPassword';
-import ResetPassword from './ResetPassword';
+import Login from './components/auth/Login';
+import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
+import Storefront from './views/storefront/Storefront';
 import Reports from './views/reports/Reports';
 import ModuleSwitcher from './views/moduleSwitcher/ModuleSwitcher';
 import Warehouses from './views/inventory/Warehouses';
@@ -39,6 +41,20 @@ import RealEstateCRM from './views/property/RealEstateCRM';
 import TenantPortal from './views/property/TenantPortal';
 import PropertyOwners from './views/property/PropertyOwners';
 import OwnerAccounting from './views/property/OwnerAccounting';
+import { applyTheme } from './themes/themeManager';
+
+export const formatAddress = (addressStr) => {
+    if (!addressStr) return '';
+    try {
+        const a = typeof addressStr === 'string' ? JSON.parse(addressStr) : addressStr;
+        if (a && typeof a === 'object' && (a.buildingNo || a.street || a.city || a.district)) {
+            return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''}`.trim();
+        }
+    } catch (e) {
+        // Not JSON, just return string
+    }
+    return addressStr;
+};
 
 // Automatically add x-tenant-id header to relative API calls
 const getBaseDomain = (host) => {
@@ -772,7 +788,12 @@ export default function App() {
         // Fetch settings
         fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => { if (!res.ok) throw new Error(); return res.json(); })
-            .then(data => setSettings(data))
+            .then(data => {
+                setSettings(data);
+                if (data.activeTheme) {
+                    applyTheme(data.activeTheme, data.themeConfig);
+                }
+            })
             .catch(() => console.log("Using default fallback settings"));
 
         // Fetch products
@@ -1928,6 +1949,18 @@ const handleB2BSubmit = () => {
     }
     
     // Auth Overlay Login page (for demo.26i.uk or cust-x.26i.uk)
+    // Storefront Routing (Public, Unauthenticated)
+    const isAdminPath = window.location.pathname.startsWith('/admin');
+    if (routeMode === 'customer' && !isAdminPath) {
+        return (
+            <Storefront 
+                tenantId={tenantId}
+                currentLanguage={currentLanguage}
+                setLanguage={setCurrentLanguage}
+            />
+        );
+    }
+
     if (!token) {
         if (authView === 'forgot-password') {
             return (
@@ -2752,19 +2785,6 @@ const handleB2BSubmit = () => {
                         {/* Modal Header: format indicator / toggle */}
                         {/* Print Layout Area */}
                         {(() => {
-                            const formatAddress = (addressStr) => {
-                                if (!addressStr) return '';
-                                try {
-                                    const a = typeof addressStr === 'string' ? JSON.parse(addressStr) : addressStr;
-                                    if (a && typeof a === 'object' && (a.buildingNo || a.street || a.city || a.district)) {
-                                        return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''}`.trim();
-                                    }
-                                } catch (e) {
-                                    // Not JSON, just return string
-                                }
-                                return addressStr;
-                            };
-                            
                             const activeVat = activeInvoice.vat !== undefined && activeInvoice.vat !== null ? activeInvoice.vat : (activeInvoice.total - (activeInvoice.total / 1.15));
                             const activeSubtotal = activeInvoice.total - activeVat;
                             return (

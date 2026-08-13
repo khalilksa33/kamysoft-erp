@@ -7,7 +7,7 @@ const Inventory = (props) => {
 
     // Items
     const [showProductModal, setShowProductModal] = useState(false);
-    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
+    const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '', isDigital: false, digitalAssetUrl: '', digitalAssetInstructions: '' });
 
     // Categories
     const [categories, setCategories] = useState([
@@ -48,7 +48,7 @@ const Inventory = (props) => {
                 setProducts([...products, data]);
             }
             setShowProductModal(false);
-            setProdForm({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '' });
+            setProdForm({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '', isDigital: false, digitalAssetUrl: '', digitalAssetInstructions: '' });
         })
         .catch(() => {
             const mock = { ...prodForm, id: prodForm.id || (2000 + products.length).toString() };
@@ -356,6 +356,27 @@ const Inventory = (props) => {
                                 <label>{translations[currentLanguage].sellingPrice}</label>
                                 <input type="number" className="form-control" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: Number(e.target.value) })} required />
                             </div>
+
+                            <hr style={{ margin: '20px 0', borderColor: 'var(--glass-border)' }} />
+                            
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input type="checkbox" id="isDigital" checked={prodForm.isDigital} onChange={e => setProdForm({ ...prodForm, isDigital: e.target.checked })} style={{ width: 'auto' }} />
+                                <label htmlFor="isDigital" style={{ margin: 0 }}>{currentLanguage === 'ar' ? 'هذا منتج رقمي' : 'This is a Digital Product'}</label>
+                            </div>
+
+                            {prodForm.isDigital && (
+                                <>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'رابط الملف الرقمي' : 'Digital Asset URL'}</label>
+                                        <input type="text" className="form-control" value={prodForm.digitalAssetUrl} onChange={e => setProdForm({ ...prodForm, digitalAssetUrl: e.target.value })} placeholder="https://..." />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{currentLanguage === 'ar' ? 'تعليمات التنزيل' : 'Download Instructions'}</label>
+                                        <textarea className="form-control" value={prodForm.digitalAssetInstructions} onChange={e => setProdForm({ ...prodForm, digitalAssetInstructions: e.target.value })} placeholder={currentLanguage === 'ar' ? 'تعليمات للمشتري' : 'Instructions for the buyer'}></textarea>
+                                    </div>
+                                </>
+                            )}
+
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowProductModal(false)}>{translations[currentLanguage].close}</button>
                                 <button type="submit" className="btn btn-primary">{translations[currentLanguage].saveProduct}</button>

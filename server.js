@@ -93,6 +93,7 @@ const sendPasswordResetEmail = async (tenantEmail, tenantId, resetToken, baseDom
 };
 
 const getTenantId = (req) => {
+    if (req.tenantId) return req.tenantId;
     const host = (req.headers.host || '').split(':')[0].toLowerCase();
     const baseDomain = getBaseDomain(host);
 
@@ -1082,6 +1083,29 @@ global.sendLicenseEmail = sendLicenseEmail;
 global.sendPasswordResetEmail = sendPasswordResetEmail;
 global.updateCloudflareTunnelConfig = updateCloudflareTunnelConfig;
 global.removeCloudflareTunnelConfig = removeCloudflareTunnelConfig;
+
+const resolveTenantMiddleware = async (req, res, next) => {
+    const host = (req.headers.host || '').split(':')[0].toLowerCase();
+    const baseDomain = getBaseDomain(host);
+    
+    if (!host.endsWith(baseDomain) && host !== 'localhost') {
+        if (global.isMongoConnected) {
+            try {
+                const { CustomDomain } = require('./models');
+                const customDomain = await CustomDomain.findOne({ domain: host, status: 'verified' });
+                if (customDomain) {
+                    req.tenantId = customDomain.tenantId;
+                    return next();
+                }
+            } catch (err) {
+                console.error('Error resolving custom domain:', err);
+            }
+        }
+    }
+    req.tenantId = getTenantId(req);
+    next();
+};
+app.use(resolveTenantMiddleware);
 
 const apiRoutes = require('./routes/api');
 app.use('/', apiRoutes);
