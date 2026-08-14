@@ -1,8 +1,7 @@
 import html2pdf from 'html2pdf.js';
 import React, { useState, useEffect } from 'react';
-import Login from './components/auth/Login';
-import ForgotPassword from './components/auth/ForgotPassword';
-import ResetPassword from './components/auth/ResetPassword';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
