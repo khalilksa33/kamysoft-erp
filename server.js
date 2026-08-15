@@ -907,6 +907,40 @@ global.defaultProductsBySector = {
     ]
 };
 
+const https = require('https');
+
+function requestCloudflare(url, options, body = null) {
+    return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const reqOptions = {
+            hostname: urlObj.hostname,
+            port: 443,
+            path: urlObj.pathname + urlObj.search,
+            method: options.method || 'GET',
+            headers: options.headers || {},
+            family: 4 // Force IPv4 to prevent Node 22 IPv6 ECONNREFUSED in k8s
+        };
+
+        const req = https.request(reqOptions, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch (e) {
+                    reject(new Error('Invalid JSON response'));
+                }
+            });
+        });
+
+        req.on('error', (err) => reject(err));
+        if (body) {
+            req.write(typeof body === 'string' ? body : JSON.stringify(body));
+        }
+        req.end();
+    });
+}
+
 // Function to update Cloudflare Zero Trust Tunnel configuration dynamically
 async function updateCloudflareTunnelConfig(tenantDomain) {
     const cfAccountId = (process.env.CF_ACCOUNT_ID || '').replace(/^"|"$/g, '');
@@ -928,8 +962,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
         const baseDomain = tenantDomain.split('.').slice(1).join('.');
         let cfZoneId = null;
         
-        const zoneRes = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
-        const zoneData = await zoneRes.json();
+        const zoneData = await requestCloudflare(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
         
         if (zoneData.success && zoneData.result.length > 0) {
             cfZoneId = zoneData.result[0].id;
@@ -948,12 +981,10 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
                 proxied: true
             };
             
-            const dnsRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records`, {
+            const dnsData = await requestCloudflare(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records`, {
                 method: 'POST',
-                headers,
-                body: JSON.stringify(dnsPayload)
-            });
-            const dnsData = await dnsRes.json();
+                headers
+            }, dnsPayload);
             
             if (dnsData.success) {
                 console.log(`Successfully created CNAME record for ${tenantDomain}`);
@@ -970,8 +1001,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 
         // 3. Fetch existing Tunnel configuration
         const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
-        const fetchResponse = await fetch(url, { headers });
-        const fetchData = await fetchResponse.json();
+        const fetchData = await requestCloudflare(url, { headers });
 
         if (!fetchData.success) {
             console.error('Failed to fetch CF Tunnel config:', fetchData.errors);
@@ -1006,12 +1036,10 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
         }
 
         // 6. Update the Tunnel configuration
-        const updateResponse = await fetch(url, {
+        const updateData = await requestCloudflare(url, {
             method: 'PUT',
-            headers,
-            body: JSON.stringify({ config })
-        });
-        const updateData = await updateResponse.json();
+            headers
+        }, { config });
 
         if (updateData.success) {
             console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
