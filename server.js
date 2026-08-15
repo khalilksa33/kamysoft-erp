@@ -634,9 +634,9 @@ global.defaultProductsBySector = {
 
 // Function to update Cloudflare Zero Trust Tunnel configuration dynamically
 async function updateCloudflareTunnelConfig(tenantDomain) {
-    const cfAccountId = process.env.CF_ACCOUNT_ID;
-    const cfTunnelId = process.env.CF_TUNNEL_ID;
-    const cfApiToken = process.env.CF_API_TOKEN;
+    const cfAccountId = (process.env.CF_ACCOUNT_ID || '').replace(/^"|"$/g, '');
+    const cfTunnelId = (process.env.CF_TUNNEL_ID || '').replace(/^"|"$/g, '');
+    const cfApiToken = (process.env.CF_API_TOKEN || '').replace(/^"|"$/g, '');
 
     if (!cfAccountId || !cfTunnelId || !cfApiToken) {
         console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
@@ -909,9 +909,9 @@ global.defaultProductsBySector = {
 
 // Function to update Cloudflare Zero Trust Tunnel configuration dynamically
 async function updateCloudflareTunnelConfig(tenantDomain) {
-    const cfAccountId = process.env.CF_ACCOUNT_ID;
-    const cfTunnelId = process.env.CF_TUNNEL_ID;
-    const cfApiToken = process.env.CF_API_TOKEN;
+    const cfAccountId = (process.env.CF_ACCOUNT_ID || '').replace(/^"|"$/g, '');
+    const cfTunnelId = (process.env.CF_TUNNEL_ID || '').replace(/^"|"$/g, '');
+    const cfApiToken = (process.env.CF_API_TOKEN || '').replace(/^"|"$/g, '');
 
     if (!cfAccountId || !cfTunnelId || !cfApiToken) {
         console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
@@ -1023,9 +1023,9 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 }
 
 async function removeCloudflareTunnelConfig(tenantDomain) {
-    const cfAccountId = process.env.CF_ACCOUNT_ID;
-    const cfTunnelId = process.env.CF_TUNNEL_ID;
-    const cfApiToken = process.env.CF_API_TOKEN;
+    const cfAccountId = (process.env.CF_ACCOUNT_ID || '').replace(/^"|"$/g, '');
+    const cfTunnelId = (process.env.CF_TUNNEL_ID || '').replace(/^"|"$/g, '');
+    const cfApiToken = (process.env.CF_API_TOKEN || '').replace(/^"|"$/g, '');
 
     if (!cfAccountId || !cfTunnelId || !cfApiToken) {
         console.warn('Cloudflare credentials missing. Skipping Tunnel removal.');
