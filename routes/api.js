@@ -3745,7 +3745,7 @@ router.post('/api/leads/:id/convert', authenticateToken, async (req, res) => {
 // ==========================================
 
 // Get Printer Configs
-router.get('/printers', authMiddleware, async (req, res) => {
+router.get('/api/printers', authenticateToken, async (req, res) => {
     try {
         const configs = await PrinterConfig.find({ tenantId: req.tenantId });
         res.json(configs);
@@ -3755,7 +3755,7 @@ router.get('/printers', authMiddleware, async (req, res) => {
 });
 
 // Save Printer Config
-router.post('/printers', authMiddleware, async (req, res) => {
+router.post('/api/printers', authenticateToken, async (req, res) => {
     try {
         const { category, ip, port } = req.body;
         await PrinterConfig.findOneAndUpdate(
@@ -3770,7 +3770,7 @@ router.post('/printers', authMiddleware, async (req, res) => {
 });
 
 // Delete Printer Config
-router.delete('/printers/:category', authMiddleware, async (req, res) => {
+router.delete('/api/printers/:category', authenticateToken, async (req, res) => {
     try {
         await PrinterConfig.findOneAndDelete({ category: req.params.category, tenantId: req.tenantId });
         res.json({ success: true });
@@ -3780,7 +3780,7 @@ router.delete('/printers/:category', authMiddleware, async (req, res) => {
 });
 
 // Get all open restaurant orders
-router.get('/restaurant/orders', authMiddleware, async (req, res) => {
+router.get('/api/restaurant/orders', authenticateToken, async (req, res) => {
     try {
         const orders = await RestaurantOrder.find({ status: 'Open', tenantId: req.tenantId });
         res.json(orders);
@@ -3790,7 +3790,7 @@ router.get('/restaurant/orders', authMiddleware, async (req, res) => {
 });
 
 // Save or Update an open restaurant order
-router.post('/restaurant/orders', authMiddleware, async (req, res) => {
+router.post('/api/restaurant/orders', authenticateToken, async (req, res) => {
     try {
         const { id, tableNumber, customer, items, subtotal, vat, total } = req.body;
         const newOrder = await RestaurantOrder.findOneAndUpdate(
@@ -3805,7 +3805,7 @@ router.post('/restaurant/orders', authMiddleware, async (req, res) => {
 });
 
 // Delete a restaurant order
-router.delete('/restaurant/orders/:id', authMiddleware, async (req, res) => {
+router.delete('/api/restaurant/orders/:id', authenticateToken, async (req, res) => {
     try {
         await RestaurantOrder.findOneAndDelete({ id: req.params.id, tenantId: req.tenantId });
         res.json({ success: true });
@@ -3815,7 +3815,7 @@ router.delete('/restaurant/orders/:id', authMiddleware, async (req, res) => {
 });
 
 // Print KOT (Kitchen Order Ticket)
-router.post('/restaurant/orders/:id/print-kot', authMiddleware, async (req, res) => {
+router.post('/api/restaurant/orders/:id/print-kot', authenticateToken, async (req, res) => {
     try {
         const order = await RestaurantOrder.findOne({ id: req.params.id, tenantId: req.tenantId });
         if (!order) return res.status(404).json({ error: 'Order not found' });
