@@ -9,7 +9,8 @@ const POS = (props) => {
         couponInput, setCouponInput, applyCoupon, removeCoupon, activeCoupon,
         paymentMethod, setPaymentMethod, splitCash, setSplitCash, splitCard, setSplitCard,
         tableNum, setTableNum, serviceDuration, setServiceDuration,
-        checkout, processCheckout, handleSaveQuotationFromCart
+        checkout, processCheckout, handleSaveQuotationFromCart,
+        handleHoldTable, handleFireToKitchen
     } = props;
 
     return (
@@ -237,6 +238,16 @@ const POS = (props) => {
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    {settings.businessType === 'restaurant' && (
+                                        <>
+                                            <button className="btn btn-secondary" style={{ flexGrow: 1, backgroundColor: 'var(--accent-warning)', color: '#fff', border: 'none' }} onClick={handleHoldTable}>
+                                                <i className="ri-pause-circle-line"></i> {currentLanguage === 'ar' ? 'تعليق / حفظ' : 'Hold Table'}
+                                            </button>
+                                            <button className="btn btn-secondary" style={{ flexGrow: 1, backgroundColor: 'var(--accent-cyan)', color: '#fff', border: 'none' }} onClick={handleFireToKitchen}>
+                                                <i className="ri-fire-line"></i> {currentLanguage === 'ar' ? 'إرسال للمطبخ' : 'Fire to KOT'}
+                                            </button>
+                                        </>
+                                    )}
                                     <button className="btn btn-primary" style={{ flexGrow: 2 }} onClick={processCheckout}>{translations[currentLanguage].payCheckout}</button>
                                     
                                 </div>

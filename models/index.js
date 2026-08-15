@@ -471,6 +471,41 @@ const customDomainSchema = new mongoose.Schema({
 });
 const CustomDomain = mongoose.model('CustomDomain', customDomainSchema);
 
+// Restaurant Module Schemas
+const printerConfigSchema = new mongoose.Schema({
+    category: { type: String, required: true },
+    ip: { type: String, required: true },
+    port: { type: Number, default: 9100 },
+    tenantId: { type: String, default: 'default', index: true }
+});
+printerConfigSchema.index({ category: 1, tenantId: 1 }, { unique: true });
+const PrinterConfig = mongoose.model('PrinterConfig', printerConfigSchema);
+
+const restaurantOrderSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    tableNumber: { type: String, required: true },
+    customer: { type: String },
+    items: [
+        {
+            productId: { type: String, required: true },
+            name: { type: String, required: true },
+            price: { type: Number, required: true },
+            qty: { type: Number, required: true },
+            category: { type: String },
+            isPrinted: { type: Boolean, default: false }
+        }
+    ],
+    status: { type: String, enum: ['Open', 'Paid'], default: 'Open' },
+    subtotal: { type: Number, required: true },
+    vat: { type: Number, required: true },
+    total: { type: Number, required: true },
+    date: { type: Date, default: Date.now },
+    tenantId: { type: String, default: 'default', index: true }
+});
+restaurantOrderSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const RestaurantOrder = mongoose.model('RestaurantOrder', restaurantOrderSchema);
+
+
 module.exports = {
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
     Warehouse,
@@ -483,5 +518,6 @@ module.exports = {
     SubscriptionPayment,
     Account,
     PropertyOwner,
-    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain
+    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain,
+    PrinterConfig, RestaurantOrder
 };

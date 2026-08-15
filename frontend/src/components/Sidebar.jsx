@@ -11,6 +11,8 @@ const sidebarTranslations = {
         purchaseReturn: "Purchase Return",
         quotation: "Quotation",
         posCashier: "POS / Cashier",
+        tableManagement: "Table Management",
+        printerSetup: "Printer Setup",
         maintenance: "Maintenance",
         inventory: "Inventory",
         units: "Units",
@@ -81,6 +83,8 @@ const sidebarTranslations = {
         purchaseReturn: "فاتورة مرتجع شراء",
         quotation: "فاتورة عرض أسعار",
         posCashier: "نقطة بيع",
+        tableManagement: "إدارة الطاولات",
+        printerSetup: "إعداد الطابعات",
         maintenance: "الصيانة",
         inventory: "الأصناف",
         units: "الوحدات",
@@ -155,7 +159,14 @@ const menuConfig = [
             { id: 'quotation', labelKey: 'quotation' }
         ]
     },
-    { id: 'pos', icon: 'ri-shopping-cart-line', labelKey: 'posCashier' },
+    {
+        id: 'posGroup', icon: 'ri-shopping-cart-line', labelKey: 'posCashier',
+        submenu: [
+            { id: 'pos', labelKey: 'posCashier' },
+            { id: 'tableManagement', labelKey: 'tableManagement', requireRestaurant: true },
+            { id: 'printerSetup', labelKey: 'printerSetup', requireRestaurant: true }
+        ]
+    },
     {
         id: 'propertyManagement', icon: 'ri-building-line', labelKey: 'propertyManagement',
         submenu: [
@@ -334,17 +345,22 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                                     
                                     {item.submenu && (
                                         <ul className={`modern-submenu ${isExpanded ? 'open' : ''}`}>
-                                            {item.submenu.map(subItem => (
-                                                <li key={subItem.id}>
-                                                    <button 
-                                                        className={`modern-submenu-item ${activeTab === subItem.id ? 'active' : ''}`}
-                                                        onClick={() => handleSubMenuClick(subItem.id)}
-                                                    >
-                                                        <i className="ri-arrow-drop-right-line"></i>
-                                                        <span>{t[subItem.labelKey]}</span>
-                                                    </button>
-                                                </li>
-                                            ))}
+                                            {item.submenu.map(subItem => {
+                                                if (subItem.requireRestaurant && settings?.businessType !== 'restaurant') {
+                                                    return null;
+                                                }
+                                                return (
+                                                    <li key={subItem.id}>
+                                                        <button 
+                                                            className={`modern-submenu-item ${activeTab === subItem.id ? 'active' : ''}`}
+                                                            onClick={() => handleSubMenuClick(subItem.id)}
+                                                        >
+                                                            <i className="ri-arrow-drop-right-line"></i>
+                                                            <span>{t[subItem.labelKey]}</span>
+                                                        </button>
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     )}
                                 </li>

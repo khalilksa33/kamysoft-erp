@@ -13,7 +13,10 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { uploadFile, getPresignedUrl } = require('../services/s3Service');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, PrinterConfig, RestaurantOrder } = require('../models');
+
+const ThermalPrinter = require('node-thermal-printer').printer;
+const PrinterTypes = require('node-thermal-printer').types;
 
 // Ensure upload directories exist
 const baseUploadDir = process.env.UPLOADS_DIR || path.join(__dirname, '../public/uploads');
@@ -3736,5 +3739,153 @@ router.post('/api/leads/:id/convert', authenticateToken, async (req, res) => {
         }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// ==========================================
+// RESTAURANT MODULE ENDPOINTS
+// ==========================================
+
+// Get Printer Configs
+router.get('/printers', authMiddleware, async (req, res) => {
+    try {
+        const configs = await PrinterConfig.find({ tenantId: req.tenantId });
+        res.json(configs);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Save Printer Config
+router.post('/printers', authMiddleware, async (req, res) => {
+    try {
+        const { category, ip, port } = req.body;
+        await PrinterConfig.findOneAndUpdate(
+            { category, tenantId: req.tenantId },
+            { ip, port: port || 9100 },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Delete Printer Config
+router.delete('/printers/:category', authMiddleware, async (req, res) => {
+    try {
+        await PrinterConfig.findOneAndDelete({ category: req.params.category, tenantId: req.tenantId });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Get all open restaurant orders
+router.get('/restaurant/orders', authMiddleware, async (req, res) => {
+    try {
+        const orders = await RestaurantOrder.find({ status: 'Open', tenantId: req.tenantId });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Save or Update an open restaurant order
+router.post('/restaurant/orders', authMiddleware, async (req, res) => {
+    try {
+        const { id, tableNumber, customer, items, subtotal, vat, total } = req.body;
+        const newOrder = await RestaurantOrder.findOneAndUpdate(
+            { id, tenantId: req.tenantId },
+            { tableNumber, customer, items, subtotal, vat, total, status: 'Open' },
+            { upsert: true, new: true }
+        );
+        res.json(newOrder);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Delete a restaurant order
+router.delete('/restaurant/orders/:id', authMiddleware, async (req, res) => {
+    try {
+        await RestaurantOrder.findOneAndDelete({ id: req.params.id, tenantId: req.tenantId });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Print KOT (Kitchen Order Ticket)
+router.post('/restaurant/orders/:id/print-kot', authMiddleware, async (req, res) => {
+    try {
+        const order = await RestaurantOrder.findOne({ id: req.params.id, tenantId: req.tenantId });
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        const printerConfigs = await PrinterConfig.find({ tenantId: req.tenantId });
+
+        // Group unprinted items by category
+        const itemsToPrint = order.items.filter(item => !item.isPrinted);
+        if (itemsToPrint.length === 0) {
+            return res.json({ success: true, message: 'No new items to print' });
+        }
+
+        const groupedItems = {};
+        itemsToPrint.forEach(item => {
+            const cat = item.category || 'General';
+            if (!groupedItems[cat]) groupedItems[cat] = [];
+            groupedItems[cat].push(item);
+        });
+
+        const printResults = [];
+
+        // Print each group to its configured printer
+        for (const [category, items] of Object.entries(groupedItems)) {
+            const config = printerConfigs.find(c => c.category === category);
+            
+            if (!config || !config.ip) {
+                printResults.push({ category, success: false, error: 'No printer configured for this category' });
+                continue;
+            }
+
+            try {
+                let printer = new ThermalPrinter({
+                    type: PrinterTypes.EPSON,
+                    interface: `tcp://${config.ip}:${config.port}`
+                });
+
+                printer.alignCenter();
+                printer.println("--- KITCHEN TICKET ---");
+                printer.println(`Table: ${order.tableNumber}`);
+                printer.println(`Date: ${new Date().toLocaleString()}`);
+                printer.drawLine();
+                
+                printer.alignLeft();
+                items.forEach(item => {
+                    printer.println(`${item.qty}x ${item.name}`);
+                });
+                
+                printer.drawLine();
+                printer.cut();
+
+                const executePrint = await printer.execute();
+                printResults.push({ category, success: true });
+
+                // Mark items as printed
+                items.forEach(item => {
+                    item.isPrinted = true;
+                });
+            } catch (err) {
+                printResults.push({ category, success: false, error: err.message });
+            }
+        }
+
+        // Save updated order
+        await order.save();
+
+        res.json({ success: true, results: printResults });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 
 module.exports = router;

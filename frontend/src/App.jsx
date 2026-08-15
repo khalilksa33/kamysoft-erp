@@ -29,6 +29,8 @@ import POS from './views/pos/POS';
 import Dashboard from './views/dashboard/Dashboard';
 import Employees from './views/people/Employees';
 import Sidebar from './components/Sidebar';
+import TableManagement from './views/restaurant/TableManagement';
+import PrinterSetup from './views/restaurant/PrinterSetup';
 import SaasAdmin from './SaasAdmin';
 import Maintenance from './views/services/Maintenance';
 import Properties from './views/property/Properties';
@@ -1116,6 +1118,135 @@ export default function App() {
         }
     };
 
+    const loadCartFromOrder = (order) => {
+        if (!order) {
+            setCart([]);
+            setActiveCoupon(null);
+            return;
+        }
+        const mappedCart = order.items.map(item => {
+            const product = products.find(p => p.id === item.productId) || {
+                id: item.productId,
+                nameEN: item.name,
+                nameAR: item.name,
+                price: item.price,
+                category: item.category
+            };
+            return { product, qty: item.qty };
+        });
+        setCart(mappedCart);
+        setActiveCustomer(order.customer || 'walk-in');
+        setTableNum(order.tableNumber);
+    };
+
+    const handleHoldTable = () => {
+        if (cart.length === 0 || !tableNum) {
+            alert(currentLanguage === 'ar' ? 'السلة فارغة أو لم يتم تحديد طاولة' : 'Cart is empty or no table selected');
+            return;
+        }
+        
+        let subtotal = 0;
+        const items = cart.map(c => {
+            subtotal += c.product.price * c.qty;
+            return { 
+                productId: c.product.id, 
+                name: currentLanguage === 'ar' ? c.product.nameAR : c.product.nameEN, 
+                price: c.product.price, 
+                qty: c.qty,
+                category: c.product.category,
+                isPrinted: false
+            };
+        });
+
+        const discount = activeCoupon ? subtotal * activeCoupon.rate : 0;
+        const taxable = subtotal - discount;
+        const vat = taxable * (settings.taxRate / 100);
+        const grandTotal = taxable + vat;
+
+        const orderData = {
+            id: `REST-${Date.now()}`,
+            tableNumber: tableNum,
+            customer: activeCustomer !== 'walk-in' ? customers.find(c => c.id === activeCustomer)?.name : '',
+            items,
+            subtotal,
+            vat,
+            total: grandTotal
+        };
+
+        fetch('/api/restaurant/orders', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(orderData)
+        })
+        .then(res => res.json())
+        .then(() => {
+            alert(currentLanguage === 'ar' ? 'تم حفظ الطاولة بنجاح' : 'Table held successfully');
+            setCart([]);
+            setTableNum('');
+            setActiveTab('tableManagement');
+        })
+        .catch(err => console.error(err));
+    };
+
+    const handleFireToKitchen = () => {
+        if (cart.length === 0 || !tableNum) {
+            alert(currentLanguage === 'ar' ? 'السلة فارغة أو لم يتم تحديد طاولة' : 'Cart is empty or no table selected');
+            return;
+        }
+
+        const orderId = `REST-${Date.now()}`;
+        
+        let subtotal = 0;
+        const items = cart.map(c => {
+            subtotal += c.product.price * c.qty;
+            return { 
+                productId: c.product.id, 
+                name: currentLanguage === 'ar' ? c.product.nameAR : c.product.nameEN, 
+                price: c.product.price, 
+                qty: c.qty,
+                category: c.product.category,
+                isPrinted: false
+            };
+        });
+
+        const discount = activeCoupon ? subtotal * activeCoupon.rate : 0;
+        const taxable = subtotal - discount;
+        const vat = taxable * (settings.taxRate / 100);
+        const grandTotal = taxable + vat;
+
+        const orderData = {
+            id: orderId,
+            tableNumber: tableNum,
+            customer: activeCustomer !== 'walk-in' ? customers.find(c => c.id === activeCustomer)?.name : '',
+            items,
+            subtotal,
+            vat,
+            total: grandTotal
+        };
+
+        fetch('/api/restaurant/orders', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(orderData)
+        })
+        .then(res => res.json())
+        .then(savedOrder => {
+            fetch(`/api/restaurant/orders/${savedOrder.id}/print-kot`, { method: 'POST', headers })
+                .then(res => res.json())
+                .then(printRes => {
+                    if (printRes.success) {
+                        alert(currentLanguage === 'ar' ? 'تم إرسال الطلب للمطبخ' : 'Order fired to kitchen');
+                        setCart([]);
+                        setTableNum('');
+                        setActiveTab('tableManagement');
+                    } else {
+                        alert(currentLanguage === 'ar' ? 'حدث خطأ أثناء الطباعة' : 'Error printing KOT');
+                    }
+                });
+        })
+        .catch(err => console.error(err));
+    };
+
     const processCheckout = () => {
         if (cart.length === 0) return;
 
@@ -2055,7 +2186,7 @@ const handleB2BSubmit = () => {
         );
     }
 
-    const props = { handleB2BAddItem, setHostname, products, settings, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal, translations, headers };
+    const props = { handleHoldTable, handleFireToKitchen, loadCartFromOrder, handleB2BAddItem, setHostname, products, settings, activeCoupon, handleLaunchApp, simulatedDomain, setQuotations, setAuthError, handleB2BItemChange, loginUsername, calculateAssetValues, handleDeleteExpense, handleSaveQuotation, handleB2BRemoveItem, simulatedTenant, setReportSubTab, handleRefundInvoice, handleRegisterSuccess, setServiceDuration, activeCustomer, setLoginPassword, setMobileMenuOpen, setZatcaConsole, zatcaSelectInvoice, setShowAssetModal, invoices, setUser, setTableNum, quotations, quotationForm, currentLanguage, showAssetQrModal, posFilter, setToken, setInvoiceSource, showCustomerModal, salesStartDate, usersList, setSplitCard, activeTab, downloadXml, setActiveInvoice, setActiveAssetForQr, setCustForm, couponInput, setInvoiceFormat, splitCash, setShowOrderModal, setPosFilter, setSalesEndDate, setShowAssetQrModal, showOrderModal, applyCoupon, handleSaveOrder, setZatcaConn, zatcaConsole, setQuotationForm, setOrderForm, handleSaveQuotationFromCart, setShowCustomerModal, handleDeleteOrder, setSimulatedDomain, setShowExpenseModal, setB2bForm, expenses, isReportingZatca, showQuotationModal, setCurrentLanguage, reportSubTab, handleSaveUser, setProducts, orders, handleSaveAsset, setSalesSearch, setEmployees, handleB2BSubmit, customers, setExpForm, orderForm, setCustomers, serviceDuration, assets, showUserModal, getBaseDomain, activeQuotation, updateCartQty, setActiveCustomer, simulateZATCAReporting, setZatcaSelectInvoice, user, setSuppliers, handleLogin, handleSaveCustomer, invoiceFormat, setCart, setPosSearch, activeAssetForQr, hostname, setActiveQuotation, custForm, splitCard, suppliers, addToCart, authError, zatcaConn, setOrders, setLoginUsername, handleDeleteCustomer, setActiveTab, handleSaveExpense, handleDeleteQuotation, setTheme, userForm, expForm, salesSearch, setSplitCash, setSalesStartDate, salesEndDate, invoiceSource, b2bForm, isAllowedTab, triggerZatcaPortalClearance, setSimulatedTenant, setShowQuotationModal, setPaymentMethod, setExpenses, setShowQuotationCrudModal, setShowInvoiceModal, processCheckout, setUsersList, setIsReportingZatca, posSearch, showInvoiceModal, setAssetForm, getPaymentMethodLabel, formatCurrency, handleLogout, setInvoices, tableNum, setSettings, cart, setActiveCoupon, mobileMenuOpen, paymentMethod, assetForm, showExpenseModal, token, employees, setShowUserModal, showAssetModal, setUserForm, loginPassword, handleDeleteUser, theme, setCouponInput, setAssets, activeInvoice, showQuotationCrudModal, translations, headers };
 
     const b2bProductOptions = products.map(p => (
         <option key={p.id} value={p.id}>{currentLanguage === 'ar' ? p.nameAR : p.nameEN}</option>
@@ -2138,6 +2269,8 @@ const handleB2BSubmit = () => {
 
                 {/* TAB: POS CASHIER & B2B SALE */}
                 {activeTab === 'pos' && <POS {...props} />}
+                {activeTab === 'tableManagement' && <TableManagement {...props} />}
+                {activeTab === 'printerSetup' && <PrinterSetup {...props} />}
 
                 {/* TAB: B2B SALES PANEL */}
                 {['b2bsale', 'salesInvoice'].includes(activeTab) && (
