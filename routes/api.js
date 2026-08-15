@@ -370,9 +370,9 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             }
         }
         
-        // Cloudflare Tunnel update is called immediately since email verification is bypassed
+        let cfResult = null;
         if (process.env.CF_ACCOUNT_ID && baseDomain) {
-            global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => console.error(err));
+            cfResult = await global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => ({ error: err.message }));
         }        
 
         // Send Welcome Email
@@ -420,7 +420,8 @@ router.post('/api/auth/register-tenant', async (req, res) => {
         res.status(201).json({ 
             success: true, 
             tenantId: normalizedTenantId,
-            licenseKey: licenseKey 
+            licenseKey: licenseKey,
+            cfResult: cfResult
         });
     } catch (err) {
         console.error('Error registering tenant:', err);

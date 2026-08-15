@@ -915,7 +915,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 
     if (!cfAccountId || !cfTunnelId || !cfApiToken) {
         console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
-        return;
+        return { success: false, error: 'Cloudflare credentials missing' };
     }
 
     try {
@@ -935,6 +935,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
             cfZoneId = zoneData.result[0].id;
         } else {
             console.error('Failed to fetch Zone ID for', baseDomain, zoneData.errors);
+            return { success: false, error: 'Failed to fetch Zone ID', details: zoneData.errors };
         }
 
         // 2. Create DNS CNAME record for the tenant
@@ -974,20 +975,20 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 
         if (!fetchData.success) {
             console.error('Failed to fetch CF Tunnel config:', fetchData.errors);
-            return;
+            return { success: false, error: 'Failed to fetch CF Tunnel config', details: fetchData.errors };
         }
 
         const config = fetchData.result.config;
         if (!config || !config.ingress) {
             console.error('CF Tunnel config is malformed.');
-            return;
+            return { success: false, error: 'CF Tunnel config is malformed' };
         }
 
         // 4. Check if route already exists in Tunnel
         const routeExists = config.ingress.some(route => route.hostname === tenantDomain);
         if (routeExists) {
             console.log(`Route for ${tenantDomain} already exists in Cloudflare Tunnel.`);
-            return;
+            return { success: true, message: 'Route already exists' };
         }
 
         // 5. Add new route to Tunnel
@@ -1014,11 +1015,14 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
 
         if (updateData.success) {
             console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
+            return { success: true, message: 'Tunnel updated successfully' };
         } else {
             console.error('Failed to update CF Tunnel config:', updateData.errors);
+            return { success: false, error: 'Failed to update CF Tunnel config', details: updateData.errors };
         }
     } catch (err) {
         console.error('Error updating Cloudflare Tunnel:', err);
+        return { success: false, error: err.message };
     }
 }
 
