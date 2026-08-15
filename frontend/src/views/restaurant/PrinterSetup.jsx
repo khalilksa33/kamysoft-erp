@@ -6,6 +6,8 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
     
     const famousPrinters = [
         { id: 'epson', name: 'Epson (ESC/POS)' },
+        { id: 'ta', name: 'TA (Saudi)' },
+        { id: 'zpos', name: 'ZPOS' },
         { id: 'star', name: 'Star Micronics' },
         { id: 'xprinter', name: 'XPrinter' },
         { id: 'rongta', name: 'Rongta' },

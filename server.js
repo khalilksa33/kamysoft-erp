@@ -908,10 +908,6 @@ global.defaultProductsBySector = {
 };
 
 const https = require('https');
-const dns = require('dns');
-
-const customResolver = new dns.Resolver();
-customResolver.setServers(['1.1.1.1', '8.8.8.8']);
 
 function requestCloudflare(url, options, body = null) {
     return new Promise((resolve, reject) => {
@@ -923,10 +919,11 @@ function requestCloudflare(url, options, body = null) {
             method: options.method || 'GET',
             headers: options.headers || {},
             lookup: (hostname, opts, callback) => {
-                customResolver.resolve4(hostname, (err, addresses) => {
-                    if (err) return callback(err);
-                    callback(null, addresses[0], 4);
-                });
+                // Hardcode IP for api.cloudflare.com to completely bypass broken UDP DNS in Kubernetes
+                if (hostname === 'api.cloudflare.com') {
+                    return callback(null, '162.159.138.85', 4);
+                }
+                callback(new Error('Unknown hostname'), null);
             }
         };
 
