@@ -1022,7 +1022,7 @@ async function updateCloudflareTunnelConfig(tenantDomain) {
         }
     } catch (err) {
         console.error('Error updating Cloudflare Tunnel:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err.message, cause: err.cause ? err.cause.message : 'No cause provided' };
     }
 }
 
