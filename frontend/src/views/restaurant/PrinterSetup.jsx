@@ -2,7 +2,17 @@ import React, { useState, useEffect } from 'react';
 
 const PrinterSetup = ({ currentLanguage, translations, headers }) => {
     const [configs, setConfigs] = useState([]);
-    const [form, setForm] = useState({ category: '', ip: '', port: 9100 });
+    const [form, setForm] = useState({ category: '', ip: '', port: 9100, model: 'epson' });
+    
+    const famousPrinters = [
+        { id: 'epson', name: 'Epson (ESC/POS)' },
+        { id: 'star', name: 'Star Micronics' },
+        { id: 'xprinter', name: 'XPrinter' },
+        { id: 'rongta', name: 'Rongta' },
+        { id: 'bixolon', name: 'Bixolon' },
+        { id: 'zebra', name: 'Zebra' },
+        { id: 'generic', name: 'Generic Network Printer' }
+    ];
 
     const fetchConfigs = () => {
         fetch('/api/printers', { headers })
@@ -25,7 +35,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
         .then(res => res.json())
         .then(() => {
             fetchConfigs();
-            setForm({ category: '', ip: '', port: 9100 });
+            setForm({ category: '', ip: '', port: 9100, model: 'epson' });
         })
         .catch(err => console.error(err));
     };
@@ -62,7 +72,17 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                         className="form-control" 
                         value={form.port} 
                         onChange={e => setForm({...form, port: parseInt(e.target.value)})} 
+                        style={{ width: '100px' }}
                     />
+                    <select 
+                        className="form-control" 
+                        value={form.model} 
+                        onChange={e => setForm({...form, model: e.target.value})}
+                    >
+                        {famousPrinters.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                    </select>
                     <button className="btn btn-primary" onClick={handleSave}>
                         <i className="ri-save-line"></i> {translations[currentLanguage].saveBtn}
                     </button>
@@ -74,6 +94,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                     <thead>
                         <tr>
                             <th>{currentLanguage === 'ar' ? 'الفئة' : 'Category'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الطراز' : 'Model'}</th>
                             <th>{currentLanguage === 'ar' ? 'عنوان IP' : 'IP Address'}</th>
                             <th>{currentLanguage === 'ar' ? 'المنفذ' : 'Port'}</th>
                             <th>{currentLanguage === 'ar' ? 'إجراء' : 'Action'}</th>
@@ -83,6 +104,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                         {configs.map(config => (
                             <tr key={config.category}>
                                 <td>{config.category}</td>
+                                <td>{famousPrinters.find(p => p.id === config.model)?.name || config.model || 'Epson (ESC/POS)'}</td>
                                 <td>{config.ip}</td>
                                 <td>{config.port}</td>
                                 <td>
@@ -94,7 +116,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                         ))}
                         {configs.length === 0 && (
                             <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                                     {currentLanguage === 'ar' ? 'لا توجد طابعات مضافة' : 'No printers configured'}
                                 </td>
                             </tr>

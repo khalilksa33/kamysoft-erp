@@ -908,6 +908,10 @@ global.defaultProductsBySector = {
 };
 
 const https = require('https');
+const dns = require('dns');
+
+const customResolver = new dns.Resolver();
+customResolver.setServers(['1.1.1.1', '8.8.8.8']);
 
 function requestCloudflare(url, options, body = null) {
     return new Promise((resolve, reject) => {
@@ -918,7 +922,12 @@ function requestCloudflare(url, options, body = null) {
             path: urlObj.pathname + urlObj.search,
             method: options.method || 'GET',
             headers: options.headers || {},
-            family: 4 // Force IPv4 to prevent Node 22 IPv6 ECONNREFUSED in k8s
+            lookup: (hostname, opts, callback) => {
+                customResolver.resolve4(hostname, (err, addresses) => {
+                    if (err) return callback(err);
+                    callback(null, addresses[0], 4);
+                });
+            }
         };
 
         const req = https.request(reqOptions, (res) => {
