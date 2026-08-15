@@ -1,20 +1,86 @@
 import React, { useState, useEffect } from 'react';
 
 const PrinterSetup = ({ currentLanguage, translations, headers }) => {
-    const [configs, setConfigs] = useState([]);
-    const [form, setForm] = useState({ category: '', ip: '', port: 9100, model: 'epson' });
-    
-    const famousPrinters = [
-        { id: 'epson', name: 'Epson (ESC/POS)' },
-        { id: 'ta', name: 'TA (Saudi)' },
-        { id: 'zpos', name: 'ZPOS' },
-        { id: 'star', name: 'Star Micronics' },
-        { id: 'xprinter', name: 'XPrinter' },
-        { id: 'rongta', name: 'Rongta' },
-        { id: 'bixolon', name: 'Bixolon' },
-        { id: 'zebra', name: 'Zebra' },
-        { id: 'generic', name: 'Generic Network Printer' }
+    const printerBrands = [
+        {
+            brand: 'Epson',
+            models: [
+                { id: 'epson-tm-t88vi', name: 'Epson TM-T88VI' },
+                { id: 'epson-tm-t88v', name: 'Epson TM-T88V' },
+                { id: 'epson-tm-m30', name: 'Epson TM-m30' },
+                { id: 'epson-tm-u220', name: 'Epson TM-U220' },
+                { id: 'epson-tm-t20iii', name: 'Epson TM-T20III' },
+                { id: 'epson-generic', name: 'Epson Generic (ESC/POS)' }
+            ]
+        },
+        {
+            brand: 'TA (Saudi)',
+            models: [
+                { id: 'ta-80', name: 'TA-80 Thermal' },
+                { id: 'ta-pos80', name: 'TA-POS80' },
+                { id: 'ta-generic', name: 'TA Generic' }
+            ]
+        },
+        {
+            brand: 'ZPOS',
+            models: [
+                { id: 'zpos-80', name: 'ZPOS 80mm' },
+                { id: 'zpos-58', name: 'ZPOS 58mm' },
+                { id: 'zpos-generic', name: 'ZPOS Generic' }
+            ]
+        },
+        {
+            brand: 'Star Micronics',
+            models: [
+                { id: 'star-tsp100', name: 'Star TSP100III' },
+                { id: 'star-tsp654', name: 'Star TSP654II' },
+                { id: 'star-mcprint3', name: 'Star mC-Print3' },
+                { id: 'star-generic', name: 'Star Generic' }
+            ]
+        },
+        {
+            brand: 'XPrinter',
+            models: [
+                { id: 'xprinter-xp80c', name: 'XPrinter XP-80C' },
+                { id: 'xprinter-xpq800', name: 'XPrinter XP-Q800' },
+                { id: 'xprinter-xpn160i', name: 'XPrinter XP-N160I' },
+                { id: 'xprinter-generic', name: 'XPrinter Generic' }
+            ]
+        },
+        {
+            brand: 'Rongta',
+            models: [
+                { id: 'rongta-rp326', name: 'Rongta RP326' },
+                { id: 'rongta-rp80', name: 'Rongta RP80' },
+                { id: 'rongta-generic', name: 'Rongta Generic' }
+            ]
+        },
+        {
+            brand: 'Bixolon',
+            models: [
+                { id: 'bixolon-srp330', name: 'Bixolon SRP-330II' },
+                { id: 'bixolon-srp350', name: 'Bixolon SRP-350plusIII' },
+                { id: 'bixolon-generic', name: 'Bixolon Generic' }
+            ]
+        },
+        {
+            brand: 'Zebra',
+            models: [
+                { id: 'zebra-zd410', name: 'Zebra ZD410' },
+                { id: 'zebra-zd420', name: 'Zebra ZD420' },
+                { id: 'zebra-generic', name: 'Zebra Generic' }
+            ]
+        },
+        {
+            brand: 'Other',
+            models: [
+                { id: 'generic-network', name: 'Generic Network Printer (Raw 9100)' }
+            ]
+        }
     ];
+
+    // Flatten for easy lookup in the table
+    const allModels = printerBrands.flatMap(b => b.models);
 
     const fetchConfigs = () => {
         fetch('/api/printers', { headers })
@@ -37,7 +103,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
         .then(res => res.json())
         .then(() => {
             fetchConfigs();
-            setForm({ category: '', ip: '', port: 9100, model: 'epson' });
+            setForm({ category: '', ip: '', port: 9100, model: 'epson-generic' });
         })
         .catch(err => console.error(err));
     };
@@ -81,8 +147,12 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                         value={form.model} 
                         onChange={e => setForm({...form, model: e.target.value})}
                     >
-                        {famousPrinters.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
+                        {printerBrands.map(brandGroup => (
+                            <optgroup key={brandGroup.brand} label={brandGroup.brand}>
+                                {brandGroup.models.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </optgroup>
                         ))}
                     </select>
                     <button className="btn btn-primary" onClick={handleSave}>
@@ -106,7 +176,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                         {configs.map(config => (
                             <tr key={config.category}>
                                 <td>{config.category}</td>
-                                <td>{famousPrinters.find(p => p.id === config.model)?.name || config.model || 'Epson (ESC/POS)'}</td>
+                                <td>{allModels.find(p => p.id === config.model)?.name || config.model || 'Generic Printer'}</td>
                                 <td>{config.ip}</td>
                                 <td>{config.port}</td>
                                 <td>
