@@ -159,7 +159,7 @@ const mockDb = {
         { id: '1', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Admin' },
         { id: '2', username: 'manager', passwordHash: bcrypt.hashSync('manager123', 10), role: 'Manager' },
         { id: '3', username: 'cashier', passwordHash: bcrypt.hashSync('cashier123', 10), role: 'Cashier' },
-        { id: '4', username: 'demo', passwordHash: bcrypt.hashSync('demo123', 10), role: 'Cashier' }
+        { id: '4', username: 'demo', passwordHash: bcrypt.hashSync('demo123', 10), role: 'Admin' }
     ],
     products: [
         { id: '1001', nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
@@ -342,6 +342,10 @@ async function seedDatabase() {
             if (!exists) {
                 await User.create(u);
                 console.log(`Database seeded user: ${u.username}`);
+            } else if (u.username === 'demo' && exists.role !== 'Admin') {
+                exists.role = 'Admin';
+                await exists.save();
+                console.log('Updated demo user to Admin role.');
             }
         }
 
