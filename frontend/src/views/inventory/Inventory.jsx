@@ -171,7 +171,10 @@ const Inventory = (props) => {
                             <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
                             {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
                         </button>
-                        <button className="btn btn-primary" onClick={() => setShowProductModal(true)}>
+                        <button className="btn btn-primary" onClick={() => { 
+                            setProdForm({ nameEN: '', nameAR: '', price: 0, cost: 0, stock: 0, category: 'electronics', emoji: '' });
+                            setShowProductModal(true); 
+                        }}>
                             <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
                             {translations[currentLanguage].addProduct}
                         </button>
@@ -340,9 +343,15 @@ const Inventory = (props) => {
                                     <option value="groceries">{translations[currentLanguage].groceries}</option>
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</label>
-                                <input type="text" className="form-control" value={prodForm.barcode || ''} onChange={e => setProdForm({ ...prodForm, barcode: e.target.value })} />
+                            <div className="form-group" style={{ display: 'flex', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</label>
+                                    <input type="text" className="form-control" value={prodForm.barcode || ''} onChange={e => setProdForm({ ...prodForm, barcode: e.target.value })} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label>{currentLanguage === 'ar' ? 'أيقونة المنتج (إيموجي)' : 'Product Icon (Emoji)'}</label>
+                                    <input type="text" className="form-control" placeholder="🍔" value={prodForm.emoji || ''} onChange={e => setProdForm({ ...prodForm, emoji: e.target.value })} />
+                                </div>
                             </div>
                             <div className="form-group">
                                 <label>{translations[currentLanguage].prodStock}</label>

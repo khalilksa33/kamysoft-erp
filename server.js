@@ -612,7 +612,11 @@ const defaultProductsBySector = {
         { nameEN: 'Margherita Pizza', nameAR: 'بيتزا مارغريتا', price: 40, cost: 15, stock: 20, category: 'Pizza', emoji: '🍕', barcode: '828100100012' },
         { nameEN: 'Caesar Salad', nameAR: 'سلطة سيزر', price: 20, cost: 8, stock: 25, category: 'Appetizers', emoji: '🥗', barcode: '828100100013' },
         { nameEN: 'Fresh Orange Juice', nameAR: 'عصير برتقال طازج', price: 15, cost: 5, stock: 40, category: 'Beverages', emoji: '🥤', barcode: '828100100014' },
-        { nameEN: 'Kunafa with Cream', nameAR: 'كنافة بالقشطة', price: 22, cost: 10, stock: 15, category: 'Desserts', emoji: '🍮', barcode: '828100100015' }
+        { nameEN: 'Kunafa with Cream', nameAR: 'كنافة بالقشطة', price: 22, cost: 10, stock: 15, category: 'Desserts', emoji: '🍮', barcode: '828100100015' },
+        { nameEN: 'Chicken Shawarma Wrap', nameAR: 'ساندوتش شاورما دجاج', price: 12, cost: 6, stock: 60, category: 'Fast Food', emoji: '🌯', barcode: '828100100016' },
+        { nameEN: 'Pepperoni Pizza', nameAR: 'بيتزا بيبيروني', price: 45, cost: 18, stock: 25, category: 'Pizza', emoji: '🍕', barcode: '828100100017' },
+        { nameEN: 'Lamb Kabsa', nameAR: 'كبسة لحم', price: 55, cost: 25, stock: 35, category: 'Main Course', emoji: '🍛', barcode: '828100100018' },
+        { nameEN: 'Arabic Coffee Pot', nameAR: 'دلة قهوة عربية', price: 30, cost: 12, stock: 50, category: 'Beverages', emoji: '☕', barcode: '828100100019' }
     ],
     appliances: [
         { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },

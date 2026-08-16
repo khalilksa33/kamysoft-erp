@@ -63,36 +63,38 @@ const POS = (props) => {
                                 </span>
                             </div>
 
-                            <div style={{ marginTop: '10px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد العميل' : 'Assign Customer'}</label>
-                                <select className="form-control" value={activeCustomer} onChange={e => setActiveCustomer(e.target.value)}>
-                                    <option value="walk-in">{translations[currentLanguage].walkIn}</option>
-                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد العميل' : 'Assign Customer'}</label>
+                                    <select className="form-control" value={activeCustomer} onChange={e => setActiveCustomer(e.target.value)}>
+                                        <option value="walk-in">{translations[currentLanguage].walkIn}</option>
+                                        {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+
+                                {settings.businessType === 'restaurant' && settings.enableTables && (
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد الطاولة' : 'Select Table'}</label>
+                                        <select className="form-control" value={tableNum} onChange={e => setTableNum(e.target.value)}>
+                                            {Array.from({ length: 20 }, (_, i) => (
+                                                <option key={i+1} value={(i+1).toString()}>{currentLanguage === 'ar' ? `طاولة ${i+1}` : `Table ${i+1}`}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {settings.businessType === 'services' && settings.enableServiceDuration && (
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'مدة الجلسة' : 'Session Duration'}</label>
+                                        <select className="form-control" value={serviceDuration} onChange={e => setServiceDuration(e.target.value)}>
+                                            <option value="30 mins">{currentLanguage === 'ar' ? '٣٠ دقيقة' : '30 mins'}</option>
+                                            <option value="60 mins">{currentLanguage === 'ar' ? 'ساعة واحدة' : '60 mins'}</option>
+                                            <option value="90 mins">{currentLanguage === 'ar' ? 'ساعة ونصف' : '90 mins'}</option>
+                                            <option value="120 mins">{currentLanguage === 'ar' ? 'ساعتين' : '120 mins'}</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
-
-                            {settings.businessType === 'restaurant' && settings.enableTables && (
-                                <div style={{ marginTop: '10px' }}>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'تحديد الطاولة' : 'Select Table'}</label>
-                                    <select className="form-control" value={tableNum} onChange={e => setTableNum(e.target.value)}>
-                                        {Array.from({ length: 20 }, (_, i) => (
-                                            <option key={i+1} value={(i+1).toString()}>{currentLanguage === 'ar' ? `طاولة ${i+1}` : `Table ${i+1}`}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {settings.businessType === 'services' && settings.enableServiceDuration && (
-                                <div style={{ marginTop: '10px' }}>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{currentLanguage === 'ar' ? 'مدة الجلسة' : 'Session Duration'}</label>
-                                    <select className="form-control" value={serviceDuration} onChange={e => setServiceDuration(e.target.value)}>
-                                        <option value="30 mins">{currentLanguage === 'ar' ? '٣٠ دقيقة' : '30 mins'}</option>
-                                        <option value="60 mins">{currentLanguage === 'ar' ? 'ساعة واحدة' : '60 mins'}</option>
-                                        <option value="90 mins">{currentLanguage === 'ar' ? 'ساعة ونصف' : '90 mins'}</option>
-                                        <option value="120 mins">{currentLanguage === 'ar' ? 'ساعتين' : '120 mins'}</option>
-                                    </select>
-                                </div>
-                            )}
 
                             <div className="cart-items">
                                 {cart.length === 0 ? <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '40px' }}>{translations[currentLanguage].cartEmpty}</p> : 
