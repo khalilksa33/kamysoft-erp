@@ -12,13 +12,14 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
         { id: 'suppliers', label: currentLanguage === 'ar' ? 'الموردين' : 'Suppliers' },
         { id: 'warehouses', label: currentLanguage === 'ar' ? 'المخازن' : 'Warehouses' },
         { id: 'financials', label: currentLanguage === 'ar' ? 'المالية' : 'Financials' },
-        { id: 'reports', label: currentLanguage === 'ar' ? 'التقارير' : 'Reports' }
+        { id: 'reports', label: currentLanguage === 'ar' ? 'التقارير' : 'Reports' },
+        { id: 'ecommerce', label: currentLanguage === 'ar' ? 'المتجر الإلكتروني' : 'E-Commerce' }
     ];
 
     const handleToggle = (moduleId) => {
         setSettings(prev => {
             const currentModules = prev.enabledModules || {};
-            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
             const isCurrentlyEnabled = currentModules[moduleId] !== undefined 
                 ? currentModules[moduleId] 
                 : !defaultOffModules.includes(moduleId);
@@ -54,7 +55,7 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {modulesList.map(mod => {
-                    const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+                    const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
                     const isEnabled = settings?.enabledModules?.[mod.id] !== undefined 
                         ? settings.enabledModules[mod.id] 
                         : !defaultOffModules.includes(mod.id);

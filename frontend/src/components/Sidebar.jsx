@@ -331,7 +331,7 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                 <div className="modern-nav-container">
                     <ul className="modern-nav-links">
                         {menuConfig.map((item) => {
-                            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials'];
+                            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
                             
                             // Check if module is enabled by SaaS Admin (default logic applies if undefined)
                             if (item.id !== 'dashboard' && item.id !== 'settings') {
