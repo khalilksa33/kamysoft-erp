@@ -10,11 +10,10 @@ const Inventory = (props) => {
     const [prodForm, setProdForm] = useState({ id: '', nameAR: '', nameEN: '', category: 'electronics', stock: 10, price: 100, cost: 60, barcode: '', isDigital: false, digitalAssetUrl: '', digitalAssetInstructions: '' });
 
     // Categories
-    const [categories, setCategories] = useState([
-        { id: '1', nameAR: 'إلكترونيات', nameEN: 'Electronics' },
-        { id: '2', nameAR: 'ملابس', nameEN: 'Apparel' },
-        { id: '3', nameAR: 'بقالة', nameEN: 'Groceries' }
-    ]);
+    const [categories, setCategories] = useState(() => {
+        const uniqueCats = Array.from(new Set(products.map(p => p.category)));
+        return uniqueCats.map((cat, i) => ({ id: String(i+1), nameAR: cat, nameEN: cat }));
+    });
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [categoryForm, setCategoryForm] = useState({ id: '', nameAR: '', nameEN: '' });
 
@@ -73,7 +72,7 @@ const Inventory = (props) => {
         e.preventDefault();
         const mock = { ...categoryForm, id: categoryForm.id || Date.now().toString() };
         if (categoryForm.id) {
-            setCategories(categories.map(c => c.id === mock.id ? mock : c));
+            setCategories(categories.map(c => c.id == mock.id ? mock : c));
         } else {
             setCategories([...categories, mock]);
         }
@@ -172,7 +171,7 @@ const Inventory = (props) => {
                             {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
                         </button>
                         <button className="btn btn-primary" onClick={() => { 
-                            setProdForm({ nameEN: '', nameAR: '', price: 0, cost: 0, stock: 0, category: 'electronics', emoji: '' });
+                            setProdForm({ nameEN: '', nameAR: '', price: 0, cost: 0, stock: 0, category: categories.length > 0 ? categories[0].id : '', emoji: '', barcode: '', isDigital: false });
                             setShowProductModal(true); 
                         }}>
                             <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
@@ -231,7 +230,7 @@ const Inventory = (props) => {
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3>{currentLanguage === 'ar' ? 'فئات المنتجات' : 'Product Categories'}</h3>
-                <button className="btn btn-primary" onClick={() => setShowCategoryModal(true)}>
+                <button className="btn btn-primary" onClick={() => { setCategoryForm({ id: '', nameAR: '', nameEN: '' }); setShowCategoryModal(true); }}>
                     <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
                     {currentLanguage === 'ar' ? 'إضافة فئة' : 'Add Category'}
                 </button>
@@ -337,20 +336,38 @@ const Inventory = (props) => {
                             <div className="form-group">
                                 <label>{translations[currentLanguage].prodCategory}</label>
                                 <select className="form-control" value={prodForm.category} onChange={e => setProdForm({ ...prodForm, category: e.target.value })}>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{currentLanguage === 'ar' ? c.nameAR : c.nameEN}</option>)}
-                                    <option value="electronics">{translations[currentLanguage].electronics}</option>
-                                    <option value="apparel">{translations[currentLanguage].apparel}</option>
-                                    <option value="groceries">{translations[currentLanguage].groceries}</option>
+                                    {categories.map(c => <option key={c.id} value={c.nameEN}>{currentLanguage === 'ar' ? c.nameAR : c.nameEN}</option>)}
                                 </select>
                             </div>
-                            <div className="form-group" style={{ display: 'flex', gap: '10px' }}>
-                                <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                                     <label>{currentLanguage === 'ar' ? 'الباركود' : 'Barcode'}</label>
                                     <input type="text" className="form-control" value={prodForm.barcode || ''} onChange={e => setProdForm({ ...prodForm, barcode: e.target.value })} />
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                                     <label>{currentLanguage === 'ar' ? 'أيقونة المنتج (إيموجي)' : 'Product Icon (Emoji)'}</label>
-                                    <input type="text" className="form-control" placeholder="🍔" value={prodForm.emoji || ''} onChange={e => setProdForm({ ...prodForm, emoji: e.target.value })} />
+                                    <input type="text" list="emoji-list" className="form-control" placeholder="🍔" value={prodForm.emoji || ''} onChange={e => setProdForm({ ...prodForm, emoji: e.target.value })} />
+                                    <datalist id="emoji-list">
+                                        <option value="🍔" />
+                                        <option value="🍕" />
+                                        <option value="🍗" />
+                                        <option value="🥩" />
+                                        <option value="🥗" />
+                                        <option value="🍟" />
+                                        <option value="🌭" />
+                                        <option value="☕" />
+                                        <option value="🥤" />
+                                        <option value="🧃" />
+                                        <option value="🍰" />
+                                        <option value="🍮" />
+                                        <option value="🍩" />
+                                        <option value="🧊" />
+                                        <option value="🌯" />
+                                        <option value="🌮" />
+                                        <option value="🍲" />
+                                        <option value="🍛" />
+                                        <option value="🍝" />
+                                    </datalist>
                                 </div>
                             </div>
                             <div className="form-group">

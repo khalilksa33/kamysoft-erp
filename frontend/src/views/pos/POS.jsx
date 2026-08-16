@@ -19,15 +19,33 @@ const POS = (props) => {
                         <div className="pos-products">
                             <div className="products-filter">
                                 <button className={`filter-chip ${posFilter === 'all' ? 'active' : ''}`} onClick={() => setPosFilter('all')}>{translations[currentLanguage].allCategories}</button>
-                                {[...new Set(products.map(p => p.category))].map(cat => (
-                                    <button 
-                                        key={cat} 
-                                        className={`filter-chip ${posFilter === cat ? 'active' : ''}`} 
-                                        onClick={() => setPosFilter(cat)}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
+                                {[...new Set(products.map(p => p.category))].map(cat => {
+                                    const catTranslations = {
+                                        'Main Course': 'الأطباق الرئيسية',
+                                        'Fast Food': 'الوجبات السريعة',
+                                        'Pizza': 'البيتزا',
+                                        'Appetizers': 'المقبلات',
+                                        'Beverages': 'المشروبات',
+                                        'Desserts': 'الحلويات',
+                                        'appliances': 'الأجهزة',
+                                        'furniture': 'الأثاث',
+                                        'spareparts': 'قطع الغيار',
+                                        'electronics': 'الإلكترونيات',
+                                        'office': 'مكتبية',
+                                        'groceries': 'بقالة',
+                                        'apparel': 'ملابس'
+                                    };
+                                    const label = currentLanguage === 'ar' && catTranslations[cat] ? catTranslations[cat] : cat;
+                                    return (
+                                        <button 
+                                            key={cat} 
+                                            className={`filter-chip ${posFilter === cat ? 'active' : ''}`} 
+                                            onClick={() => setPosFilter(cat)}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <input type="text" className="form-control" placeholder={translations[currentLanguage].searchPlaceholder} value={posSearch} onChange={e => setPosSearch(e.target.value)} />
