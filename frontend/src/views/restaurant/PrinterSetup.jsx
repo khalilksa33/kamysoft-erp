@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 const PrinterSetup = ({ currentLanguage, translations, headers }) => {
+    const [configs, setConfigs] = useState([]);
+    const [form, setForm] = useState({ category: '', ip: '', port: 9100, model: 'epson-generic' });
+    
     const printerBrands = [
         {
             brand: 'Epson',
