@@ -3116,33 +3116,33 @@ const handleB2BSubmit = () => {
 
                                     ) : (
                                         /* Redesigned Centered Thermal Layout */
-                                        <div style={{ padding: '15px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', width: '100%', boxSizing: 'border-box' }}>
+                                        <div style={{ padding: '10px', color: 'black', background: 'white', fontFamily: 'Cairo, sans-serif', fontWeight: 'bold', width: '100%', boxSizing: 'border-box' }}>
                                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                                                 <img src={settings.logo || "/logo.png"} alt="Company Logo" style={{ maxHeight: '70px', maxWidth: '120px', objectFit: 'contain' }} />
                                             </div>
-                                            <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold' }}>{settings.businessName}</h3>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#555' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'الرقم الضريبي:' : 'VAT:'}</strong> {settings.vatNumber}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'سجل تجاري:' : 'CR No:'}</strong> {settings.crNumber}</p>
-                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '11px', color: '#333' }}><strong>{currentLanguage === 'ar' ? 'رقم التواصل:' : 'Contact:'}</strong> {settings.contactNumber}</p>
+                                            <h3 style={{ textAlign: 'center', margin: '0 0 4px 0', fontSize: '18px', fontWeight: '900' }}>{settings.businessName}</h3>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '13px', color: '#000', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'فاتورة ضريبية مبسطة' : 'Simplified Tax Invoice'}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '13px', color: '#000', fontWeight: 'bold' }}>{formatAddress(settings.nationalAddress || settings.businessAddress)}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '13px', color: '#000', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'الرقم الضريبي:' : 'VAT:'} {settings.vatNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '13px', color: '#000', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'سجل تجاري:' : 'CR No:'} {settings.crNumber}</p>
+                                            <p style={{ textAlign: 'center', margin: '2px 0', fontSize: '13px', color: '#000', fontWeight: 'bold' }}>{currentLanguage === 'ar' ? 'رقم التواصل:' : 'Contact:'} {settings.contactNumber}</p>
                                             
                                             <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
                                             
                                             {/* Invoice Metadata (Centered) */}
-                                            <div style={{ fontSize: '11px', textAlign: 'center', margin: '0 auto 10px auto', lineHeight: '1.6' }}>
-                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'رقم الفاتورة:' : 'Invoice ID:'}</strong> {activeInvoice.id}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'التاريخ:' : 'Date:'}</strong> {activeInvoice.date}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'العميل:' : 'Customer:'}</strong> {activeInvoice.customer}</p>
-                                                <p style={{ margin: '2px 0' }}><strong>{currentLanguage === 'ar' ? 'الدفع:' : 'Payment:'}</strong> {getPaymentMethodLabel(activeInvoice.paymentMethod, currentLanguage)}</p>
+                                            <div style={{ fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: '0 auto 10px auto', lineHeight: '1.6' }}>
+                                                <p style={{ margin: '2px 0' }}>{currentLanguage === 'ar' ? 'رقم الفاتورة:' : 'Invoice ID:'} {activeInvoice.id}</p>
+                                                <p style={{ margin: '2px 0' }}>{currentLanguage === 'ar' ? 'التاريخ:' : 'Date:'} {activeInvoice.date}</p>
+                                                <p style={{ margin: '2px 0' }}>{currentLanguage === 'ar' ? 'العميل:' : 'Customer:'} {activeInvoice.customer}</p>
+                                                <p style={{ margin: '2px 0' }}>{currentLanguage === 'ar' ? 'الدفع:' : 'Payment:'} {getPaymentMethodLabel(activeInvoice.paymentMethod, currentLanguage)}</p>
                                             </div>
                                             
                                             <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
                                             
                                             {/* Items Table */}
-                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', margin: '10px 0' }}>
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', fontWeight: 'bold', margin: '10px 0' }}>
                                                 <thead>
-                                                    <tr style={{ borderBottom: '1px solid #000' }}>
+                                                    <tr style={{ borderBottom: '2px solid #000' }}>
                                                         <th style={{ textAlign: 'left', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'السلعة' : 'Item'}</th>
                                                         <th style={{ textAlign: 'center', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'الكمية' : 'Qty'}</th>
                                                         <th style={{ textAlign: 'right', padding: '4px 0' }}>{currentLanguage === 'ar' ? 'الاجمالي' : 'Total'}</th>
@@ -3150,7 +3150,7 @@ const handleB2BSubmit = () => {
                                                 </thead>
                                                 <tbody>
                                                     {(activeInvoice.items || []).map((item, idx) => (
-                                                        <tr key={idx} style={{ borderBottom: '1px dashed #eee' }}>
+                                                        <tr key={idx} style={{ borderBottom: '1px dashed #555' }}>
                                                             <td style={{ textAlign: 'left', padding: '6px 0' }}>{item.name}</td>
                                                             <td style={{ textAlign: 'center', padding: '6px 0' }}>{item.qty}</td>
                                                             <td style={{ textAlign: 'right', padding: '6px 0' }}>{formatCurrency(item.price * item.qty)}</td>
@@ -3162,7 +3162,7 @@ const handleB2BSubmit = () => {
                                             <hr style={{ borderStyle: 'dashed', margin: '10px 0', borderColor: '#ccc' }} />
                                             
                                             {/* Financial Summary */}
-                                            <div style={{ fontSize: '11px', lineHeight: '1.6', margin: '10px 0' }}>
+                                            <div style={{ fontSize: '13px', fontWeight: 'bold', lineHeight: '1.6', margin: '10px 0' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                     <span>{currentLanguage === 'ar' ? 'المجموع (غير شامل الضريبة):' : 'Subtotal (Excl. VAT):'}</span>
                                                     <span>{formatCurrency(activeSubtotal)}</span>
@@ -3177,7 +3177,7 @@ const handleB2BSubmit = () => {
                                                         <span>-{formatCurrency(activeInvoice.discount)}</span>
                                                     </div>
                                                 )}
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', marginTop: '4px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '900', borderTop: '2px solid #000', paddingTop: '4px', marginTop: '4px' }}>
                                                     <span>{currentLanguage === 'ar' ? 'المجموع (شامل الضريبة):' : 'Total (Incl. VAT):'}</span>
                                                     <span>{formatCurrency(activeInvoice.total)}</span>
                                                 </div>

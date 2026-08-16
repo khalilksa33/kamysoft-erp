@@ -746,7 +746,9 @@ tr:hover td {
     color: black;
     padding: 24px;
     border-radius: var(--radius-md);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Cairo', 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
     margin-bottom: 20px;
     max-width: 80mm;
     margin-left: auto;
@@ -767,7 +769,8 @@ tr:hover td {
     background: white;
     color: black;
     border-radius: var(--radius-md);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Cairo', 'Outfit', sans-serif;
+    font-weight: 500;
     margin-bottom: 20px;
     width: 210mm;
     margin-left: auto;
@@ -785,7 +788,8 @@ tr:hover td {
 .invoice-details {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 700;
     margin-bottom: 16px;
 }
 
