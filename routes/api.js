@@ -821,7 +821,7 @@ router.post('/api/storefront/orders', async (req, res) => {
             email: email || '',
             phone: phone || '',
             address: address || '',
-            items,
+            items: JSON.stringify(items),
             paymentMethod: paymentMethod || 'Mock Payment',
             total,
             status: 'Pending',

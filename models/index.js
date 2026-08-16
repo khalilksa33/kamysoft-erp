@@ -25,6 +25,10 @@ const productSchema = new mongoose.Schema({
     isDigital: { type: Boolean, default: false },
     digitalAssetUrl: { type: String, default: '' },
     digitalAssetInstructions: { type: String, default: '' },
+    variants: [{
+        name: { type: String, required: true },
+        options: [{ type: String, required: true }]
+    }],
     tenantId: { type: String, default: 'default', index: true }
 });
 productSchema.index({ id: 1, tenantId: 1 }, { unique: true });

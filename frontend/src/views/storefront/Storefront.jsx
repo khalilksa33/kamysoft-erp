@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import ProductList from './ProductList';
+import ProductDetail from './ProductDetail';
 import CartCheckout from './CartCheckout';
 
 const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
     const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
-    const [view, setView] = useState('products'); // 'products' or 'cart'
+    const [view, setView] = useState('products'); // 'products', 'cart', 'productDetail', or 'success'
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const [orderSuccess, setOrderSuccess] = useState(null);
 
     useEffect(() => {
@@ -24,15 +26,23 @@ const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
         .catch(err => console.error('Failed to load products:', err));
     }, [tenantId]);
 
-    const handleAddToCart = (product) => {
+    const handleViewProduct = (product) => {
+        setSelectedProduct(product);
+        setView('productDetail');
+    };
+
+    const handleAddToCart = (product, qty = 1, variants = {}) => {
         setCart(prev => {
-            const existing = prev.find(item => item.product.id === product.id);
+            // Cart item unique key incorporates variants
+            const variantKey = JSON.stringify(variants);
+            const existing = prev.find(item => item.product.id === product.id && JSON.stringify(item.variants || {}) === variantKey);
             if (existing) {
-                return prev.map(item => item.product.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+                return prev.map(item => (item.product.id === product.id && JSON.stringify(item.variants || {}) === variantKey) ? { ...item, qty: item.qty + qty } : item);
             }
-            return [...prev, { product, qty: 1 }];
+            return [...prev, { product, qty, variants }];
         });
         alert(currentLanguage === 'ar' ? 'تمت الإضافة للسلة' : 'Added to cart');
+        setView('products'); // Return to catalog
     };
 
     const handleUpdateQty = (productId, qty) => {
@@ -56,7 +66,8 @@ const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
                 qty: item.qty,
                 isDigital: item.product.isDigital,
                 digitalAssetUrl: item.product.digitalAssetUrl,
-                digitalAssetInstructions: item.product.digitalAssetInstructions
+                digitalAssetInstructions: item.product.digitalAssetInstructions,
+                variants: item.variants
             })),
             total: cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0),
             paymentMethod: 'Mock Payment Gateway'
@@ -111,8 +122,17 @@ const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
                 {view === 'products' && (
                     <ProductList 
                         products={products} 
-                        onAddToCart={handleAddToCart} 
+                        onViewProduct={handleViewProduct} 
                         currentLanguage={currentLanguage} 
+                    />
+                )}
+
+                {view === 'productDetail' && selectedProduct && (
+                    <ProductDetail
+                        product={selectedProduct}
+                        onAddToCart={handleAddToCart}
+                        onBack={() => setView('products')}
+                        currentLanguage={currentLanguage}
                     />
                 )}
                 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProductList = ({ products, onAddToCart, currentLanguage }) => {
+const ProductList = ({ products, onViewProduct, currentLanguage }) => {
     return (
         <div className="product-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', padding: '20px' }}>
             {products.map(product => (
@@ -20,11 +20,11 @@ const ProductList = ({ products, onAddToCart, currentLanguage }) => {
                     </div>
                     <button 
                         className="btn btn-primary" 
-                        onClick={() => onAddToCart(product)}
+                        onClick={() => onViewProduct(product)}
                         style={{ width: '100%', marginTop: 'auto' }}
                     >
-                        <i className="ri-shopping-cart-2-line" style={{ marginRight: '8px' }}></i>
-                        {currentLanguage === 'ar' ? 'أضف للسلة' : 'Add to Cart'}
+                        <i className="ri-eye-line" style={{ marginRight: '8px' }}></i>
+                        {currentLanguage === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                     </button>
                 </div>
             ))}
