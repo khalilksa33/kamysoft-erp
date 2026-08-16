@@ -197,7 +197,7 @@ body[dir="rtl"] .main-content {
     flex-direction: column;
     gap: 8px;
     overflow-y: auto;
-    max-height: 100vh;
+    height: 100vh;
     grid-column: 1;
     grid-row: 1;
 }
@@ -500,6 +500,7 @@ tr:hover td {
     grid-template-columns: 3fr 2fr;
     gap: 24px;
     height: calc(100vh - 160px);
+    flex: 1;
 }
 
 .pos-products {
