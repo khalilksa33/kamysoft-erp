@@ -605,7 +605,7 @@ if (mockDb.invoices.length === 0) {
 // ----------------------------------------------------
 
 // AUTHENTICATION
-global.defaultProductsBySector = {
+const defaultProductsBySector = {
     appliances: [
         { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },
         { nameEN: 'Double Door Refrigerator 450L', nameAR: 'ثلاجة دولابي 450 لتر', price: 3500, cost: 2600, stock: 5, category: 'appliances', emoji: '🎛️', barcode: '728100100011' },
@@ -628,7 +628,26 @@ global.defaultProductsBySector = {
     retail: [
         { nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
         { nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, cost: 170, stock: 8, category: 'electronics', emoji: '🔦', barcode: '628100200020' },
-        { nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺', barcode: '628100400040' }
+        { nameEN: 'Direct Thermal Receipt Printer', nameAR: 'طابعة فواتير حرارية مباشرة', price: 320, cost: 210, stock: 15, category: 'electronics', emoji: '🖨️', barcode: '628100300030' },
+        { nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺', barcode: '628100400040' },
+        { nameEN: 'Organic Coffee Beans 1kg', nameAR: 'حبوب قهوة عضوية 1 كجم', price: 75, cost: 48, stock: 30, category: 'groceries', emoji: '☕', barcode: '628100500050' },
+        { nameEN: 'Saudi Classic Thobe (White)', nameAR: 'ثوب سعودي كلاسيك أبيض', price: 180, cost: 110, stock: 45, category: 'apparel', emoji: '👔', barcode: '628100600060' },
+        { nameEN: 'Luxury Shemagh (Red)', nameAR: 'شماغ أحمر ملكي فاخر', price: 220, cost: 140, stock: 30, category: 'apparel', emoji: '🧣', barcode: '628100700070' },
+        { nameEN: 'Premium Black Abaya', nameAR: 'عباءة سوداء فاخرة مطرزة', price: 350, cost: 220, stock: 25, category: 'apparel', emoji: '👘', barcode: '628100800080' },
+        { nameEN: 'Casual Formal Suit (Blue)', nameAR: 'بدلة رسمية كلاسيكية زرقاء', price: 650, cost: 420, stock: 10, category: 'apparel', emoji: '🧥', barcode: '628100900090' },
+        { nameEN: 'Mechanical Keyboard (RGB)', nameAR: 'لوحة مفاتيح ميكانيكية ملونة', price: 150, cost: 90, stock: 20, category: 'electronics', emoji: '⌨️', barcode: '628101000100' },
+        { nameEN: 'Ergonomic Standing Desk', nameAR: 'مكتب وقوف مرن مريح', price: 1200, cost: 850, stock: 5, category: 'office', emoji: '🎚️', barcode: '628101100110' },
+        { nameEN: 'Automatic Water Dispenser', nameAR: 'موزع مياه أوتوماتيكي', price: 95, cost: 60, stock: 15, category: 'groceries', emoji: '🥛', barcode: '628101200120' }
+    ],
+    restaurant: [
+        { nameEN: 'Classic Cheeseburger', nameAR: 'تشيز برجر كلاسيك', price: 28, cost: 12, stock: 50, category: 'Main Course', emoji: '🍔', barcode: '628200100010' },
+        { nameEN: 'Margherita Pizza', nameAR: 'بيتزا مارغريتا', price: 45, cost: 18, stock: 30, category: 'Main Course', emoji: '🍕', barcode: '628200100020' },
+        { nameEN: 'Grilled Chicken Sandwich', nameAR: 'ساندوتش دجاج مشوي', price: 25, cost: 10, stock: 40, category: 'Sandwiches', emoji: '🥪', barcode: '628200100030' },
+        { nameEN: 'French Fries (Large)', nameAR: 'بطاطس مقلية (كبير)', price: 12, cost: 4, stock: 100, category: 'Sides', emoji: '🍟', barcode: '628200100040' },
+        { nameEN: 'Caesar Salad', nameAR: 'سلطة سيزر', price: 30, cost: 12, stock: 20, category: 'Salads', emoji: '🥗', barcode: '628200100050' },
+        { nameEN: 'Fresh Orange Juice', nameAR: 'عصير برتقال طازج', price: 15, cost: 5, stock: 60, category: 'Beverages', emoji: '🥤', barcode: '628200100060' },
+        { nameEN: 'Cappuccino', nameAR: 'كابتشينو', price: 18, cost: 4, stock: 80, category: 'Beverages', emoji: '☕', barcode: '628200100070' },
+        { nameEN: 'Chocolate Brownie', nameAR: 'براوني الشوكولاتة', price: 22, cost: 8, stock: 25, category: 'Desserts', emoji: '🧁', barcode: '628200100080' }
     ]
 };
 
