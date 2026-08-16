@@ -2081,7 +2081,8 @@ const handleB2BSubmit = () => {
     // Auth Overlay Login page (for demo.26i.uk or cust-x.26i.uk)
     // Storefront Routing (Public, Unauthenticated)
     const isAdminPath = window.location.pathname.startsWith('/admin');
-    if (routeMode === 'customer' && !isAdminPath) {
+    const isStorefrontPath = window.location.pathname.startsWith('/store');
+    if (routeMode === 'customer' && isStorefrontPath) {
         return (
             <Storefront 
                 tenantId={tenantId}

@@ -72,7 +72,11 @@ const sidebarTranslations = {
         propertyMaintenance: "Maintenance Tasks",
         propertyOwners: "Property Owners",
         ownerAccounting: "Owner Accounting",
-        propertyCrm: "CRM / Leads"
+        propertyCrm: "CRM / Leads",
+        ecommerce: "E-Commerce",
+        storefrontSettings: "Storefront Settings",
+        viewStore: "View Online Store",
+        digitalAssets: "Digital Assets"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -143,7 +147,11 @@ const sidebarTranslations = {
         propertyMaintenance: "مهام الصيانة",
         propertyOwners: "الملاك",
         ownerAccounting: "حسابات الملاك",
-        propertyCrm: "إدارة العملاء المحتملين (CRM)"
+        propertyCrm: "إدارة العملاء المحتملين (CRM)",
+        ecommerce: "المتجر الإلكتروني",
+        storefrontSettings: "إعدادات المتجر",
+        viewStore: "عرض المتجر",
+        digitalAssets: "المنتجات الرقمية"
     }
 };
 
@@ -251,7 +259,14 @@ const menuConfig = [
             { id: 'taxReport', labelKey: 'taxReport' }
         ]
     },
-
+    {
+        id: 'ecommerce', icon: 'ri-shopping-bag-3-line', labelKey: 'ecommerce',
+        submenu: [
+            { id: 'storefrontSettings', labelKey: 'storefrontSettings' },
+            { id: 'digitalAssets', labelKey: 'digitalAssets' },
+            { id: 'viewStore', labelKey: 'viewStore' }
+        ]
+    },
     {
         id: 'settings', icon: 'ri-settings-4-line', labelKey: 'settings',
         submenu: [
@@ -280,6 +295,10 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
     };
 
     const handleSubMenuClick = (subMenuItemId) => {
+        if (subMenuItemId === 'viewStore') {
+            window.open('/store', '_blank');
+            return;
+        }
         setActiveTab(subMenuItemId);
         setMobileMenuOpen(false);
     };
