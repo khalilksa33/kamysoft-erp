@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const PrinterSetup = ({ currentLanguage, translations, headers }) => {
     const [configs, setConfigs] = useState([]);
-    const [form, setForm] = useState({ category: '', ip: '', port: 9100, model: 'epson-generic' });
+    const [form, setForm] = useState({ category: '', ip: '', port: 9100, brand: 'Epson', model: 'epson-generic' });
     
     const printerBrands = [
         {
@@ -106,7 +106,7 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
         .then(res => res.json())
         .then(() => {
             fetchConfigs();
-            setForm({ category: '', ip: '', port: 9100, model: 'epson-generic' });
+            setForm({ category: '', ip: '', port: 9100, brand: 'Epson', model: 'epson-generic' });
         })
         .catch(err => console.error(err));
     };
@@ -147,15 +147,26 @@ const PrinterSetup = ({ currentLanguage, translations, headers }) => {
                     />
                     <select 
                         className="form-control" 
+                        value={form.brand} 
+                        onChange={e => {
+                            const newBrand = e.target.value;
+                            const brandGroup = printerBrands.find(b => b.brand === newBrand);
+                            setForm({...form, brand: newBrand, model: brandGroup ? brandGroup.models[0].id : ''});
+                        }}
+                    >
+                        {printerBrands.map(brandGroup => (
+                            <option key={brandGroup.brand} value={brandGroup.brand}>
+                                {brandGroup.brand}
+                            </option>
+                        ))}
+                    </select>
+                    <select 
+                        className="form-control" 
                         value={form.model} 
                         onChange={e => setForm({...form, model: e.target.value})}
                     >
-                        {printerBrands.map(brandGroup => (
-                            <optgroup key={brandGroup.brand} label={brandGroup.brand}>
-                                {brandGroup.models.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </optgroup>
+                        {printerBrands.find(b => b.brand === form.brand)?.models.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
                     <button className="btn btn-primary" onClick={handleSave}>

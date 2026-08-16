@@ -606,6 +606,14 @@ if (mockDb.invoices.length === 0) {
 
 // AUTHENTICATION
 const defaultProductsBySector = {
+    restaurant: [
+        { nameEN: 'Grilled Chicken Meal', nameAR: 'وجبة دجاج شواية', price: 25, cost: 12, stock: 50, category: 'Main Course', emoji: '🍗', barcode: '828100100010' },
+        { nameEN: 'Beef Burger Combo', nameAR: 'وجبة برجر لحم', price: 35, cost: 18, stock: 30, category: 'Fast Food', emoji: '🍔', barcode: '828100100011' },
+        { nameEN: 'Margherita Pizza', nameAR: 'بيتزا مارغريتا', price: 40, cost: 15, stock: 20, category: 'Pizza', emoji: '🍕', barcode: '828100100012' },
+        { nameEN: 'Caesar Salad', nameAR: 'سلطة سيزر', price: 20, cost: 8, stock: 25, category: 'Appetizers', emoji: '🥗', barcode: '828100100013' },
+        { nameEN: 'Fresh Orange Juice', nameAR: 'عصير برتقال طازج', price: 15, cost: 5, stock: 40, category: 'Beverages', emoji: '🥤', barcode: '828100100014' },
+        { nameEN: 'Kunafa with Cream', nameAR: 'كنافة بالقشطة', price: 22, cost: 10, stock: 15, category: 'Desserts', emoji: '🍮', barcode: '828100100015' }
+    ],
     appliances: [
         { nameEN: 'Smart Split AC 18000 BTU', nameAR: 'مكيف سبليت ذكي 18000 وحدة', price: 2400, cost: 1700, stock: 10, category: 'appliances', emoji: '❄️', barcode: '728100100010' },
         { nameEN: 'Double Door Refrigerator 450L', nameAR: 'ثلاجة دولابي 450 لتر', price: 3500, cost: 2600, stock: 5, category: 'appliances', emoji: '🎛️', barcode: '728100100011' },
