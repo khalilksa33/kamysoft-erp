@@ -632,120 +632,7 @@ global.defaultProductsBySector = {
     ]
 };
 
-// Function to update Cloudflare Zero Trust Tunnel configuration dynamically
-async function updateCloudflareTunnelConfig(tenantDomain) {
-    const cfAccountId = (process.env.CF_ACCOUNT_ID || '').replace(/^"|"$/g, '');
-    const cfTunnelId = (process.env.CF_TUNNEL_ID || '').replace(/^"|"$/g, '');
-    const cfApiToken = (process.env.CF_API_TOKEN || '').replace(/^"|"$/g, '');
-
-    if (!cfAccountId || !cfTunnelId || !cfApiToken) {
-        console.warn('Cloudflare credentials missing. Skipping Tunnel update.');
-        return;
-    }
-
-    try {
-        const headers = {
-            'Authorization': `Bearer ${cfApiToken}`,
-            'Content-Type': 'application/json'
-        };
-
-        // 1. Get Zone ID for the base domain
-        const baseDomain = tenantDomain.split('.').slice(1).join('.');
-        let cfZoneId = null;
-        
-        const zoneRes = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${baseDomain}`, { headers });
-        const zoneData = await zoneRes.json();
-        
-        if (zoneData.success && zoneData.result.length > 0) {
-            cfZoneId = zoneData.result[0].id;
-        } else {
-            console.error('Failed to fetch Zone ID for', baseDomain, zoneData.errors);
-        }
-
-        // 2. Create DNS CNAME record for the tenant
-        if (cfZoneId) {
-            const dnsPayload = {
-                type: 'CNAME',
-                name: tenantDomain,
-                content: `${cfTunnelId}.cfargotunnel.com`,
-                ttl: 1, // Auto
-                proxied: true
-            };
-            
-            const dnsRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/dns_records`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(dnsPayload)
-            });
-            const dnsData = await dnsRes.json();
-            
-            if (dnsData.success) {
-                console.log(`Successfully created CNAME record for ${tenantDomain}`);
-            } else {
-                // If it already exists, that's fine (code 81053)
-                const exists = dnsData.errors.some(e => e.code === 81053 || e.message.includes('already exists'));
-                if (exists) {
-                    console.log(`CNAME record for ${tenantDomain} already exists.`);
-                } else {
-                    console.error('Failed to create CNAME record:', dnsData.errors);
-                }
-            }
-        }
-
-        // 3. Fetch existing Tunnel configuration
-        const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/cfd_tunnel/${cfTunnelId}/configurations`;
-        const fetchResponse = await fetch(url, { headers });
-        const fetchData = await fetchResponse.json();
-
-        if (!fetchData.success) {
-            console.error('Failed to fetch CF Tunnel config:', fetchData.errors);
-            return;
-        }
-
-        const config = fetchData.result.config;
-        if (!config || !config.ingress) {
-            console.error('CF Tunnel config is malformed.');
-            return;
-        }
-
-        // 4. Check if route already exists in Tunnel
-        const routeExists = config.ingress.some(route => route.hostname === tenantDomain);
-        if (routeExists) {
-            console.log(`Route for ${tenantDomain} already exists in Cloudflare Tunnel.`);
-            return;
-        }
-
-        // 5. Add new route to Tunnel
-        const newRoute = {
-            hostname: tenantDomain,
-            service: "http://127.0.0.1:30184"
-        };
-        
-        // Find index of catch-all rule to insert before it
-        const catchAllIndex = config.ingress.findIndex(route => !route.hostname || route.service === 'http_status:404');
-        if (catchAllIndex !== -1) {
-            config.ingress.splice(catchAllIndex, 0, newRoute);
-        } else {
-            config.ingress.push(newRoute);
-        }
-
-        // 6. Update the Tunnel configuration
-        const updateResponse = await fetch(url, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify({ config })
-        });
-        const updateData = await updateResponse.json();
-
-        if (updateData.success) {
-            console.log(`Successfully added Cloudflare Tunnel route for ${tenantDomain}`);
-        } else {
-            console.error('Failed to update CF Tunnel config:', updateData.errors);
-        }
-    } catch (err) {
-        console.error('Error updating Cloudflare Tunnel config:', err);
-    }
-}
+// The first duplicate updateCloudflareTunnelConfig was removed
 
 // Function to generate ZATCA compliant XML
 function generateZATCAXML(invoice, settings) {
@@ -908,6 +795,10 @@ global.defaultProductsBySector = {
 };
 
 const https = require('https');
+const dns = require('dns');
+
+const customResolver = new dns.Resolver();
+customResolver.setServers(['1.1.1.1', '8.8.8.8']);
 
 function requestCloudflare(url, options, body = null) {
     return new Promise((resolve, reject) => {
@@ -919,11 +810,14 @@ function requestCloudflare(url, options, body = null) {
             method: options.method || 'GET',
             headers: options.headers || {},
             lookup: (hostname, opts, callback) => {
-                // Hardcode IP for api.cloudflare.com to completely bypass broken UDP DNS in Kubernetes
-                if (hostname === 'api.cloudflare.com') {
-                    return callback(null, '162.159.138.85', 4);
-                }
-                callback(new Error('Unknown hostname'), null);
+                customResolver.resolve4(hostname, (err, addresses) => {
+                    if (err) return callback(err);
+                    if (!addresses || addresses.length === 0) return callback(new Error('No addresses found'));
+                    if (opts.all) {
+                        return callback(null, addresses.map(a => ({ address: a, family: 4 })));
+                    }
+                    callback(null, addresses[0], 4);
+                });
             }
         };
 
