@@ -2903,6 +2903,15 @@ const handleB2BSubmit = () => {
                             </p>
                         </div>
                     )}
+                    {['storefrontSettings', 'digitalAssets'].includes(activeTab) && (
+                        <div className="glass-card" style={{ textAlign: 'center', padding: '50px 20px', marginTop: '20px' }}>
+                            <i className="ri-store-3-line" style={{ fontSize: '48px', color: 'var(--accent-primary)', marginBottom: '20px', display: 'inline-block' }}></i>
+                            <h2>{currentLanguage === 'ar' ? 'إدارة المتجر الإلكتروني' : 'E-Commerce Management'}</h2>
+                            <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>
+                                {currentLanguage === 'ar' ? 'هذه الميزة تحت التطوير وقريباً ستتمكن من إدارة طلبات المتجر والإعدادات هنا.' : 'This module is under development. Soon you will be able to manage your online store settings and digital assets here.'}
+                            </p>
+                        </div>
+                    )}
 
                 {/* Version Footer */}
                 <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
