@@ -2909,10 +2909,12 @@ const handleB2BSubmit = () => {
                     {activeTab === 'digitalAssets' && <DigitalAssets {...props} />}
 
                 {/* Version Footer */}
-                <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <span>CASHIER v1.2.0 - Scaleable Full Stack Integration</span>
-                    <span>Saudi Arabia | 2026</span>
-                </footer>
+                {activeTab !== 'pos' && (
+                    <footer style={{ marginTop: 'auto', padding: '15px 0', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <span>CASHIER v1.2.0 - Scaleable Full Stack Integration</span>
+                        <span>Saudi Arabia | 2026</span>
+                    </footer>
+                )}
             </main>
 
             {/* MODAL: INVOICE PRINT AND VERIFY */}
