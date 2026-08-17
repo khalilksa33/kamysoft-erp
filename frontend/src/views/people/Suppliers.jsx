@@ -54,14 +54,71 @@ const Suppliers = (props) => {
         });
     };
 
+    
+    const handleExportSuppliersCSV = () => {
+        if (!suppliers || !suppliers.length) return;
+        const headersList = ['id', 'company', 'contact', 'phone', 'items'];
+        const csvRows = [headersList.join(',')];
+        suppliers.forEach(s => {
+            csvRows.push([s.id, s.company, s.contact, s.phone, s.items].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"').join(','));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'suppliers_export.csv';
+        a.click();
+    };
+
+    const handleImportSuppliersCSV = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rows = event.target.result.split('\n');
+            if (rows.length < 2) return;
+            const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const newItems = [];
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const item = {};
+                headersList.forEach((header, index) => item[header] = values[index]);
+                if (item.company) {
+                    item.id = item.id || Date.now().toString() + i;
+                    newItems.push(item);
+                }
+            }
+            if (newItems.length > 0) {
+                setSuppliers([...suppliers, ...newItems]);
+                alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} مورد بنجاح` : `Successfully imported ${newItems.length} suppliers`);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
+
         <div className="glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <h3 data-i18n="suppliers">{translations[currentLanguage].suppliers}</h3>
-                <button className="btn btn-primary" onClick={() => { setSuppForm({ company: '', contact: '', phone: '', items: '' }); setShowSupplierModal(true); }}>
-                    {translations[currentLanguage].addSupplier}
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input type="file" id="supp-csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportSuppliersCSV} />
+                    <button className="btn btn-secondary" onClick={() => document.getElementById('supp-csv-upload').click()}>
+                        <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleExportSuppliersCSV}>
+                        <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { setSuppForm({ company: '', contact: '', phone: '', items: '' }); setShowSupplierModal(true); }}>
+                        {translations[currentLanguage].addSupplier}
+                    </button>
+                </div>
             </div>
+
             <div className="table-container">
                 <table>
                     <thead>

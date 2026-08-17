@@ -85,45 +85,6 @@ const Inventory = (props) => {
         setCategories(categories.filter(c => c.id !== id));
     };
 
-    const handleSaveUnit = (e) => {
-        e.preventDefault();
-        const mock = { ...unitForm, id: unitForm.id || Date.now().toString() };
-        if (unitForm.id) {
-            setUnits(units.map(u => u.id === mock.id ? mock : u));
-        } else {
-            setUnits([...units, mock]);
-        }
-        setShowUnitModal(false);
-        setUnitForm({ id: '', nameAR: '', nameEN: '' });
-    };
-
-    const handleDeleteUnit = (id) => {
-        if (!window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذه الوحدة؟' : 'Are you sure you want to delete this unit?')) return;
-        setUnits(units.filter(u => u.id !== id));
-    };
-
-    const handleExportCSV = () => {
-        if (!products.length) return;
-        const headersList = ['id', 'barcode', 'nameAR', 'nameEN', 'category', 'stock', 'cost', 'price'];
-        const csvRows = [headersList.join(',')];
-        products.forEach(p => {
-            const values = headersList.map(header => {
-                const escaped = ('' + (p[header] || '')).replace(/"/g, '""');
-                return `"${escaped}"`;
-            });
-            csvRows.push(values.join(','));
-        });
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'inventory_export.csv');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    };
-
     const handleImportCSV = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -230,10 +191,23 @@ const Inventory = (props) => {
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3>{currentLanguage === 'ar' ? 'فئات المنتجات' : 'Product Categories'}</h3>
-                <button className="btn btn-primary" onClick={() => { setCategoryForm({ id: '', nameAR: '', nameEN: '' }); setShowCategoryModal(true); }}>
-                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
-                    {currentLanguage === 'ar' ? 'إضافة فئة' : 'Add Category'}
-                </button>
+                
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input type="file" id="cat-csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCategoriesCSV} />
+                    <button className="btn btn-secondary" onClick={() => document.getElementById('cat-csv-upload').click()}>
+                        <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleExportCategoriesCSV}>
+                        <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { setCategoryForm({ id: '', nameAR: '', nameEN: '' }); setShowCategoryModal(true); }}>
+                        <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'إضافة فئة' : 'Add Category'}
+                    </button>
+                </div>
+
             </div>
             <div className="table-container">
                 <table>
@@ -269,55 +243,12 @@ const Inventory = (props) => {
         </div>
     );
 
-    const renderUnits = () => (
-        <div className="glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3>{currentLanguage === 'ar' ? 'وحدات القياس' : 'Measurement Units'}</h3>
-                <button className="btn btn-primary" onClick={() => setShowUnitModal(true)}>
-                    <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
-                    {currentLanguage === 'ar' ? 'إضافة وحدة' : 'Add Unit'}
-                </button>
-            </div>
-            <div className="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>{currentLanguage === 'ar' ? 'المعرف' : 'ID'}</th>
-                            <th>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</th>
-                            <th>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</th>
-                            <th>{currentLanguage === 'ar' ? 'إجراءات' : 'Actions'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {units.map(u => (
-                            <tr key={u.id}>
-                                <td>{u.id}</td>
-                                <td>{u.nameAR}</td>
-                                <td>{u.nameEN}</td>
-                                <td>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button className="btn btn-secondary" onClick={() => { setUnitForm(u); setShowUnitModal(true); }}>
-                                            <i className="ri-edit-line"></i>
-                                        </button>
-                                        <button className="btn btn-danger" onClick={() => handleDeleteUnit(u.id)}>
-                                            <i className="ri-delete-bin-line"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-
-    return (
+return (
         <div>
             {['inventory', 'items'].includes(activeTab) && renderProductsTable(products, translations[currentLanguage].inventory)}
             {activeTab === 'itemsReorder' && renderProductsTable(products.filter(p => p.stock <= 10), currentLanguage === 'ar' ? 'الأصناف تحت حد الطلب' : 'Items Below Reorder (Low Stock)')}
             {activeTab === 'categories' && renderCategories()}
-            {activeTab === 'units' && renderUnits()}
+            
 
             {/* Product Modal */}
             {showProductModal && (

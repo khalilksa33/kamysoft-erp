@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 
 const Settings = (props) => {
     const { 
-        settings, setSettings, handleSaveSettings, settingsLoading, currentLanguage, translations, zatcaConn, setZatcaConn
+        settings, setSettings, handleSaveSettings, settingsLoading, currentLanguage, translations, zatcaConn, setZatcaConn, units, setUnits
     } = props;
 
     const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+    const [showUnitModal, setShowUnitModal] = useState(false);
+    const [unitForm, setUnitForm] = useState({ id: '', nameAR: '', nameEN: '' });
 
     const tabs = [
         { id: 'general', label: translations[currentLanguage].generalSettings, icon: 'ri-settings-4-line', color: 'var(--accent-purple)' },
@@ -15,6 +17,120 @@ const Settings = (props) => {
         { id: 'storefront', label: currentLanguage === 'ar' ? 'إعدادات الواجهة' : 'Storefront Settings', icon: 'ri-store-2-line', color: '#ec4899' },
         { id: 'danger', label: currentLanguage === 'ar' ? 'إغلاق الحساب' : 'Close Account', icon: 'ri-error-warning-line', color: '#f87171' }
     ];
+
+    
+    const handleSaveUnit = (e) => {
+        e.preventDefault();
+        const mock = { ...unitForm, id: unitForm.id || Date.now().toString() };
+        if (unitForm.id) {
+            setUnits(units.map(u => u.id === mock.id ? mock : u));
+        } else {
+            setUnits([...(units||[]), mock]);
+        }
+        setShowUnitModal(false);
+        setUnitForm({ id: '', nameAR: '', nameEN: '' });
+    };
+
+    const handleDeleteUnit = (id) => {
+        if (!window.confirm(currentLanguage === 'ar' ? 'هل أنت متأكد من حذف هذه الوحدة؟' : 'Are you sure you want to delete this unit?')) return;
+        setUnits((units||[]).filter(u => u.id !== id));
+    };
+
+    const handleExportUnitsCSV = () => {
+        if (!units || !units.length) return;
+        const headersList = ['id', 'nameAR', 'nameEN'];
+        const csvRows = [headersList.join(',')];
+        units.forEach(u => {
+            csvRows.push([u.id, u.nameAR, u.nameEN].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"').join(','));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'units_export.csv';
+        a.click();
+    };
+
+    const handleImportUnitsCSV = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rows = event.target.result.split('\n');
+            if (rows.length < 2) return;
+            const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const newUnits = [];
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const unit = {};
+                headersList.forEach((header, index) => unit[header] = values[index]);
+                if (unit.nameEN) {
+                    unit.id = unit.id || Date.now().toString() + i;
+                    newUnits.push(unit);
+                }
+            }
+            if (newUnits.length > 0) {
+                setUnits([...(units||[]), ...newUnits]);
+                alert(currentLanguage === 'ar' ? `تم استيراد ${newUnits.length} وحدة بنجاح` : `Successfully imported ${newUnits.length} units`);
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const renderUnits = () => (
+        <div className="glass-card" style={{ marginTop: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3>{currentLanguage === 'ar' ? 'وحدات القياس' : 'Measurement Units'}</h3>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input type="file" id="units-csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportUnitsCSV} />
+                    <button className="btn btn-secondary" onClick={() => document.getElementById('units-csv-upload').click()}>
+                        <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleExportUnitsCSV}>
+                        <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { setUnitForm({ id: '', nameAR: '', nameEN: '' }); setShowUnitModal(true); }}>
+                        <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'إضافة وحدة' : 'Add Unit'}
+                    </button>
+                </div>
+            </div>
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{currentLanguage === 'ar' ? 'المعرف' : 'ID'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</th>
+                            <th>{currentLanguage === 'ar' ? 'إجراءات' : 'Actions'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(units||[]).map(u => (
+                            <tr key={u.id}>
+                                <td>{u.id}</td>
+                                <td>{u.nameAR}</td>
+                                <td>{u.nameEN}</td>
+                                <td>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-secondary" onClick={() => { setUnitForm(u); setShowUnitModal(true); }}>
+                                            <i className="ri-edit-line"></i>
+                                        </button>
+                                        <button className="btn btn-danger" onClick={() => handleDeleteUnit(u.id)}>
+                                            <i className="ri-delete-bin-line"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 
     return (
         <div className="settings-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -563,9 +679,33 @@ const Settings = (props) => {
                     display: none;
                 }
             `}</style>
+        
+            {/* Unit Modal */}
+            {showUnitModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3 style={{ marginBottom: '20px' }}>{currentLanguage === 'ar' ? 'وحدة القياس' : 'Measurement Unit'}</h3>
+                        <form onSubmit={handleSaveUnit}>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (عربي)' : 'Name (AR)'}</label>
+                                <input type="text" className="form-control" value={unitForm.nameAR} onChange={e => setUnitForm({ ...unitForm, nameAR: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'الاسم (إنجليزي)' : 'Name (EN)'}</label>
+                                <input type="text" className="form-control" value={unitForm.nameEN} onChange={e => setUnitForm({ ...unitForm, nameEN: e.target.value })} required />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowUnitModal(false)}>{translations[currentLanguage].close}</button>
+                                <button type="submit" className="btn btn-primary">{currentLanguage === 'ar' ? 'حفظ' : 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default Settings;
+
 
