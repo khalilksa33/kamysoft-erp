@@ -10,6 +10,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'logo.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000 // 5 MB
+      },
       manifest: {
         name: '26i ERP',
         short_name: '26i ERP',
