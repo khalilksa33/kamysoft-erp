@@ -90,19 +90,19 @@ const Settings = (props) => {
                                 <input type="text" className="form-control" value={settings.vatNumber} onChange={e => setSettings({ ...settings, vatNumber: e.target.value })} />
                             </div>
                             <div className="form-group">
-                                <label>Company Address / عنوان الشركة</label>
-                                <input type="text" className="form-control" value={settings.businessAddress || ''} onChange={e => setSettings({ ...settings, businessAddress: e.target.value })} />
+                                <label>{currentLanguage === 'ar' ? 'عنوان الشركة' : 'Company Address'}</label>
+                                <input type="text" className="form-control" value={typeof settings.businessAddress === 'object' ? (settings.businessAddress.ar || settings.businessAddress.en || JSON.stringify(settings.businessAddress)) : (settings.businessAddress || '')} onChange={e => setSettings({ ...settings, businessAddress: e.target.value })} />
                             </div>
                             <div className="form-group">
-                                <label>CR Number / رقم السجل التجاري</label>
+                                <label>{currentLanguage === 'ar' ? 'رقم السجل التجاري' : 'CR Number'}</label>
                                 <input type="text" className="form-control" value={settings.crNumber || ''} onChange={e => setSettings({ ...settings, crNumber: e.target.value })} />
                             </div>
                             <div className="form-group">
-                                <label>Contact Number / رقم التواصل</label>
+                                <label>{currentLanguage === 'ar' ? 'رقم التواصل' : 'Contact Number'}</label>
                                 <input type="text" className="form-control" value={settings.contactNumber || ''} onChange={e => setSettings({ ...settings, contactNumber: e.target.value })} />
                             </div>
                             <div className="form-group">
-                                <label>Company Logo / شعار الشركة</label>
+                                <label>{currentLanguage === 'ar' ? 'شعار الشركة' : 'Company Logo'}</label>
                                 <input type="file" accept="image/*" className="form-control" onChange={e => {
                                     const file = e.target.files[0];
                                     if (file) {
@@ -120,18 +120,18 @@ const Settings = (props) => {
                                             const copy = { ...prev };
                                             delete copy.logo;
                                             return copy;
-                                        })} style={{ padding: '4px 8px', fontSize: '11px' }}>Remove</button>
+                                        })} style={{ padding: '4px 8px', fontSize: '11px' }}>{currentLanguage === 'ar' ? 'إزالة' : 'Remove'}</button>
                                     </div>
                                 )}
                             </div>
                             <div className="form-group">
-                                <label>Base System Currency / العملة الأساسية</label>
+                                <label>{currentLanguage === 'ar' ? 'العملة الأساسية للنظام' : 'Base System Currency'}</label>
                                 <select className="form-control" value={settings.baseCurrency} onChange={e => setSettings({ ...settings, baseCurrency: e.target.value })}>
-                                    <option value="SAR">SAR / ر.س</option>
-                                    <option value="USD">USD / دولار أمريكي</option>
-                                    <option value="EUR">EUR / يورو</option>
-                                    <option value="EGP">EGP / جنيه مصري</option>
-                                    <option value="AED">AED / درهم إماراتي</option>
+                                    <option value="SAR">{currentLanguage === 'ar' ? 'SAR / ر.س' : 'SAR'}</option>
+                                    <option value="USD">{currentLanguage === 'ar' ? 'USD / دولار أمريكي' : 'USD'}</option>
+                                    <option value="EUR">{currentLanguage === 'ar' ? 'EUR / يورو' : 'EUR'}</option>
+                                    <option value="EGP">{currentLanguage === 'ar' ? 'EGP / جنيه مصري' : 'EGP'}</option>
+                                    <option value="AED">{currentLanguage === 'ar' ? 'AED / درهم إماراتي' : 'AED'}</option>
                                 </select>
                             </div>
                             <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{translations[currentLanguage].saveSettings}</button>
