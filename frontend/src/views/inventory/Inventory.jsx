@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as XLSX from "xlsx";
 
 const Inventory = (props) => {
     const { 
@@ -85,52 +86,26 @@ const Inventory = (props) => {
         setCategories(categories.filter(c => c.id !== id));
     };
 
-    const handleImportCSV = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target.result;
-            const rows = text.split('\n');
-            if (rows.length < 2) return;
-            const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
-            const newProducts = [];
-            for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
-                const product = {};
-                headersList.forEach((header, index) => {
-                    product[header] = values[index];
-                });
-                product.id = product.id || Date.now().toString() + i;
-                product.stock = Number(product.stock) || 0;
-                product.cost = Number(product.cost) || 0;
-                product.price = Number(product.price) || 0;
-                newProducts.push(product);
-            }
-            if (newProducts.length > 0) {
-                setProducts([...products, ...newProducts]);
-                alert(currentLanguage === 'ar' ? `تم استيراد ${newProducts.length} منتج بنجاح` : `Successfully imported ${newProducts.length} products`);
-            }
-        };
-        reader.readAsText(file);
-    };
-
     const renderProductsTable = (filteredProducts, title) => (
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <h3>{title}</h3>
                 {activeTab !== 'itemsReorder' && (
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <input type="file" id="csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCSV} />
+                        <input type="file" id="csv-upload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style={{ display: 'none' }} onChange={handleImportProductsData} />
                         <button className="btn btn-secondary" onClick={() => document.getElementById('csv-upload').click()}>
                             <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
-                            {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                            {currentLanguage === 'ar' ? 'استيراد (CSV/Excel)' : 'Import (CSV/Excel)'}
                         </button>
-                        <button className="btn btn-secondary" onClick={handleExportCSV}>
-                            <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
-                            {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
-                        </button>
+                        
+                    <button className="btn btn-secondary" onClick={() => handleExportProductsData('csv')}>
+                        <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => handleExportProductsData('excel')}>
+                        <i className="ri-file-excel-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير Excel' : 'Export Excel'}
+                    </button>
                         <button className="btn btn-primary" onClick={() => { 
                             setProdForm({ nameEN: '', nameAR: '', price: 0, cost: 0, stock: 0, category: categories.length > 0 ? categories[0].id : '', emoji: '', barcode: '', isDigital: false });
                             setShowProductModal(true); 
@@ -193,14 +168,19 @@ const Inventory = (props) => {
                 <h3>{currentLanguage === 'ar' ? 'فئات المنتجات' : 'Product Categories'}</h3>
                 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <input type="file" id="cat-csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportCategoriesCSV} />
+                    <input type="file" id="cat-csv-upload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style={{ display: 'none' }} onChange={handleImportCategoriesData} />
                     <button className="btn btn-secondary" onClick={() => document.getElementById('cat-csv-upload').click()}>
                         <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
-                        {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                        {currentLanguage === 'ar' ? 'استيراد (CSV/Excel)' : 'Import (CSV/Excel)'}
                     </button>
-                    <button className="btn btn-secondary" onClick={handleExportCategoriesCSV}>
+                    
+                    <button className="btn btn-secondary" onClick={() => handleExportCategoriesData('csv')}>
                         <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
                         {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => handleExportCategoriesData('excel')}>
+                        <i className="ri-file-excel-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير Excel' : 'Export Excel'}
                     </button>
                     <button className="btn btn-primary" onClick={() => { setCategoryForm({ id: '', nameAR: '', nameEN: '' }); setShowCategoryModal(true); }}>
                         <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
@@ -243,7 +223,169 @@ const Inventory = (props) => {
         </div>
     );
 
-return (
+
+    const handleExportProductsData = (format) => {
+        if (!products || !products.length) return;
+        const headersList = ['id', 'barcode', 'nameAR', 'nameEN', 'category', 'stock', 'cost', 'price'];
+        
+        if (format === 'csv') {
+            const csvRows = [headersList.join(',')];
+            products.forEach(item => {
+                csvRows.push(headersList.map(h => '"' + (item[h] || '').toString().replace(/"/g, '""') + '"').join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'products_export.csv';
+            a.click();
+        } else if (format === 'excel') {
+            const worksheet = XLSX.utils.json_to_sheet(products.map(item => {
+                let obj = {};
+                headersList.forEach(h => obj[h] = item[h]);
+                return obj;
+            }));
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+            XLSX.writeFile(workbook, 'products_export.xlsx');
+        }
+    };
+
+    const handleImportProductsData = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        
+        if (fileExt === 'csv') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const rows = event.target.result.split('\n');
+                if (rows.length < 2) return;
+                const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+                const newItems = [];
+                for (let i = 1; i < rows.length; i++) {
+                    if (!rows[i].trim()) continue;
+                    const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    const item = {};
+                    headersList.forEach((header, index) => item[header] = values[index]);
+                    if (item.barcode) {
+                        item.id = item.id || Date.now().toString() + i;
+                        newItems.push(item);
+                    }
+                }
+                if (newItems.length > 0) {
+                    setProducts([...products, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsText(file);
+        } else if (fileExt === 'xlsx' || fileExt === 'xls') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                
+                const newItems = json.map((row, i) => {
+                    let item = { ...row };
+                    item.id = item.id || Date.now().toString() + i;
+                    return item;
+                });
+                
+                if (newItems.length > 0) {
+                    setProducts([...products, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    };
+
+    
+    const handleExportCategoriesData = (format) => {
+        if (!categories || !categories.length) return;
+        const headersList = ['id', 'nameAR', 'nameEN'];
+        
+        if (format === 'csv') {
+            const csvRows = [headersList.join(',')];
+            categories.forEach(item => {
+                csvRows.push(headersList.map(h => '"' + (item[h] || '').toString().replace(/"/g, '""') + '"').join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'categories_export.csv';
+            a.click();
+        } else if (format === 'excel') {
+            const worksheet = XLSX.utils.json_to_sheet(categories.map(item => {
+                let obj = {};
+                headersList.forEach(h => obj[h] = item[h]);
+                return obj;
+            }));
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
+            XLSX.writeFile(workbook, 'categories_export.xlsx');
+        }
+    };
+
+    const handleImportCategoriesData = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        
+        if (fileExt === 'csv') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const rows = event.target.result.split('\n');
+                if (rows.length < 2) return;
+                const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+                const newItems = [];
+                for (let i = 1; i < rows.length; i++) {
+                    if (!rows[i].trim()) continue;
+                    const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    const item = {};
+                    headersList.forEach((header, index) => item[header] = values[index]);
+                    if (item.nameAR) {
+                        item.id = item.id || Date.now().toString() + i;
+                        newItems.push(item);
+                    }
+                }
+                if (newItems.length > 0) {
+                    setCategories([...categories, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsText(file);
+        } else if (fileExt === 'xlsx' || fileExt === 'xls') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                
+                const newItems = json.map((row, i) => {
+                    let item = { ...row };
+                    item.id = item.id || Date.now().toString() + i;
+                    return item;
+                });
+                
+                if (newItems.length > 0) {
+                    setCategories([...categories, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    };
+
+    return (
         <div>
             {['inventory', 'items'].includes(activeTab) && renderProductsTable(products, translations[currentLanguage].inventory)}
             {activeTab === 'itemsReorder' && renderProductsTable(products.filter(p => p.stock <= 10), currentLanguage === 'ar' ? 'الأصناف تحت حد الطلب' : 'Items Below Reorder (Low Stock)')}

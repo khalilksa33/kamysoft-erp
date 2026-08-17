@@ -36,61 +36,26 @@ const Settings = (props) => {
         setUnits((units||[]).filter(u => u.id !== id));
     };
 
-    const handleExportUnitsCSV = () => {
-        if (!units || !units.length) return;
-        const headersList = ['id', 'nameAR', 'nameEN'];
-        const csvRows = [headersList.join(',')];
-        units.forEach(u => {
-            csvRows.push([u.id, u.nameAR, u.nameEN].map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"').join(','));
-        });
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'units_export.csv';
-        a.click();
-    };
-
-    const handleImportUnitsCSV = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const rows = event.target.result.split('\n');
-            if (rows.length < 2) return;
-            const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
-            const newUnits = [];
-            for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
-                const unit = {};
-                headersList.forEach((header, index) => unit[header] = values[index]);
-                if (unit.nameEN) {
-                    unit.id = unit.id || Date.now().toString() + i;
-                    newUnits.push(unit);
-                }
-            }
-            if (newUnits.length > 0) {
-                setUnits([...(units||[]), ...newUnits]);
-                alert(currentLanguage === 'ar' ? `تم استيراد ${newUnits.length} وحدة بنجاح` : `Successfully imported ${newUnits.length} units`);
-            }
-        };
-        reader.readAsText(file);
-    };
-
+    
+    
     const renderUnits = () => (
         <div className="glass-card" style={{ marginTop: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <h3>{currentLanguage === 'ar' ? 'وحدات القياس' : 'Measurement Units'}</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <input type="file" id="units-csv-upload" accept=".csv" style={{ display: 'none' }} onChange={handleImportUnitsCSV} />
+                    <input type="file" id="units-csv-upload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style={{ display: 'none' }} onChange={handleImportUnitsData} />
                     <button className="btn btn-secondary" onClick={() => document.getElementById('units-csv-upload').click()}>
                         <i className="ri-upload-2-line" style={{ marginRight: '5px' }}></i>
-                        {currentLanguage === 'ar' ? 'استيراد CSV' : 'Import CSV'}
+                        {currentLanguage === 'ar' ? 'استيراد (CSV/Excel)' : 'Import (CSV/Excel)'}
                     </button>
-                    <button className="btn btn-secondary" onClick={handleExportUnitsCSV}>
+                    
+                    <button className="btn btn-secondary" onClick={() => handleExportUnitsData('csv')}>
                         <i className="ri-download-2-line" style={{ marginRight: '5px' }}></i>
                         {currentLanguage === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => handleExportUnitsData('excel')}>
+                        <i className="ri-file-excel-2-line" style={{ marginRight: '5px' }}></i>
+                        {currentLanguage === 'ar' ? 'تصدير Excel' : 'Export Excel'}
                     </button>
                     <button className="btn btn-primary" onClick={() => { setUnitForm({ id: '', nameAR: '', nameEN: '' }); setShowUnitModal(true); }}>
                         <i className="ri-add-line" style={{ marginRight: '5px' }}></i>
@@ -131,6 +96,87 @@ const Settings = (props) => {
             </div>
         </div>
     );
+
+    
+    const handleExportUnitsData = (format) => {
+        if (!units || !units.length) return;
+        const headersList = ['id', 'nameAR', 'nameEN'];
+        
+        if (format === 'csv') {
+            const csvRows = [headersList.join(',')];
+            units.forEach(item => {
+                csvRows.push(headersList.map(h => '"' + (item[h] || '').toString().replace(/"/g, '""') + '"').join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'units_export.csv';
+            a.click();
+        } else if (format === 'excel') {
+            const worksheet = XLSX.utils.json_to_sheet(units.map(item => {
+                let obj = {};
+                headersList.forEach(h => obj[h] = item[h]);
+                return obj;
+            }));
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Units");
+            XLSX.writeFile(workbook, 'units_export.xlsx');
+        }
+    };
+
+    const handleImportUnitsData = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        
+        if (fileExt === 'csv') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const rows = event.target.result.split('\n');
+                if (rows.length < 2) return;
+                const headersList = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+                const newItems = [];
+                for (let i = 1; i < rows.length; i++) {
+                    if (!rows[i].trim()) continue;
+                    const values = rows[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    const item = {};
+                    headersList.forEach((header, index) => item[header] = values[index]);
+                    if (item.nameAR) {
+                        item.id = item.id || Date.now().toString() + i;
+                        newItems.push(item);
+                    }
+                }
+                if (newItems.length > 0) {
+                    setUnits([...units, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsText(file);
+        } else if (fileExt === 'xlsx' || fileExt === 'xls') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                
+                const newItems = json.map((row, i) => {
+                    let item = { ...row };
+                    item.id = item.id || Date.now().toString() + i;
+                    return item;
+                });
+                
+                if (newItems.length > 0) {
+                    setUnits([...units, ...newItems]);
+                    alert(currentLanguage === 'ar' ? `تم استيراد ${newItems.length} عنصر بنجاح` : `Successfully imported ${newItems.length} items`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    };
 
     return (
         <div className="settings-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
