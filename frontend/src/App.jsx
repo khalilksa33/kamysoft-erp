@@ -44,6 +44,12 @@ import RealEstateCRM from './views/property/RealEstateCRM';
 import TenantPortal from './views/property/TenantPortal';
 import PropertyOwners from './views/property/PropertyOwners';
 import OwnerAccounting from './views/property/OwnerAccounting';
+
+// Fresh Flowers
+import FreshFlowersDashboard from './views/freshFlowers/FreshFlowersDashboard';
+import FlowersArrangements from './views/freshFlowers/FlowersArrangements';
+import FlowersDeliveries from './views/freshFlowers/FlowersDeliveries';
+
 import { applyTheme } from './themes/themeManager';
 
 export const formatAddress = (addressStr) => {
@@ -955,11 +961,12 @@ export default function App() {
             else if (cleanTenant.includes('grocery') || cleanTenant.includes('supermarket')) activeSector = 'grocery';
             else if (cleanTenant.includes('appliances') || cleanTenant.includes('electrical') || cleanTenant.includes('hvac')) activeSector = 'appliances';
             else if (cleanTenant.includes('apparel') || cleanTenant.includes('garments')) activeSector = 'apparel';
+            else if (cleanTenant.includes('flowers') || cleanTenant.includes('florist')) activeSector = 'freshFlowers';
             else if (cleanTenant.includes('services')) activeSector = 'services';
         }
 
         if (activeSector) {
-            const supportedSectors = ['retail', 'restaurant', 'services', 'appliances', 'furniture', 'spareparts', 'apparel', 'grocery'];
+            const supportedSectors = ['retail', 'restaurant', 'services', 'appliances', 'furniture', 'spareparts', 'apparel', 'grocery', 'freshFlowers'];
             if (supportedSectors.includes(activeSector)) {
                 setSettings(prev => ({
                     ...prev,
@@ -2464,6 +2471,12 @@ const handleB2BSubmit = () => {
 
                 {/* TAB: PROPERTY MANAGEMENT */}
                 {['property_properties'].includes(activeTab) && <Properties {...props} />}
+                
+                {/* TAB: FRESH FLOWERS */}
+                {['flowers_dashboard'].includes(activeTab) && <FreshFlowersDashboard {...props} />}
+                {['flowers_arrangements'].includes(activeTab) && <FlowersArrangements {...props} />}
+                {['flowers_deliveries'].includes(activeTab) && <FlowersDeliveries {...props} />}
+                
                 {['property_units'].includes(activeTab) && <Units {...props} />}
                 {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
                 {['property_leasing'].includes(activeTab) && <LeasingContracts {...props} />}

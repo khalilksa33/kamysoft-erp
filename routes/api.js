@@ -13,7 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { uploadFile, getPresignedUrl } = require('../services/s3Service');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, PrinterConfig, RestaurantOrder } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, PrinterConfig, RestaurantOrder, FlowerArrangement, FlowerDelivery } = require('../models');
 
 const ThermalPrinter = require('node-thermal-printer').printer;
 const PrinterTypes = require('node-thermal-printer').types;
@@ -3888,5 +3888,75 @@ router.post('/api/restaurant/orders/:id/print-kot', authenticateToken, async (re
     }
 });
 
+
+// ==========================================
+// FRESH FLOWERS API
+// ==========================================
+
+// Get all flower arrangements
+router.get('/api/freshFlowers/arrangements', authMiddleware, async (req, res) => {
+    try {
+        const arrangements = await FlowerArrangement.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
+        res.json(arrangements);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Create flower arrangement
+router.post('/api/freshFlowers/arrangements', authMiddleware, async (req, res) => {
+    try {
+        const id = `ARR-${Date.now().toString().slice(-6)}`;
+        const newArrangement = new FlowerArrangement({
+            id,
+            tenantId: req.tenantId,
+            ...req.body
+        });
+        await newArrangement.save();
+        res.json({ message: 'Arrangement created', arrangement: newArrangement });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Get all flower deliveries
+router.get('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => {
+    try {
+        const deliveries = await FlowerDelivery.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
+        res.json(deliveries);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Create flower delivery
+router.post('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => {
+    try {
+        const id = `DEL-${Date.now().toString().slice(-6)}`;
+        const newDelivery = new FlowerDelivery({
+            id,
+            tenantId: req.tenantId,
+            ...req.body
+        });
+        await newDelivery.save();
+        res.json({ message: 'Delivery created', delivery: newDelivery });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Update flower delivery status
+router.put('/api/freshFlowers/deliveries/:id/status', authMiddleware, async (req, res) => {
+    try {
+        const delivery = await FlowerDelivery.findOne({ id: req.params.id, tenantId: req.tenantId });
+        if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
+        
+        delivery.status = req.body.status;
+        await delivery.save();
+        res.json({ message: 'Delivery status updated', delivery });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 module.exports = router;

@@ -65,6 +65,10 @@ const sidebarTranslations = {
         dark: "Dark",
         moduleSwitch: "Module Switcher",
         propertyManagement: "Real Estate",
+        freshFlowers: "Fresh Flowers",
+        flowersDashboard: "Dashboard",
+        flowersArrangements: "Arrangements",
+        flowersDeliveries: "Deliveries",
         propertyProperties: "Properties",
         propertyUnits: "Units",
         propertyBookings: "Bookings",
@@ -140,6 +144,10 @@ const sidebarTranslations = {
         light: "نهاري",
         dark: "ليلي",
         propertyManagement: "إدارة العقارات",
+        freshFlowers: "الزهور الطازجة",
+        flowersDashboard: "لوحة القيادة",
+        flowersArrangements: "التنسيقات",
+        flowersDeliveries: "التوصيل",
         propertyProperties: "العقارات",
         propertyUnits: "الوحدات",
         propertyBookings: "الحجوزات",
@@ -186,6 +194,14 @@ const menuConfig = [
             { id: 'property_maintenance', labelKey: 'propertyMaintenance' },
             { id: 'property_owners', labelKey: 'propertyOwners' },
             { id: 'property_owner_accounting', labelKey: 'ownerAccounting' }
+        ]
+    },
+    {
+        id: 'freshFlowers', icon: 'ri-leaf-line', labelKey: 'freshFlowers',
+        submenu: [
+            { id: 'flowers_dashboard', labelKey: 'flowersDashboard' },
+            { id: 'flowers_arrangements', labelKey: 'flowersArrangements' },
+            { id: 'flowers_deliveries', labelKey: 'flowersDeliveries' }
         ]
     },
     { id: 'maintenance', icon: 'ri-tools-line', labelKey: 'maintenance' },
@@ -331,7 +347,7 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
                 <div className="modern-nav-container">
                     <ul className="modern-nav-links">
                         {menuConfig.map((item) => {
-                            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
+                            const defaultOffModules = ['propertyManagement', 'freshFlowers', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
                             
                             // Check if module is enabled by SaaS Admin (default logic applies if undefined)
                             if (item.id !== 'dashboard' && item.id !== 'settings') {

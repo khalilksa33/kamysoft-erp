@@ -510,7 +510,34 @@ restaurantOrderSchema.index({ id: 1, tenantId: 1 }, { unique: true });
 const RestaurantOrder = mongoose.model('RestaurantOrder', restaurantOrderSchema);
 
 
+const flowerArrangementSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true },
+    name: { type: String, required: true },
+    components: { type: String, required: true },
+    price: { type: Number, required: true },
+    status: { type: String, default: 'Active' },
+    createdAt: { type: Date, default: Date.now }
+});
+flowerArrangementSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const FlowerArrangement = mongoose.model('FlowerArrangement', flowerArrangementSchema);
+
+const flowerDeliverySchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    tenantId: { type: String, default: 'default', index: true },
+    customer: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+    status: { type: String, default: 'Pending' },
+    createdAt: { type: Date, default: Date.now }
+});
+flowerDeliverySchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const FlowerDelivery = mongoose.model('FlowerDelivery', flowerDeliverySchema);
+
 module.exports = {
+    FlowerArrangement, FlowerDelivery,
     User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry,
     Warehouse,
     InventoryTx,
