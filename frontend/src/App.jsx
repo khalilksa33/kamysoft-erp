@@ -91,7 +91,7 @@ window.fetch = function (url, options = {}) {
         
         if (urlTenant) {
             tenant = urlTenant;
-        } else if (isLocal || host === 'ssh-cloud.26i.uk' || host === 'ssh-erp.26i.uk') {
+        } else if (isLocal || host === 'gcloud.26i.uk' || host === 'ssh-erp.26i.uk') {
             tenant = localStorage.getItem('simulatedTenant') || 'default';
             const simDomain = localStorage.getItem('simulatedDomain') || 'marketing';
             if (simDomain === 'demo') tenant = 'default';

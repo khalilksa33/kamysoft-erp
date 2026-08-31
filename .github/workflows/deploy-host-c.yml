@@ -51,8 +51,8 @@ jobs:
           
           # Base SSH configuration
           cat <<EOF > ~/.ssh/config
-          Host ssh-cloud.26i.uk
-              HostName ssh-cloud.26i.uk
+          Host gcloud.26i.uk
+              HostName gcloud.26i.uk
               User cloud
               IdentityFile ~/.ssh/id_rsa
               StrictHostKeyChecking no
@@ -63,12 +63,12 @@ jobs:
 
       - name: Transfer Kubernetes Manifests to Host C
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk "rm -rf ~/kamysoft-erp/k8s && mkdir -p ~/kamysoft-erp/k8s"
-          scp -v -r k8s/* ssh-cloud.26i.uk:~/kamysoft-erp/k8s/
+          ssh -v cloud@gcloud.26i.uk "rm -rf ~/kamysoft-erp/k8s && mkdir -p ~/kamysoft-erp/k8s"
+          scp -v -r k8s/* gcloud.26i.uk:~/kamysoft-erp/k8s/
 
       - name: Deploy via Host C k8s Cluster
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
+          ssh -v cloud@gcloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
             if [ -f /etc/kubernetes/admin.conf ]; then
               export KUBECONFIG=/etc/kubernetes/admin.conf
             elif [ -f /etc/rancher/k3s/k3s.yaml ]; then

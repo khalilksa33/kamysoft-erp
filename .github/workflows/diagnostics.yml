@@ -19,16 +19,19 @@ jobs:
           KEY
           chmod 600 ~/.ssh/id_rsa
           cat <<CONFIG > ~/.ssh/config
-          Host ssh-cloud.26i.uk
-              HostName ssh-cloud.26i.uk
+          Host gcloud.26i.uk
+              HostName gcloud.26i.uk
               User cloud
               IdentityFile ~/.ssh/id_rsa
               StrictHostKeyChecking no
-              ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID_HOST_C }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET_HOST_C }}
-          CONFIG
-      - name: Run Diagnostics
+          EOF
+          
+          # Inject Cloudflare Access Service Token headers
+          echo "    ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_CLIENT_ID_HOST_C }} --service-token-secret ${{ secrets.CF_CLIENT_SECRET_HOST_C }}" >> ~/.ssh/config
+
+      - name: Run Diagnostics on Host C
         run: |
-          ssh -v cloud@ssh-cloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
+          ssh -v cloud@gcloud.26i.uk 'echo "${{ secrets.HOST_C_SUDO_PASS }}" | sudo -S sh -c "
             echo \"--- which kubectl ---\"
             which kubectl
             ls -l \$(which kubectl)
