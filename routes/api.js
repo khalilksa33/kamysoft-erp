@@ -1,4 +1,4 @@
-
+const authMiddleware = require('../middleware/auth'); // ensure path is correct
 const express = require('express');
 const zatcaApi = require('../utils/zatcaApi');
 const zatcaCrypto = require('../utils/zatcaCrypto');
