@@ -14,9 +14,9 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5000000 // 5 MB
       },
       manifest: {
-        name: '26i ERP',
+        name: '26i ERP and property management system',
         short_name: '26i ERP',
-        description: '26i ERP and Property Management System',
+        description: '26i ERP and property management system',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
