@@ -35,6 +35,7 @@ const landingTranslations = {
         sectorFurniture: "Furniture Store",
         sectorSpareParts: "Spare Parts (Auto/HVAC/Plumbing/Electric)",
         sectorRealestate: "Real Estate & Property Management",
+        sectorFlowers: "Fresh Flowers & Florist",
         
         simBarcodes: "Automated Barcode Scans",
         simTables: "Table & Guest Mapping",
@@ -164,6 +165,7 @@ const landingTranslations = {
         sectorFurniture: "معارض الأثاث",
         sectorSpareParts: "قطع الغيار (سيارات/تكييف/سباكة/كهرباء)",
         sectorRealestate: "إدارة الأملاك والعقارات",
+        sectorFlowers: "زهور طبيعية وتنسيق هدايا",
         
         simBarcodes: "قراءة الباركود التلقائية",
         simTables: "تخطيط الطاولات والضيوف",
@@ -683,6 +685,14 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                         <i className="ri-building-4-line"></i>
                         <span>{t.sectorRealestate}</span>
                     </button>
+                    <button 
+                        className={`btn ${activeSector === 'freshFlowers' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setActiveSector('freshFlowers')}
+                        style={activeSector !== 'freshFlowers' ? { background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } : {}}
+                    >
+                        <i className="ri-leaf-line"></i>
+                        <span>{t.sectorFlowers}</span>
+                    </button>
                 </div>
                 
                 {/* Simulation Features Panel */}
@@ -697,6 +707,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'معارض ومحلات الأثاث والمفروشات' : 'Furniture & Home Decor Store')}
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'قطع غيار السيارات والسباكة والتكييف والإلكترونيات' : 'Auto, Plumbing, HVAC & Electric Spare Parts')}
                             {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'إدارة الأملاك والعقارات' : 'Real Estate & Property Management')}
+                            {activeSector === 'freshFlowers' && (currentLanguage === 'ar' ? 'محلات الزهور الطبيعية وتنسيق الهدايا والمناسبات' : 'Fresh Flowers, Bouquets & Event Florist')}
                         </h3>
                         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px', fontSize: '14px' }}>
                             {activeSector === 'retail' && (currentLanguage === 'ar' ? 'يمنحك 26i السيطرة الكاملة على مخازنك، ومشترياتك، وإهلاك أصولك، ومتابعة مصروفاتك اليومية بطريقة سهلة ومبسطة.' : '26i provides complete control over your multi-category stocks, supplier purchase orders, capital asset depreciation, and daily cash expenses.')}
@@ -707,6 +718,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                             {activeSector === 'furniture' && (currentLanguage === 'ar' ? 'يسهل إدارة الطلبات المخصصة وعربون الحجز، وتتبع حالة تجميع غرف النوم والمطابخ بالمستودعات، وجدولة مسارات شاحنات التوصيل والتركيب.' : 'Eases custom orders and deposit collections, tracks assembly progress of items inside the warehouse, and schedules delivery routing and technicians.')}
                             {activeSector === 'spareparts' && (currentLanguage === 'ar' ? 'ابحث فوراً بترميز OEM أو الكود الأصلي، وتتبع توافقية قطع الغيار مع موديلات السيارات وماركات التكييف والسباكة، مع ترميز باركود رفوف المستودع.' : 'Instantly search by OEM parts or interchangeably coded items. Track compatibility across models/brands (Auto or HVAC) and scan shelf bins.')}
                             {activeSector === 'realestate' && (currentLanguage === 'ar' ? 'نظام متكامل لإدارة العقود والإيجارات، ومتابعة تحصيل الدفعات، وجدولة صيانة العقارات بكل احترافية، وإدارة عمليات البيع والشراء.' : 'Comprehensive system for managing contracts, leases, tracking payment collections, scheduling property maintenance professionally, and handling property sales and purchases.')}
+                            {activeSector === 'freshFlowers' && (currentLanguage === 'ar' ? 'نظام مخصص لتنسيق باقات الزهور وتخصيص المكونات، وتتبع صلاحية الزهور الطبيعية، وجدولة توصيل الطلبات للمناسبات والأفراح مع بطاقات الإهداء.' : 'Designed for florist shops with custom bouquet composition, perishable flower batch tracking, occasion delivery scheduling, and gift card messaging.')}
                         </p>
                         
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1125,6 +1137,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                                         <option value="restaurant">{t.sectorRestaurant}</option>
                                         <option value="apparel">{t.sectorApparel}</option>
                                         <option value="realestate">{t.sectorRealestate}</option>
+                                        <option value="freshFlowers">{t.sectorFlowers}</option>
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ margin: 0 }}>

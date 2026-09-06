@@ -8,7 +8,8 @@ const SECTOR_LABELS = {
     'appliances': 'Home Appliances & Electronics / أجهزة منزلية وإلكترونيات',
     'furniture': 'Furniture & Home Decor / معرض أثاث ومفروشات',
     'spareparts': 'Spare Parts / قطع غيار',
-    'realestate': 'Real Estate Management / إدارة أملاك وعقارات'
+    'realestate': 'Real Estate Management / إدارة أملاك وعقارات',
+    'freshFlowers': 'Fresh Flowers & Florist / زهور طبيعية وتنسيق حفلات'
 };
 
 const StoreCreationModal = ({ isOpen, onClose, baseDomain = 'kamysoft.com', isRtl = false, onSuccess }) => {

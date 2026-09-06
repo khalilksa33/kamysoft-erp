@@ -342,6 +342,7 @@ const Settings = (props) => {
                                     <option value="spareparts">{currentLanguage === 'ar' ? 'قطع غيار (سيارات/تكييف/سباكة)' : 'Auto, HVAC & Spare Parts'}</option>
                                     <option value="grocery">{currentLanguage === 'ar' ? 'سوبرماركت ومواد غذائية' : 'Supermarket & Grocery'}</option>
                                     <option value="apparel">{currentLanguage === 'ar' ? 'ملابس وأزياء وأحذية' : 'Garments & Apparel'}</option>
+                                    <option value="freshFlowers">{currentLanguage === 'ar' ? 'زهور طبيعية وتنسيق هدايا وحفلات' : 'Fresh Flowers & Florist'}</option>
                                 </select>
                             </div>
 

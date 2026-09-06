@@ -735,7 +735,7 @@ export default function App() {
         businessType: 'retail',
         enableTables: false,
         enableServiceDuration: false,
-        enabledModules: { invoices: false, pos: true, maintenance: false, inventory: true, customers: false, employees: false, suppliers: true, warehouses: false, financials: false, reports: false, settings: true, propertyManagement: false }
+        enabledModules: { invoices: false, pos: true, maintenance: false, inventory: true, customers: false, employees: false, suppliers: true, warehouses: false, financials: false, reports: false, settings: true, propertyManagement: false, freshFlowers: false }
     });
 
     const [zatcaConn, setZatcaConn] = useState({
@@ -973,7 +973,11 @@ export default function App() {
                     businessType: activeSector,
                     businessName: routeMode === 'customer' && tenantId ? `${tenantId.toUpperCase()} ERP` : `26i ${activeSector.toUpperCase()} POS`,
                     enableTables: activeSector === 'restaurant',
-                    enableServiceDuration: activeSector === 'services'
+                    enableServiceDuration: activeSector === 'services',
+                    enabledModules: {
+                        ...(prev.enabledModules || {}),
+                        ...(activeSector === 'freshFlowers' ? { freshFlowers: true } : {})
+                    }
                 }));
             }
         }

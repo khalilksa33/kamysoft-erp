@@ -3,6 +3,7 @@ import React from 'react';
 const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }) => {
     const modulesList = [
         { id: 'propertyManagement', label: currentLanguage === 'ar' ? 'إدارة العقارات' : 'Real Estate' },
+        { id: 'freshFlowers', label: currentLanguage === 'ar' ? 'الزهور الطبيعية والهدايا' : 'Fresh Flowers & Florist' },
         { id: 'invoices', label: currentLanguage === 'ar' ? 'إدارة المبيعات والفواتير' : 'Sales & Invoices' },
         { id: 'pos', label: currentLanguage === 'ar' ? 'نقطة بيع' : 'POS Cashier' },
         { id: 'inventory', label: currentLanguage === 'ar' ? 'المخزون' : 'Inventory' },
@@ -19,7 +20,7 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
     const handleToggle = (moduleId) => {
         setSettings(prev => {
             const currentModules = prev.enabledModules || {};
-            const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
+            const defaultOffModules = ['propertyManagement', 'freshFlowers', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
             const isCurrentlyEnabled = currentModules[moduleId] !== undefined 
                 ? currentModules[moduleId] 
                 : !defaultOffModules.includes(moduleId);
@@ -55,7 +56,7 @@ const ModuleSwitcher = ({ settings, setSettings, currentLanguage, translations }
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {modulesList.map(mod => {
-                    const defaultOffModules = ['propertyManagement', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
+                    const defaultOffModules = ['propertyManagement', 'freshFlowers', 'maintenance', 'employees', 'warehouses', 'financials', 'ecommerce'];
                     const isEnabled = settings?.enabledModules?.[mod.id] !== undefined 
                         ? settings.enabledModules[mod.id] 
                         : !defaultOffModules.includes(mod.id);

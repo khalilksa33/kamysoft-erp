@@ -1,4 +1,3 @@
-const authMiddleware = require('../middleware/auth'); // ensure path is correct
 const express = require('express');
 const zatcaApi = require('../utils/zatcaApi');
 const zatcaCrypto = require('../utils/zatcaCrypto');
@@ -3894,7 +3893,7 @@ router.post('/api/restaurant/orders/:id/print-kot', authenticateToken, async (re
 // ==========================================
 
 // Get all flower arrangements
-router.get('/api/freshFlowers/arrangements', authMiddleware, async (req, res) => {
+router.get('/api/freshFlowers/arrangements', authenticateToken, async (req, res) => {
     try {
         const arrangements = await FlowerArrangement.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
         res.json(arrangements);
@@ -3904,7 +3903,7 @@ router.get('/api/freshFlowers/arrangements', authMiddleware, async (req, res) =>
 });
 
 // Create flower arrangement
-router.post('/api/freshFlowers/arrangements', authMiddleware, async (req, res) => {
+router.post('/api/freshFlowers/arrangements', authenticateToken, async (req, res) => {
     try {
         const id = `ARR-${Date.now().toString().slice(-6)}`;
         const newArrangement = new FlowerArrangement({
@@ -3920,7 +3919,7 @@ router.post('/api/freshFlowers/arrangements', authMiddleware, async (req, res) =
 });
 
 // Get all flower deliveries
-router.get('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => {
+router.get('/api/freshFlowers/deliveries', authenticateToken, async (req, res) => {
     try {
         const deliveries = await FlowerDelivery.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
         res.json(deliveries);
@@ -3930,7 +3929,7 @@ router.get('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => {
 });
 
 // Create flower delivery
-router.post('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => {
+router.post('/api/freshFlowers/deliveries', authenticateToken, async (req, res) => {
     try {
         const id = `DEL-${Date.now().toString().slice(-6)}`;
         const newDelivery = new FlowerDelivery({
@@ -3946,7 +3945,7 @@ router.post('/api/freshFlowers/deliveries', authMiddleware, async (req, res) => 
 });
 
 // Update flower delivery status
-router.put('/api/freshFlowers/deliveries/:id/status', authMiddleware, async (req, res) => {
+router.put('/api/freshFlowers/deliveries/:id/status', authenticateToken, async (req, res) => {
     try {
         const delivery = await FlowerDelivery.findOne({ id: req.params.id, tenantId: req.tenantId });
         if (!delivery) return res.status(404).json({ error: 'Delivery not found' });

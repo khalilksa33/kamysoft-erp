@@ -660,6 +660,14 @@ const defaultProductsBySector = {
         { nameEN: 'Fresh Orange Juice', nameAR: 'عصير برتقال طازج', price: 15, cost: 5, stock: 60, category: 'Beverages', emoji: '🥤', barcode: '628200100060' },
         { nameEN: 'Cappuccino', nameAR: 'كابتشينو', price: 18, cost: 4, stock: 80, category: 'Beverages', emoji: '☕', barcode: '628200100070' },
         { nameEN: 'Chocolate Brownie', nameAR: 'براوني الشوكولاتة', price: 22, cost: 8, stock: 25, category: 'Desserts', emoji: '🧁', barcode: '628200100080' }
+    ],
+    freshFlowers: [
+        { nameEN: 'Red Roses Luxury Bouquet', nameAR: 'باقة جوري أحمر فاخرة', price: 180, cost: 80, stock: 25, category: 'Bouquets', emoji: '🌹', barcode: '628900100010' },
+        { nameEN: 'Spring Mix Tulips & Lilies', nameAR: 'تنسيق ربيعي توليب وزنبق', price: 240, cost: 110, stock: 15, category: 'Arrangements', emoji: '🌷', barcode: '628900100020' },
+        { nameEN: 'White Orchid in Ceramic Pot', nameAR: 'أوركيد أبيض في حوض سيراميك', price: 320, cost: 150, stock: 10, category: 'Potted Plants', emoji: '🪴', barcode: '628900100030' },
+        { nameEN: 'Bridal Hand Bouquet', nameAR: 'مسكة عروس ملكية', price: 450, cost: 200, stock: 8, category: 'Weddings', emoji: '💐', barcode: '628900100040' },
+        { nameEN: 'Flower & Belgian Chocolate Box', nameAR: 'بوكس ورد وشوكولاتة بلجيكية', price: 290, cost: 130, stock: 20, category: 'Gift Boxes', emoji: '🎁', barcode: '628900100050' },
+        { nameEN: 'Single Long Stem Rose', nameAR: 'وردة جوري مفردة مع تغليف', price: 15, cost: 5, stock: 100, category: 'Single Flowers', emoji: '🥀', barcode: '628900100060' }
     ]
 };
 
@@ -822,6 +830,14 @@ global.defaultProductsBySector = {
         { nameEN: 'Premium Smart Monitor 27"', nameAR: 'شاشة ذكية فاخرة 27 بوصة', price: 950, cost: 650, stock: 12, category: 'electronics', emoji: '🖥️', barcode: '628100100010' },
         { nameEN: 'Wireless Laser Scanner', nameAR: 'قارئ باركود لاسلكي ليزري', price: 250, cost: 170, stock: 8, category: 'electronics', emoji: '🔦', barcode: '628100200020' },
         { nameEN: 'Leather Executive Chair', nameAR: 'كرسي مكتب جلد فخم', price: 420, cost: 280, stock: 4, category: 'office', emoji: '💺', barcode: '628100400040' }
+    ],
+    freshFlowers: [
+        { nameEN: 'Red Roses Luxury Bouquet', nameAR: 'باقة جوري أحمر فاخرة', price: 180, cost: 80, stock: 25, category: 'Bouquets', emoji: '🌹', barcode: '628900100010' },
+        { nameEN: 'Spring Mix Tulips & Lilies', nameAR: 'تنسيق ربيعي توليب وزنبق', price: 240, cost: 110, stock: 15, category: 'Arrangements', emoji: '🌷', barcode: '628900100020' },
+        { nameEN: 'White Orchid in Ceramic Pot', nameAR: 'أوركيد أبيض في حوض سيراميك', price: 320, cost: 150, stock: 10, category: 'Potted Plants', emoji: '🪴', barcode: '628900100030' },
+        { nameEN: 'Bridal Hand Bouquet', nameAR: 'مسكة عروس ملكية', price: 450, cost: 200, stock: 8, category: 'Weddings', emoji: '💐', barcode: '628900100040' },
+        { nameEN: 'Flower & Belgian Chocolate Box', nameAR: 'بوكس ورد وشوكولاتة بلجيكية', price: 290, cost: 130, stock: 20, category: 'Gift Boxes', emoji: '🎁', barcode: '628900100050' },
+        { nameEN: 'Single Long Stem Rose', nameAR: 'وردة جوري مفردة مع تغليف', price: 15, cost: 5, stock: 100, category: 'Single Flowers', emoji: '🥀', barcode: '628900100060' }
     ]
 };
 
