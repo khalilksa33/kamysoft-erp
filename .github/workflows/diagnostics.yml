@@ -18,7 +18,7 @@ jobs:
           ${{ secrets.SSH_PRIVATE_KEY_HOST_C }}
           KEY
           chmod 600 ~/.ssh/id_rsa
-          cat <<CONFIG > ~/.ssh/config
+          cat <<EOF > ~/.ssh/config
           Host gcloud.26i.uk
               HostName gcloud.26i.uk
               User cloud
