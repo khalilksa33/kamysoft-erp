@@ -140,7 +140,11 @@ const translations = {
         paymentApplePay: "Apple Pay",
         paymentTabby: "Tabby",
         paymentTamara: "Tamara",
+        paymentNinja: "Ninja",
+        paymentKeeta: "Keeta",
+        paymentHungerstation: "HungerStation",
         paymentSplit: "Split",
+        dailyReport: "Daily Report",
         posCashier: "POS / Cashier",
         inventory: "Inventory",
         expenses: "Expenses Management",
@@ -361,7 +365,11 @@ const translations = {
         paymentApplePay: "Apple Pay",
         paymentTabby: "تابي",
         paymentTamara: "تمارا",
+        paymentNinja: "نينجا",
+        paymentKeeta: "كيتا",
+        paymentHungerstation: "هنقرستيشن",
         paymentSplit: "دفع مجزأ",
+        dailyReport: "التقرير اليومي",
         posCashier: "تطبيق الكاشير",
         inventory: "إدارة المخزون",
         expenses: "إدارة المصروفات",
@@ -585,6 +593,9 @@ const getPaymentMethodLabel = (method, lang) => {
     if (m.includes('apple')) return 'Apple Pay';
     if (m.includes('tabby') || m.includes('tabbi')) return isAr ? 'تابي' : 'Tabby';
     if (m.includes('tamara')) return isAr ? 'تمارا' : 'Tamara';
+    if (m.includes('ninja')) return isAr ? 'نينجا' : 'Ninja';
+    if (m.includes('keeta')) return isAr ? 'كيتا' : 'Keeta';
+    if (m.includes('hungerstation') || m.includes('hunger')) return isAr ? 'هنقرستيشن' : 'HungerStation';
     if (m.includes('split')) {
         if (isAr) {
             return method.replace('Split / مجزأ', 'دفع مجزأ').replace('Cash:', 'نقداً:').replace('Card:', 'بطاقة:');
@@ -2861,7 +2872,7 @@ const handleB2BSubmit = () => {
                 )}
 
                 {/* TAB: REPORTS */}
-                {['reports', 'salesMovement', 'purchasesMovement', 'maintenanceReport', 'itemsMovement', 'financialMovement', 'salesAnalysis', 'accountsDebts', 'profitAnalysis', 'summaryReport', 'taxReport'].includes(activeTab) && <Reports {...props} />}
+                {['reports', 'dailyReport', 'salesMovement', 'purchasesMovement', 'maintenanceReport', 'itemsMovement', 'financialMovement', 'salesAnalysis', 'accountsDebts', 'profitAnalysis', 'summaryReport', 'taxReport'].includes(activeTab) && <Reports {...props} />}
 {activeTab === 'moduleSwitch' && <ModuleSwitcher {...props} />}
 
                 {/* TAB: ZATCA INTEGRATION AND CLEARANCE */}

@@ -1,55 +1,94 @@
 import React from 'react';
 
-const FreshFlowersDashboard = ({ settings, translations, activeTab }) => {
+const FreshFlowersDashboard = ({ settings, translations, activeTab, currentLanguage, setActiveTab }) => {
     return (
-        <div className="module-dashboard">
-            <div className="modern-header">
-                <h2>{translations?.freshFlowers || 'Fresh Flowers'} - {translations?.flowersDashboard || 'Dashboard'}</h2>
-                <div className="header-actions">
-                    <button className="modern-btn primary">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                        <i className="ri-leaf-line" style={{ color: 'var(--accent-success)', marginRight: currentLanguage === 'ar' ? '0' : '8px', marginLeft: currentLanguage === 'ar' ? '8px' : '0' }}></i>
+                        {translations?.freshFlowers || 'Fresh Flowers'} - {translations?.flowersDashboard || 'Dashboard'}
+                    </h2>
+                    <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                        {currentLanguage === 'ar' ? 'نظرة عامة على تنسيقات الزهور والتوصيل' : 'Overview of fresh flower arrangements and delivery operations'}
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-primary" onClick={() => setActiveTab && setActiveTab('flowers_arrangements')}>
                         <i className="ri-add-line"></i> {translations?.flowersArrangements || 'New Arrangement'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setActiveTab && setActiveTab('flowers_deliveries')}>
+                        <i className="ri-truck-line"></i> {translations?.flowersDeliveries || 'Deliveries'}
                     </button>
                 </div>
             </div>
 
-            <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-                <div className="stat-card modern-card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div className="stat-icon" style={{background: 'var(--primary-color, #007bff)', color: 'white', padding: '15px', borderRadius: '10px', fontSize: '24px'}}>
-                        <i className="ri-leaf-line"></i>
-                    </div>
-                    <div className="stat-details">
-                        <h3 style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>{translations?.flowersArrangements || 'Arrangements'}</h3>
-                        <p className="stat-value" style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>0</p>
+            <div className="card-grid">
+                <div className="glass-card purple">
+                    <div className="card-stat">
+                        <div className="stat-info">
+                            <h3>{translations?.flowersArrangements || 'Active Arrangements'}</h3>
+                            <div className="stat-value">0</div>
+                        </div>
+                        <div className="stat-icon"><i className="ri-leaf-line"></i></div>
                     </div>
                 </div>
 
-                <div className="stat-card modern-card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div className="stat-icon" style={{background: '#2ecc71', color: 'white', padding: '15px', borderRadius: '10px', fontSize: '24px'}}>
-                        <i className="ri-truck-line"></i>
+                <div className="glass-card cyan">
+                    <div className="card-stat">
+                        <div className="stat-info">
+                            <h3>{translations?.flowersDeliveries || 'Scheduled Deliveries'}</h3>
+                            <div className="stat-value">0</div>
+                        </div>
+                        <div className="stat-icon"><i className="ri-truck-line"></i></div>
                     </div>
-                    <div className="stat-details">
-                        <h3 style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>{translations?.flowersDeliveries || 'Deliveries'}</h3>
-                        <p className="stat-value" style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>0</p>
+                </div>
+
+                <div className="glass-card gold">
+                    <div className="card-stat">
+                        <div className="stat-info">
+                            <h3>{currentLanguage === 'ar' ? 'الطلبات اليومية' : 'Daily Orders'}</h3>
+                            <div className="stat-value">0</div>
+                        </div>
+                        <div className="stat-icon"><i className="ri-shopping-basket-line"></i></div>
+                    </div>
+                </div>
+
+                <div className="glass-card green">
+                    <div className="card-stat">
+                        <div className="stat-info">
+                            <h3>{currentLanguage === 'ar' ? 'إجمالي المبيعات' : 'Flower Sales'}</h3>
+                            <div className="stat-value">0.00 {settings?.currency || 'SAR'}</div>
+                        </div>
+                        <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div className="modern-card">
-                    <div className="card-header" style={{ padding: '15px 20px', borderBottom: '1px solid #eee' }}>
-                        <h3 style={{ margin: 0, fontSize: '16px' }}>Upcoming Deliveries</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px' }}>
+                            <i className="ri-time-line" style={{ color: 'var(--accent-cyan)', marginRight: '6px' }}></i>
+                            {currentLanguage === 'ar' ? 'التوصيل القادم' : 'Upcoming Deliveries'}
+                        </h3>
                     </div>
-                    <div className="card-body" style={{ padding: '20px' }}>
-                        <p className="empty-state" style={{ color: '#999', textAlign: 'center' }}>No upcoming deliveries scheduled.</p>
+                    <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-secondary)' }}>
+                        <i className="ri-truck-line" style={{ fontSize: '32px', opacity: 0.5, marginBottom: '8px', display: 'block' }}></i>
+                        <p style={{ margin: 0 }}>{currentLanguage === 'ar' ? 'لا توجد عمليات توصيل مجدولة' : 'No upcoming deliveries scheduled.'}</p>
                     </div>
                 </div>
                 
-                <div className="modern-card">
-                    <div className="card-header" style={{ padding: '15px 20px', borderBottom: '1px solid #eee' }}>
-                        <h3 style={{ margin: 0, fontSize: '16px' }}>Recent Arrangements</h3>
+                <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px' }}>
+                            <i className="ri-sparkling-line" style={{ color: 'var(--accent-gold)', marginRight: '6px' }}></i>
+                            {currentLanguage === 'ar' ? 'أحدث التنسيقات' : 'Recent Arrangements'}
+                        </h3>
                     </div>
-                    <div className="card-body" style={{ padding: '20px' }}>
-                        <p className="empty-state" style={{ color: '#999', textAlign: 'center' }}>No arrangements created yet.</p>
+                    <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-secondary)' }}>
+                        <i className="ri-flower-line" style={{ fontSize: '32px', opacity: 0.5, marginBottom: '8px', display: 'block' }}></i>
+                        <p style={{ margin: 0 }}>{currentLanguage === 'ar' ? 'لم يتم إنشاء أي باقات بعد' : 'No arrangements created yet.'}</p>
                     </div>
                 </div>
             </div>

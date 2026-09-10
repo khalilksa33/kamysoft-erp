@@ -41,6 +41,7 @@ const sidebarTranslations = {
         incomeStatement: "Income Statement",
         cashFlow: "Cash Flow",
         reports: "Reports",
+        dailyReport: "Daily Report",
         salesMovement: "Sales Movement",
         unpaidInvoices: "Unpaid Invoices",
         purchasesMovement: "Purchases Movement",
@@ -121,6 +122,7 @@ const sidebarTranslations = {
         incomeStatement: "قائمة الدخل",
         cashFlow: "التدفقات النقدية",
         reports: "تقارير",
+        dailyReport: "التقرير اليومي",
         salesMovement: "حركة المبيعات",
         unpaidInvoices: "الفواتير غير مدفوعة",
         purchasesMovement: "حركة المشتريات",
@@ -260,6 +262,7 @@ const menuConfig = [
     {
         id: 'reports', icon: 'ri-bar-chart-box-line', labelKey: 'reports',
         submenu: [
+            { id: 'dailyReport', labelKey: 'dailyReport' },
             { id: 'salesMovement', labelKey: 'salesMovement' },
             { id: 'unpaidInvoices', labelKey: 'unpaidInvoices' },
             { id: 'purchasesMovement', labelKey: 'purchasesMovement' },

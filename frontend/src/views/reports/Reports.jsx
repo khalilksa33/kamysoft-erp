@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Reports = (props) => {
     const {
@@ -10,6 +10,230 @@ const Reports = (props) => {
         translations,
         activeTab
     } = props;
+
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const d = new Date();
+        return d.toISOString().split('T')[0];
+    });
+
+    // Dedicated Daily Report View
+    if (activeTab === 'dailyReport') {
+        const dayInvoices = (invoices || []).filter(inv => {
+            if (!inv.date) return false;
+            // Match ISO YYYY-MM-DD or locale strings containing the date
+            if (inv.date.startsWith(selectedDate)) return true;
+            try {
+                const invD = new Date(inv.date);
+                if (!isNaN(invD.getTime())) {
+                    return invD.toISOString().split('T')[0] === selectedDate;
+                }
+            } catch (e) {}
+            return false;
+        });
+
+        const totalDailySales = dayInvoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+        const totalDailyVat = dayInvoices.reduce((sum, inv) => sum + (Number(inv.vat) || 0), 0);
+        const netDailySales = totalDailySales - totalDailyVat;
+
+        // Breakdown by payment modes
+        const paymentBreakdown = {
+            cash: 0,
+            mada: 0,
+            visa: 0,
+            mobile: 0,
+            stc: 0,
+            apple: 0,
+            ninja: 0,
+            keeta: 0,
+            hungerstation: 0,
+            tabby: 0,
+            tamara: 0,
+            split: 0,
+            other: 0
+        };
+
+        dayInvoices.forEach(inv => {
+            const method = (inv.paymentMethod || 'cash').toLowerCase();
+            if (method.includes('cash')) paymentBreakdown.cash += Number(inv.total || 0);
+            else if (method.includes('mada')) paymentBreakdown.mada += Number(inv.total || 0);
+            else if (method.includes('visa')) paymentBreakdown.visa += Number(inv.total || 0);
+            else if (method.includes('mobile')) paymentBreakdown.mobile += Number(inv.total || 0);
+            else if (method.includes('stc')) paymentBreakdown.stc += Number(inv.total || 0);
+            else if (method.includes('apple')) paymentBreakdown.apple += Number(inv.total || 0);
+            else if (method.includes('ninja')) paymentBreakdown.ninja += Number(inv.total || 0);
+            else if (method.includes('keeta')) paymentBreakdown.keeta += Number(inv.total || 0);
+            else if (method.includes('hunger')) paymentBreakdown.hungerstation += Number(inv.total || 0);
+            else if (method.includes('tabby') || method.includes('tabbi')) paymentBreakdown.tabby += Number(inv.total || 0);
+            else if (method.includes('tamara')) paymentBreakdown.tamara += Number(inv.total || 0);
+            else if (method.includes('split')) paymentBreakdown.split += Number(inv.total || 0);
+            else paymentBreakdown.other += Number(inv.total || 0);
+        });
+
+        const deliveryAppsTotal = paymentBreakdown.ninja + paymentBreakdown.keeta + paymentBreakdown.hungerstation;
+
+        return (
+            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Header & Date Controls */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '15px' }}>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                            <i className="ri-calendar-check-line" style={{ color: 'var(--accent-cyan)', marginRight: currentLanguage === 'ar' ? '0' : '8px', marginLeft: currentLanguage === 'ar' ? '8px' : '0' }}></i>
+                            {translations[currentLanguage]?.dailyReport || (currentLanguage === 'ar' ? 'التقرير اليومي للمبيعات' : 'Daily Sales Report')}
+                        </h2>
+                        <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                            {currentLanguage === 'ar' ? 'ملخص مبيعات اليوم وتوزيع طرق الدفع وتطبيقات التوصيل' : 'Daily sales breakdown by payment methods and delivery applications'}
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                            {currentLanguage === 'ar' ? 'تاريخ التقرير:' : 'Select Date:'}
+                        </label>
+                        <input 
+                            type="date" 
+                            className="form-control" 
+                            style={{ width: 'auto', padding: '6px 12px' }}
+                            value={selectedDate} 
+                            onChange={e => setSelectedDate(e.target.value)} 
+                        />
+                        <button className="btn btn-secondary" onClick={() => window.print()}>
+                            <i className="ri-printer-line"></i> {translations[currentLanguage]?.printReport || (currentLanguage === 'ar' ? 'طباعة' : 'Print')}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Key Metrics Grid */}
+                <div className="card-grid">
+                    <div className="glass-card purple">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{translations[currentLanguage]?.totalSalesTax || (currentLanguage === 'ar' ? 'إجمالي مبيعات اليوم' : 'Total Daily Sales')}</h3>
+                                <div className="stat-value">{formatCurrency(totalDailySales)}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card cyan">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{translations[currentLanguage]?.totalVatCollected || (currentLanguage === 'ar' ? 'ضريبة القيمة المضافة (15%)' : 'VAT Collected')}</h3>
+                                <div className="stat-value">{formatCurrency(totalDailyVat)}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-percent-line"></i></div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card gold">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{currentLanguage === 'ar' ? 'تطبيقات التوصيل (جاهز/هنقر/كيتا/نينجا)' : 'Delivery Apps Total'}</h3>
+                                <div className="stat-value">{formatCurrency(deliveryAppsTotal)}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-e-bike-2-line"></i></div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card green">
+                        <div className="card-stat">
+                            <div className="stat-info">
+                                <h3>{translations[currentLanguage]?.invoiceCount || (currentLanguage === 'ar' ? 'عدد الفواتير' : 'Invoices Count')}</h3>
+                                <div className="stat-value">{dayInvoices.length}</div>
+                            </div>
+                            <div className="stat-icon"><i className="ri-file-list-3-line"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Methods Breakdown Table & Cards */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px' }}>
+                        <i className="ri-bank-card-line" style={{ color: 'var(--accent-purple)', marginRight: '6px' }}></i>
+                        {currentLanguage === 'ar' ? 'تفصيل طرق الدفع وتطبيقات التوصيل' : 'Payment Methods & Delivery Apps Breakdown'}
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-money-dollar-circle-line"></i> {currentLanguage === 'ar' ? 'كاش / نقداً' : 'Cash'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(paymentBreakdown.cash)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-bank-card-2-line"></i> {currentLanguage === 'ar' ? 'مدى (شبكة)' : 'Mada'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(paymentBreakdown.mada)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-e-bike-2-line"></i> {currentLanguage === 'ar' ? 'نينجا Ninja' : 'Ninja'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px', color: 'var(--accent-cyan)' }}>{formatCurrency(paymentBreakdown.ninja)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-riding-line"></i> {currentLanguage === 'ar' ? 'كيتا Keeta' : 'Keeta'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px', color: 'var(--accent-gold)' }}>{formatCurrency(paymentBreakdown.keeta)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-restaurant-2-line"></i> {currentLanguage === 'ar' ? 'هنقرستيشن HungerStation' : 'HungerStation'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px', color: 'var(--accent-purple)' }}>{formatCurrency(paymentBreakdown.hungerstation)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-bank-card-line"></i> {currentLanguage === 'ar' ? 'فيزا / بطاقات' : 'Visa / Cards'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(paymentBreakdown.visa)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-apple-line"></i> Apple Pay / STC</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(paymentBreakdown.apple + paymentBreakdown.stc + paymentBreakdown.mobile)}</div>
+                        </div>
+                        <div style={{ background: 'var(--glass-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}><i className="ri-split-cells-vertical"></i> {currentLanguage === 'ar' ? 'دفع مجزأ / آجل' : 'Split / Tabby / Tamara'}</div>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(paymentBreakdown.split + paymentBreakdown.tabby + paymentBreakdown.tamara + paymentBreakdown.other)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Detailed Invoices of the Day */}
+                <div className="table-container">
+                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px' }}>
+                        <i className="ri-file-list-line" style={{ color: 'var(--accent-success)', marginRight: '6px' }}></i>
+                        {currentLanguage === 'ar' ? `فواتير يوم (${selectedDate})` : `Invoices for (${selectedDate})`}
+                    </h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{translations[currentLanguage]?.invoiceNum || 'Invoice #'}</th>
+                                <th>{translations[currentLanguage]?.invoiceDate || 'Time/Date'}</th>
+                                <th>{translations[currentLanguage]?.invoiceCustomer || 'Customer'}</th>
+                                <th>{translations[currentLanguage]?.paymentMethod || 'Payment Method'}</th>
+                                <th style={{ textAlign: 'right' }}>{translations[currentLanguage]?.netSalesValue || 'Net Value'}</th>
+                                <th style={{ textAlign: 'right' }}>{translations[currentLanguage]?.vat || 'VAT'}</th>
+                                <th style={{ textAlign: 'right' }}>{translations[currentLanguage]?.invoiceTotal || 'Total'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dayInvoices.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? `لا توجد فواتير صادرة بتاريخ ${selectedDate}` : `No invoices recorded on ${selectedDate}`}
+                                    </td>
+                                </tr>
+                            ) : (
+                                dayInvoices.map(inv => (
+                                    <tr key={inv.id}>
+                                        <td><strong>{inv.id}</strong></td>
+                                        <td>{inv.date}</td>
+                                        <td>{inv.customer || (currentLanguage === 'ar' ? 'عميل نقدي' : 'Cash Customer')}</td>
+                                        <td>
+                                            <span className="status-badge valid" style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                                                {inv.paymentMethod || 'Cash'}
+                                            </span>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>{formatCurrency((Number(inv.total) || 0) - (Number(inv.vat) || 0))}</td>
+                                        <td style={{ textAlign: 'right' }}>{formatCurrency(Number(inv.vat) || 0)}</td>
+                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{formatCurrency(Number(inv.total) || 0)}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
 
     // Helper to render the standard sales report table (used for salesMovement)
     const renderSalesReport = (reportInvoices) => (

@@ -43,41 +43,57 @@ const FlowersArrangements = ({ translations, currentLanguage, token, setAuthErro
     };
 
     return (
-        <div className="module-dashboard">
-            <div className="modern-header">
-                <h2>{translations?.flowersArrangements || 'Arrangements'}</h2>
-                <div className="header-actions">
-                    <button className="modern-btn primary" onClick={() => setShowModal(true)}>
-                        <i className="ri-add-line"></i> New Arrangement
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                        <i className="ri-flower-line" style={{ color: 'var(--accent-purple)', marginRight: currentLanguage === 'ar' ? '0' : '8px', marginLeft: currentLanguage === 'ar' ? '8px' : '0' }}></i>
+                        {translations?.flowersArrangements || (currentLanguage === 'ar' ? 'تنسيقات الزهور' : 'Flower Arrangements')}
+                    </h2>
+                    <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                        {currentLanguage === 'ar' ? 'إدارة وتصميم باقات وتنسيقات الزهور ومكوناتها' : 'Manage flower bouquets, recipes, and custom arrangements'}
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                        <i className="ri-add-line"></i> {currentLanguage === 'ar' ? 'تنسيق جديد' : 'New Arrangement'}
                     </button>
                 </div>
             </div>
 
-            <div className="modern-card">
-                <div className="table-responsive">
-                    <table className="modern-table">
+            <div className="glass-card">
+                <div className="table-container">
+                    <table>
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
-                                <th>Components (Flowers, Wraps)</th>
-                                <th>Price (SAR)</th>
-                                <th>Status</th>
+                                <th>{currentLanguage === 'ar' ? 'اسم التنسيق' : 'Name'}</th>
+                                <th>{currentLanguage === 'ar' ? 'المكونات (زهور، تغليف)' : 'Components (Flowers, Wraps)'}</th>
+                                <th style={{ textAlign: 'right' }}>{currentLanguage === 'ar' ? 'السعر (ر.س)' : 'Price (SAR)'}</th>
+                                <th style={{ textAlign: 'center' }}>{currentLanguage === 'ar' ? 'الحالة' : 'Status'}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {arrangements.map(arr => (
                                 <tr key={arr.id}>
-                                    <td><strong>{arr.id}</strong></td>
+                                    <td><strong>#{arr.id}</strong></td>
                                     <td><strong>{arr.name}</strong></td>
                                     <td>{arr.components}</td>
-                                    <td>{arr.price.toFixed(2)}</td>
-                                    <td><span className="status-badge valid">{arr.status}</span></td>
+                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
+                                        {Number(arr.price).toFixed(2)}
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <span className="status-badge valid" style={{ display: 'inline-block', padding: '4px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                                            {arr.status || 'Active'}
+                                        </span>
+                                    </td>
                                 </tr>
                             ))}
                             {arrangements.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="text-center">No arrangements found.</td>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'لا توجد باقات أو تنسيقات مسجلة' : 'No arrangements found.'}
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
@@ -87,51 +103,64 @@ const FlowersArrangements = ({ translations, currentLanguage, token, setAuthErro
 
             {showModal && (
                 <div className="modal-overlay">
-                    <div className="modern-modal" style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <h2>Create New Arrangement</h2>
-                            <button className="close-btn" onClick={() => setShowModal(false)}>
+                    <div className="modal glass-card" style={{ maxWidth: '500px', width: '100%', padding: '24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px' }}>
+                                {currentLanguage === 'ar' ? 'إضافة تنسيق زهور جديد' : 'Create New Arrangement'}
+                            </h3>
+                            <button className="btn btn-secondary" style={{ padding: '4px 8px', minWidth: 'auto' }} onClick={() => setShowModal(false)}>
                                 <i className="ri-close-line"></i>
                             </button>
                         </div>
-                        <div className="modal-body">
-                            <form onSubmit={handleSave}>
+                        <div>
+                            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div className="form-group">
-                                    <label>Arrangement Name</label>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'اسم التنسيق' : 'Arrangement Name'}
+                                    </label>
                                     <input 
                                         type="text" 
-                                        className="modern-input" 
+                                        className="form-control" 
                                         required
                                         value={formData.name}
                                         onChange={e => setFormData({...formData, name: e.target.value})}
-                                        placeholder="e.g. Wedding Special"
+                                        placeholder={currentLanguage === 'ar' ? 'مثال: باقة ورد أحمر ملكي' : 'e.g. Royal Red Roses Bouquet'}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Components (Flowers, Wraps, Vases)</label>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'المكونات (زهور، ورق تغليف، مزهرية)' : 'Components (Flowers, Wraps, Vases)'}
+                                    </label>
                                     <textarea 
-                                        className="modern-input" 
+                                        className="form-control" 
                                         required
                                         value={formData.components}
                                         onChange={e => setFormData({...formData, components: e.target.value})}
-                                        placeholder="e.g. 10x White Roses, 1x Silk Ribbon"
+                                        placeholder={currentLanguage === 'ar' ? 'مثال: 12 جوري أحمر، تغليف كريب أسود، شريط ساتان' : 'e.g. 12x Red Roses, Black Wrap, Silk Ribbon'}
                                         rows="3"
                                     ></textarea>
                                 </div>
                                 <div className="form-group">
-                                    <label>Price (SAR)</label>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                        {currentLanguage === 'ar' ? 'السعر (ر.س)' : 'Price (SAR)'}
+                                    </label>
                                     <input 
                                         type="number" 
-                                        className="modern-input" 
+                                        className="form-control" 
                                         required
                                         value={formData.price}
                                         onChange={e => setFormData({...formData, price: e.target.value})}
                                         min="0" step="0.01"
+                                        placeholder="0.00"
                                     />
                                 </div>
-                                <div className="modal-actions">
-                                    <button type="button" className="modern-btn secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                    <button type="submit" className="modern-btn primary">Save Arrangement</button>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                        {currentLanguage === 'ar' ? 'إلغاء' : 'Cancel'}
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">
+                                        {currentLanguage === 'ar' ? 'حفظ التنسيق' : 'Save Arrangement'}
+                                    </button>
                                 </div>
                             </form>
                         </div>
