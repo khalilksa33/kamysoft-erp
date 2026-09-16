@@ -35,15 +35,16 @@ import TableManagement from './views/restaurant/TableManagement';
 import PrinterSetup from './views/restaurant/PrinterSetup';
 import SaasAdmin from './SaasAdmin';
 import Maintenance from './views/services/Maintenance';
-import Properties from './views/property/Properties';
-import Units from './views/property/Units';
-import Bookings from './views/property/Bookings';
-import PropertyMaintenance from './views/property/Maintenance';
-import LeasingContracts from './views/property/LeasingContracts';
-import RealEstateCRM from './views/property/RealEstateCRM';
-import TenantPortal from './views/property/TenantPortal';
-import PropertyOwners from './views/property/PropertyOwners';
-import OwnerAccounting from './views/property/OwnerAccounting';
+import Properties from './views/realestate/Properties';
+import Units from './views/realestate/Units';
+import Bookings from './views/realestate/Bookings';
+import ExtraServices from './views/realestate/ExtraServices';
+import PriceRules from './views/realestate/PriceRules';
+import Housekeeping from './views/realestate/Housekeeping';
+import LeasingContracts from './views/realestate/LeasingContracts';
+import RealEstateCRM from './views/realestate/RealEstateCRM';
+import PropertyOwners from './views/realestate/PropertyOwners';
+import OwnerAccounting from './views/realestate/OwnerAccounting';
 
 // Fresh Flowers
 import FreshFlowersDashboard from './views/freshFlowers/FreshFlowersDashboard';
@@ -2484,21 +2485,22 @@ const handleB2BSubmit = () => {
                 {/* TAB: MAINTENANCE */}
                 {['maintenance'].includes(activeTab) && <Maintenance {...props} />}
 
-                {/* TAB: PROPERTY MANAGEMENT */}
+                {/* TAB: PROPERTY & HOSPITALITY MANAGEMENT (QloApps Replication) */}
                 {['property_properties'].includes(activeTab) && <Properties {...props} />}
-                
-                {/* TAB: FRESH FLOWERS */}
-                {['flowers_dashboard'].includes(activeTab) && <FreshFlowersDashboard {...props} />}
-                {['flowers_arrangements'].includes(activeTab) && <FlowersArrangements {...props} />}
-                {['flowers_deliveries'].includes(activeTab) && <FlowersDeliveries {...props} />}
-                
                 {['property_units'].includes(activeTab) && <Units {...props} />}
                 {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
+                {['property_services'].includes(activeTab) && <ExtraServices {...props} />}
+                {['property_pricerules'].includes(activeTab) && <PriceRules {...props} />}
+                {['property_housekeeping'].includes(activeTab) && <Housekeeping {...props} />}
                 {['property_leasing'].includes(activeTab) && <LeasingContracts {...props} />}
                 {['property_crm'].includes(activeTab) && <RealEstateCRM {...props} />}
                 {['property_owners'].includes(activeTab) && <PropertyOwners {...props} />}
                 {['property_owner_accounting'].includes(activeTab) && <OwnerAccounting {...props} />}
-                {['property_maintenance'].includes(activeTab) && <PropertyMaintenance {...props} />}
+
+                {/* TAB: FRESH FLOWERS */}
+                {['flowers_dashboard'].includes(activeTab) && <FreshFlowersDashboard {...props} />}
+                {['flowers_arrangements'].includes(activeTab) && <FlowersArrangements {...props} />}
+                {['flowers_deliveries'].includes(activeTab) && <FlowersDeliveries {...props} />}
 
                 {/* TAB: CAPITAL ASSETS DEPRECIATION */}
                 {activeTab === 'assets' && (

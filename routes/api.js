@@ -12,7 +12,7 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { uploadFile, getPresignedUrl } = require('../services/s3Service');
-const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, PrinterConfig, RestaurantOrder, FlowerArrangement, FlowerDelivery } = require('../models');
+const { User, Product, Invoice, Quotation, Expense, Asset, Customer, Employee, Supplier, Order, Settings, Inquiry, Warehouse, InventoryTx, JournalEntry, Voucher, Salary, PurchaseInvoice, ReturnInvoice, Account, SubscriptionPayment, PropertyOwner, Property, Unit, Booking, HotelService, PriceRule, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, PrinterConfig, RestaurantOrder, FlowerArrangement, FlowerDelivery } = require('../models');
 
 const ThermalPrinter = require('node-thermal-printer').printer;
 const PrinterTypes = require('node-thermal-printer').types;
@@ -34,7 +34,8 @@ const propertyStorage = multer.diskStorage({
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, 'prop-' + uniqueSuffix + path.extname(file.originalname));
     }
-});const propertyUpload = multer({ storage: propertyStorage });
+});
+const propertyUpload = multer({ storage: propertyStorage });
 
 // Configure Multer for memory storage (S3 Uploads)
 const storage = multer.memoryStorage();
@@ -47,6 +48,7 @@ const mockDb = {
     warehouses: [], inventoryTxs: [], journalEntries: [], vouchers: [],
     salaries: [], purchaseInvoices: [], returnInvoices: [], accounts: [],
     subscriptionPayments: [], properties: [], units: [], bookings: [],
+    hotelServices: [], priceRules: [],
     maintenanceTasks: [], propertyInvoices: [], leaseContracts: [],
     propertyOwners: [], leads: []
 };
@@ -2963,12 +2965,12 @@ router.delete('/api/units/:id', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Bookings
+// Bookings & Front Desk (QloApps Replication)
 router.get('/api/bookings', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
         if (global.isMongoConnected) {
-            const bookings = await Booking.find({ tenantId });
+            const bookings = await Booking.find({ tenantId }).sort({ checkInDate: -1 });
             res.json(bookings);
         } else {
             res.json(mockDb.bookings.filter(b => b.tenantId === tenantId));
@@ -2979,7 +2981,8 @@ router.get('/api/bookings', authenticateToken, async (req, res) => {
 router.post('/api/bookings', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
-        const newBooking = { ...req.body, tenantId, id: 'book-' + Date.now() };
+        const bookingNumber = 'BK-' + Date.now().toString().slice(-6);
+        const newBooking = { ...req.body, bookingNumber, tenantId, id: 'book-' + Date.now() };
         if (global.isMongoConnected) {
             await Booking.create(newBooking);
             await Unit.updateOne({ id: newBooking.unitId, tenantId }, { status: 'Reserved' });
@@ -2989,6 +2992,245 @@ router.post('/api/bookings', authenticateToken, async (req, res) => {
             if(unit) unit.status = 'Reserved';
         }
         res.status(201).json(newBooking);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Check-In Endpoint
+router.post('/api/bookings/:id/checkin', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        let booking;
+        if (global.isMongoConnected) {
+            booking = await Booking.findOneAndUpdate(
+                { id: req.params.id, tenantId },
+                { $set: { status: 'CheckedIn' } },
+                { new: true }
+            );
+            if (booking) {
+                await Unit.updateOne({ id: booking.unitId, tenantId }, { status: 'Occupied' });
+            }
+        } else {
+            const b = mockDb.bookings.find(x => x.id === req.params.id && x.tenantId === tenantId);
+            if (b) {
+                b.status = 'CheckedIn';
+                booking = b;
+                const unit = mockDb.units.find(u => u.id === b.unitId && u.tenantId === tenantId);
+                if (unit) unit.status = 'Occupied';
+            }
+        }
+        res.json({ success: true, booking });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Check-Out Endpoint
+router.post('/api/bookings/:id/checkout', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        let booking;
+        if (global.isMongoConnected) {
+            booking = await Booking.findOneAndUpdate(
+                { id: req.params.id, tenantId },
+                { $set: { status: 'CheckedOut' } },
+                { new: true }
+            );
+            if (booking) {
+                // Unit status becomes Available, but cleaning status becomes Dirty (housekeeping needed)
+                await Unit.updateOne({ id: booking.unitId, tenantId }, { status: 'Available', cleaningStatus: 'Dirty' });
+            }
+        } else {
+            const b = mockDb.bookings.find(x => x.id === req.params.id && x.tenantId === tenantId);
+            if (b) {
+                b.status = 'CheckedOut';
+                booking = b;
+                const unit = mockDb.units.find(u => u.id === b.unitId && u.tenantId === tenantId);
+                if (unit) {
+                    unit.status = 'Available';
+                    unit.cleaningStatus = 'Dirty';
+                }
+            }
+        }
+        res.json({ success: true, booking });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Room Swap Endpoint
+router.post('/api/bookings/:id/swap-room', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { newUnitId } = req.body;
+        if (!newUnitId) return res.status(400).json({ error: 'Target unit is required' });
+
+        let booking;
+        if (global.isMongoConnected) {
+            booking = await Booking.findOne({ id: req.params.id, tenantId });
+            if (!booking) return res.status(404).json({ error: 'Booking not found' });
+            const oldUnitId = booking.unitId;
+
+            booking.unitId = newUnitId;
+            await booking.save();
+
+            // Release old unit, mark new unit reserved/occupied
+            await Unit.updateOne({ id: oldUnitId, tenantId }, { status: 'Available', cleaningStatus: 'Dirty' });
+            await Unit.updateOne({ id: newUnitId, tenantId }, { status: booking.status === 'CheckedIn' ? 'Occupied' : 'Reserved' });
+        } else {
+            const b = mockDb.bookings.find(x => x.id === req.params.id && x.tenantId === tenantId);
+            if (!b) return res.status(404).json({ error: 'Booking not found' });
+            const oldUnitId = b.unitId;
+            b.unitId = newUnitId;
+            booking = b;
+
+            const oldUnit = mockDb.units.find(u => u.id === oldUnitId && u.tenantId === tenantId);
+            if (oldUnit) { oldUnit.status = 'Available'; oldUnit.cleaningStatus = 'Dirty'; }
+            const newUnit = mockDb.units.find(u => u.id === newUnitId && u.tenantId === tenantId);
+            if (newUnit) newUnit.status = b.status === 'CheckedIn' ? 'Occupied' : 'Reserved';
+        }
+        res.json({ success: true, booking });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Front Desk Availability Search
+router.get('/api/realestate/availability', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { checkInDate, checkOutDate, propertyId, adults, children } = req.query;
+        
+        let allUnits = [];
+        let allBookings = [];
+        if (global.isMongoConnected) {
+            const query = { tenantId };
+            if (propertyId) query.propertyId = propertyId;
+            allUnits = await Unit.find(query);
+            allBookings = await Booking.find({ tenantId, status: { $in: ['Confirmed', 'CheckedIn', 'Pending', 'Reserved'] } });
+        } else {
+            allUnits = mockDb.units.filter(u => u.tenantId === tenantId && (!propertyId || u.propertyId === propertyId));
+            allBookings = mockDb.bookings.filter(b => b.tenantId === tenantId && ['Confirmed', 'CheckedIn', 'Pending', 'Reserved'].includes(b.status));
+        }
+
+        const reqIn = checkInDate ? new Date(checkInDate) : null;
+        const reqOut = checkOutDate ? new Date(checkOutDate) : null;
+
+        const availableUnits = allUnits.filter(u => {
+            if (u.status === 'Maintenance') return false;
+            if (adults && u.maxAdults && Number(adults) > u.maxAdults) return false;
+            
+            if (reqIn && reqOut) {
+                // Check if any booking overlaps with requested range
+                const hasOverlap = allBookings.some(b => {
+                    if (b.unitId !== u.id) return false;
+                    const bIn = new Date(b.checkInDate);
+                    const bOut = new Date(b.checkOutDate);
+                    return (reqIn < bOut && reqOut > bIn);
+                });
+                if (hasOverlap) return false;
+            }
+            return true;
+        });
+
+        res.json({ availableUnits, totalAvailable: availableUnits.length });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Extra Hotel & Property Services API
+router.get('/api/realestate/services', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const services = await HotelService.find({ tenantId });
+            res.json(services);
+        } else {
+            res.json(mockDb.hotelServices.filter(s => s.tenantId === tenantId));
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/realestate/services', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const newService = { ...req.body, tenantId, id: 'srv-' + Date.now() };
+        if (global.isMongoConnected) {
+            await HotelService.create(newService);
+        } else {
+            mockDb.hotelServices.push(newService);
+        }
+        res.status(201).json(newService);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/api/realestate/services/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await HotelService.updateOne({ id: req.params.id, tenantId }, req.body);
+        } else {
+            const idx = mockDb.hotelServices.findIndex(s => s.id === req.params.id && s.tenantId === tenantId);
+            if (idx !== -1) Object.assign(mockDb.hotelServices[idx], req.body);
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/api/realestate/services/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await HotelService.deleteOne({ id: req.params.id, tenantId });
+        } else {
+            mockDb.hotelServices = mockDb.hotelServices.filter(s => !(s.id === req.params.id && s.tenantId === tenantId));
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QloApps Dynamic Rates & Price Rules API
+router.get('/api/realestate/price-rules', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            const rules = await PriceRule.find({ tenantId });
+            res.json(rules);
+        } else {
+            res.json(mockDb.priceRules.filter(r => r.tenantId === tenantId));
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/api/realestate/price-rules', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const newRule = { ...req.body, tenantId, id: 'rule-' + Date.now() };
+        if (global.isMongoConnected) {
+            await PriceRule.create(newRule);
+        } else {
+            mockDb.priceRules.push(newRule);
+        }
+        res.status(201).json(newRule);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/api/realestate/price-rules/:id', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        if (global.isMongoConnected) {
+            await PriceRule.deleteOne({ id: req.params.id, tenantId });
+        } else {
+            mockDb.priceRules = mockDb.priceRules.filter(r => !(r.id === req.params.id && r.tenantId === tenantId));
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Housekeeping Room Status Update
+router.put('/api/realestate/units/:id/cleaning-status', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+        const { cleaningStatus } = req.body;
+        if (global.isMongoConnected) {
+            await Unit.updateOne({ id: req.params.id, tenantId }, { $set: { cleaningStatus } });
+        } else {
+            const unit = mockDb.units.find(u => u.id === req.params.id && u.tenantId === tenantId);
+            if (unit) unit.cleaningStatus = cleaningStatus;
+        }
+        res.json({ success: true, cleaningStatus });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

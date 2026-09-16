@@ -360,7 +360,15 @@ const propertySchema = new mongoose.Schema({
     name: { type: String, required: true },
     type: { type: String, enum: ['Resort', 'Building', 'Hotel', 'Compound'], required: true },
     location: { type: String },
-    status: { type: String, enum: ['Active', 'Maintenance'], default: 'Active' },
+    city: { type: String, default: '' },
+    address: { type: String, default: '' },
+    starRating: { type: Number, default: 4 },
+    checkInTime: { type: String, default: '14:00' },
+    checkOutTime: { type: String, default: '12:00' },
+    phone: { type: String, default: '' },
+    email: { type: String, default: '' },
+    amenities: [{ type: String }], // e.g. WiFi, Pool, Parking, AC, Breakfast, Gym, Spa
+    status: { type: String, enum: ['Active', 'Maintenance', 'Sold'], default: 'Active' },
     ownerId: { type: String },
     tenantId: { type: String, default: 'default', index: true },
     images: [{ type: String }] // Array of image URLs
@@ -371,25 +379,82 @@ const unitSchema = new mongoose.Schema({
     id: { type: String, required: true },
     propertyId: { type: String, required: true },
     unitNumber: { type: String, required: true },
+    name: { type: String },
     type: { type: String, enum: ['Room', 'Suite', 'Apartment', 'Villa'], required: true },
+    roomType: { type: String, default: 'Deluxe' }, // Standard, Deluxe, Executive, Presidential, Villa
     beds: { type: Number, default: 1 },
+    maxAdults: { type: Number, default: 2 },
+    maxChildren: { type: Number, default: 1 },
+    floor: { type: String, default: '1' },
+    amenities: [{ type: String }],
     dailyRate: { type: Number, required: true },
     status: { type: String, enum: ['Available', 'Occupied', 'Maintenance', 'Reserved'], default: 'Available' },
+    cleaningStatus: { type: String, enum: ['Clean', 'Dirty', 'Inspecting', 'OutOfService'], default: 'Clean' },
+    images: [{ type: String }],
     tenantId: { type: String, default: 'default', index: true }
 });
 const Unit = mongoose.model('Unit', unitSchema);
 
 const bookingSchema = new mongoose.Schema({
     id: { type: String, required: true },
+    bookingNumber: { type: String },
     unitId: { type: String, required: true },
     customerId: { type: String, required: true },
+    customerName: { type: String },
+    customerPhone: { type: String },
     checkInDate: { type: Date, required: true },
     checkOutDate: { type: Date, required: true },
+    adults: { type: Number, default: 1 },
+    children: { type: Number, default: 0 },
+    extraServices: [{
+        serviceId: { type: String },
+        name: { type: String },
+        price: { type: Number },
+        qty: { type: Number, default: 1 }
+    }],
+    dailyRate: { type: Number },
+    discount: { type: Number, default: 0 },
+    subtotal: { type: Number },
+    vat: { type: Number },
     totalAmount: { type: Number, required: true },
-    status: { type: String, enum: ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'], default: 'Pending' },
+    paidAmount: { type: Number, default: 0 },
+    paymentStatus: { type: String, enum: ['Unpaid', 'PartiallyPaid', 'Paid', 'Refunded'], default: 'Paid' },
+    status: { type: String, enum: ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled', 'NoShow'], default: 'Confirmed' },
+    notes: { type: String },
     tenantId: { type: String, default: 'default', index: true }
 });
 const Booking = mongoose.model('Booking', bookingSchema);
+
+// QloApps Extra Hotel & Property Services (Airport pickup, Breakfast, Spa, Extra Bed, Housekeeping)
+const hotelServiceSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    nameEN: { type: String, required: true },
+    nameAR: { type: String, required: true },
+    price: { type: Number, required: true },
+    priceType: { type: String, enum: ['PerStay', 'PerNight', 'PerPerson'], default: 'PerStay' },
+    icon: { type: String, default: 'ri-service-line' },
+    description: { type: String },
+    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+hotelServiceSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const HotelService = mongoose.model('HotelService', hotelServiceSchema);
+
+// QloApps Dynamic Rates & Price Rules (Seasonal multipliers, weekend surcharges, promo rates)
+const priceRuleSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    propertyId: { type: String }, // optional, if specific property
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    ruleType: { type: String, enum: ['Multiplier', 'FixedDiscount', 'PercentageDiscount', 'CustomRate'], default: 'Multiplier' },
+    value: { type: Number, required: true }, // e.g. 1.2 (+20% in season) or 50 (50 SAR off)
+    daysOfWeek: [{ type: Number }], // 0 for Sunday ... 6 for Saturday
+    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+    tenantId: { type: String, default: 'default', index: true }
+});
+priceRuleSchema.index({ id: 1, tenantId: 1 }, { unique: true });
+const PriceRule = mongoose.model('PriceRule', priceRuleSchema);
 
 const maintenanceTaskSchema = new mongoose.Schema({
     id: { type: String, required: true },
@@ -549,6 +614,6 @@ module.exports = {
     SubscriptionPayment,
     Account,
     PropertyOwner,
-    Property, Unit, Booking, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain,
+    Property, Unit, Booking, HotelService, PriceRule, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain,
     PrinterConfig, RestaurantOrder
 };
