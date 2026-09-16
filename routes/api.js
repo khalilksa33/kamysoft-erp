@@ -3219,6 +3219,461 @@ router.delete('/api/realestate/price-rules/:id', authenticateToken, async (req, 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// QloApps & Real Estate Sample Data Seeder Endpoint
+router.post('/api/realestate/seed', authenticateToken, async (req, res) => {
+    try {
+        const tenantId = getTenantId(req);
+
+        const sampleOwners = [
+            { id: 'own-sample-1', name: 'Al-Mamlaka Real Estate Investment Trust', phone: '+966 11 200 3000', email: 'reit@mamlaka.sa', bankDetails: 'Al Rajhi Bank - IBAN: SA4480000201608010000001', tenantId },
+            { id: 'own-sample-2', name: 'Golden Horizon Hospitality Group', phone: '+966 12 600 7000', email: 'finance@goldenhorizon.sa', bankDetails: 'Saudi National Bank (SNB) - IBAN: SA1210000001234567890123', tenantId }
+        ];
+
+        const sampleProperties = [
+            {
+                id: 'prop-sample-1',
+                name: 'Grand Palace Hotel & Spa',
+                type: 'Hotel',
+                city: 'Riyadh',
+                location: 'King Fahd Road, Al Olaya, Riyadh',
+                address: 'King Fahd Road, Al Olaya, Riyadh',
+                starRating: 5,
+                checkInTime: '14:00',
+                checkOutTime: '12:00',
+                phone: '+966 11 456 7890',
+                email: 'reservations@grandpalace.sa',
+                amenities: ['WiFi', 'Pool', 'AC', 'Parking', 'Breakfast', 'Gym', 'Spa', 'FrontDesk', 'Shuttle'],
+                status: 'Active',
+                ownerId: 'own-sample-1',
+                tenantId
+            },
+            {
+                id: 'prop-sample-2',
+                name: 'Al Nakhla Coastal Resort & Spa',
+                type: 'Resort',
+                city: 'Jeddah',
+                location: 'North Corniche, Jeddah',
+                address: 'North Corniche, Jeddah',
+                starRating: 5,
+                checkInTime: '15:00',
+                checkOutTime: '12:00',
+                phone: '+966 12 345 6789',
+                email: 'concierge@alnakhla-resort.sa',
+                amenities: ['WiFi', 'Pool', 'AC', 'Parking', 'Breakfast', 'Spa', 'PetFriendly'],
+                status: 'Active',
+                ownerId: 'own-sample-2',
+                tenantId
+            },
+            {
+                id: 'prop-sample-3',
+                name: 'Al Olaya Executive Towers',
+                type: 'Building',
+                city: 'Riyadh',
+                location: 'Tower A, Al Olaya District, Riyadh',
+                address: 'Tower A, Al Olaya District, Riyadh',
+                starRating: 4,
+                phone: '+966 11 987 6543',
+                email: 'leasing@olayatowers.sa',
+                amenities: ['WiFi', 'Parking', 'AC', 'FrontDesk'],
+                status: 'Active',
+                ownerId: 'own-sample-1',
+                tenantId
+            }
+        ];
+
+        const sampleUnits = [
+            {
+                id: 'unit-sample-101',
+                propertyId: 'prop-sample-1',
+                unitNumber: '101',
+                name: 'Royal Presidential Suite 101',
+                type: 'Suite',
+                roomType: 'Presidential Suite',
+                floor: '10',
+                maxAdults: 4,
+                maxChildren: 2,
+                dailyRate: 1500,
+                status: 'Occupied',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'Pool', 'AC', 'Breakfast', 'Spa', 'FrontDesk'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-102',
+                propertyId: 'prop-sample-1',
+                unitNumber: '102',
+                name: 'Executive King Suite 102',
+                type: 'Suite',
+                roomType: 'Executive Suite',
+                floor: '5',
+                maxAdults: 2,
+                maxChildren: 1,
+                dailyRate: 850,
+                status: 'Reserved',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'AC', 'Breakfast', 'Gym'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-103',
+                propertyId: 'prop-sample-1',
+                unitNumber: '103',
+                name: 'Deluxe Double Room 103',
+                type: 'Room',
+                roomType: 'Deluxe Room',
+                floor: '3',
+                maxAdults: 2,
+                maxChildren: 2,
+                dailyRate: 550,
+                status: 'Available',
+                cleaningStatus: 'Dirty',
+                amenities: ['WiFi', 'AC', 'Parking'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-104',
+                propertyId: 'prop-sample-1',
+                unitNumber: '104',
+                name: 'Standard King Room 104',
+                type: 'Room',
+                roomType: 'Standard Room',
+                floor: '2',
+                maxAdults: 2,
+                maxChildren: 0,
+                dailyRate: 380,
+                status: 'Available',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'AC'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-201',
+                propertyId: 'prop-sample-2',
+                unitNumber: 'V-01',
+                name: 'Private Sea-View Royal Villa',
+                type: 'Villa',
+                roomType: 'Royal Villa',
+                floor: '1',
+                maxAdults: 6,
+                maxChildren: 4,
+                dailyRate: 3200,
+                status: 'Available',
+                cleaningStatus: 'Inspecting',
+                amenities: ['WiFi', 'Pool', 'AC', 'Parking', 'Breakfast', 'Spa', 'PetFriendly'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-202',
+                propertyId: 'prop-sample-2',
+                unitNumber: 'V-02',
+                name: 'Sunset Lagoon Chalet',
+                type: 'Room',
+                roomType: 'Deluxe Room',
+                floor: '1',
+                maxAdults: 3,
+                maxChildren: 2,
+                dailyRate: 1200,
+                status: 'Occupied',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'Pool', 'AC', 'Breakfast'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-301',
+                propertyId: 'prop-sample-3',
+                unitNumber: 'Off-301',
+                name: 'Prime Corporate Office Suite',
+                type: 'Apartment',
+                roomType: 'Office Space',
+                floor: '3',
+                dailyRate: 600,
+                status: 'Occupied',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'AC', 'Parking', 'FrontDesk'],
+                tenantId
+            },
+            {
+                id: 'unit-sample-302',
+                propertyId: 'prop-sample-3',
+                unitNumber: 'Sh-101',
+                name: 'Ground Floor Retail Showroom',
+                type: 'Apartment',
+                roomType: 'Retail Shop',
+                floor: '1',
+                dailyRate: 850,
+                status: 'Available',
+                cleaningStatus: 'Clean',
+                amenities: ['WiFi', 'AC', 'Parking'],
+                tenantId
+            }
+        ];
+
+        const sampleServices = [
+            {
+                id: 'srv-sample-1',
+                nameEN: 'VIP Airport Limousine Transfer',
+                nameAR: 'خدمة نقل كبار الشخصيات من المطار بالليموزين',
+                price: 250,
+                priceType: 'PerStay',
+                icon: 'ri-car-line',
+                description: 'Chauffeur-driven luxury Mercedes S-Class pickup/dropoff',
+                status: 'Active',
+                tenantId
+            },
+            {
+                id: 'srv-sample-2',
+                nameEN: 'International Buffet Breakfast',
+                nameAR: 'بوفيه إفطار عالمي مفتوح',
+                price: 75,
+                priceType: 'PerPerson',
+                icon: 'ri-restaurant-line',
+                description: 'Daily gourmet breakfast spread with fresh juice & barista coffee',
+                status: 'Active',
+                tenantId
+            },
+            {
+                id: 'srv-sample-3',
+                nameEN: 'Full-Body Swedish Massage & Spa Pass',
+                nameAR: 'جلسة مساج سويدي كامل مع دخول السبا',
+                price: 350,
+                priceType: 'PerStay',
+                icon: 'ri-spa-line',
+                description: '60-minute relaxing session plus access to sauna & hydro pool',
+                status: 'Active',
+                tenantId
+            },
+            {
+                id: 'srv-sample-4',
+                nameEN: 'Extra Rollaway Bed with Premium Linen',
+                nameAR: 'سرير إضافي قابل للطي مع مفارش فاخرة',
+                price: 120,
+                priceType: 'PerNight',
+                icon: 'ri-hotel-bed-line',
+                description: 'Comfortable single rollaway bed setup in room',
+                status: 'Active',
+                tenantId
+            },
+            {
+                id: 'srv-sample-5',
+                nameEN: 'Guided Riyadh City & Historical Diriyah Tour',
+                nameAR: 'جولة سياحية مرشدة في مدينة الرياض والدرعية التاريخية',
+                price: 450,
+                priceType: 'PerStay',
+                icon: 'ri-compass-3-line',
+                description: 'Half-day cultural tour with English/Arabic private tour guide',
+                status: 'Active',
+                tenantId
+            }
+        ];
+
+        const samplePriceRules = [
+            {
+                id: 'rule-sample-1',
+                name: 'High Summer Season Surge (+25%)',
+                propertyId: 'prop-sample-2',
+                ruleType: 'Multiplier',
+                value: 1.25,
+                startDate: new Date('2026-06-01'),
+                endDate: new Date('2026-09-30'),
+                status: 'Active',
+                tenantId
+            },
+            {
+                id: 'rule-sample-2',
+                name: 'Early Bird 30-Day Advance Discount (15%)',
+                propertyId: 'prop-sample-1',
+                ruleType: 'PercentageDiscount',
+                value: 15,
+                startDate: new Date('2026-01-01'),
+                endDate: new Date('2026-12-31'),
+                status: 'Active',
+                tenantId
+            }
+        ];
+
+        const sampleCustomers = [
+            { id: 'cust-sample-1', name: 'Sheikh Sultan Al-Otaibi', phone: '+966 50 123 4567', email: 'sultan.otaibi@al-rajhi.sa', tenantId },
+            { id: 'cust-sample-2', name: 'Dr. Sarah Jenkins', phone: '+44 7700 900077', email: 'sarah.jenkins@oxford.ac.uk', tenantId },
+            { id: 'cust-sample-3', name: 'Eng. Tariq Al-Ghamdi', phone: '+966 55 987 6543', email: 'tariq.ghamdi@aramco.com', tenantId }
+        ];
+
+        const sampleBookings = [
+            {
+                id: 'book-sample-1',
+                bookingNumber: 'BK-809121',
+                unitId: 'unit-sample-101',
+                customerId: 'cust-sample-1',
+                customerName: 'Sheikh Sultan Al-Otaibi',
+                customerPhone: '+966 50 123 4567',
+                checkInDate: new Date('2026-09-15'),
+                checkOutDate: new Date('2026-09-20'),
+                adults: 2,
+                children: 1,
+                extraServices: [
+                    { serviceId: 'srv-sample-1', name: 'VIP Airport Limousine Transfer', price: 250, qty: 1 },
+                    { serviceId: 'srv-sample-2', name: 'International Buffet Breakfast', price: 75, qty: 2 }
+                ],
+                dailyRate: 1500,
+                discount: 0,
+                subtotal: 7900,
+                vat: 1185,
+                totalAmount: 9085,
+                paidAmount: 9085,
+                paymentStatus: 'Paid',
+                status: 'CheckedIn',
+                notes: 'VIP Guest. Requires high floor and extra feather pillows.',
+                tenantId
+            },
+            {
+                id: 'book-sample-2',
+                bookingNumber: 'BK-809122',
+                unitId: 'unit-sample-102',
+                customerId: 'cust-sample-2',
+                customerName: 'Dr. Sarah Jenkins',
+                customerPhone: '+44 7700 900077',
+                checkInDate: new Date('2026-09-18'),
+                checkOutDate: new Date('2026-09-22'),
+                adults: 1,
+                children: 0,
+                extraServices: [
+                    { serviceId: 'srv-sample-2', name: 'International Buffet Breakfast', price: 75, qty: 1 }
+                ],
+                dailyRate: 850,
+                discount: 200,
+                subtotal: 3275,
+                vat: 491.25,
+                totalAmount: 3766.25,
+                paidAmount: 1500,
+                paymentStatus: 'PartiallyPaid',
+                status: 'Confirmed',
+                notes: 'Attending Medical AI Conference. Quiet room requested.',
+                tenantId
+            },
+            {
+                id: 'book-sample-3',
+                bookingNumber: 'BK-809123',
+                unitId: 'unit-sample-202',
+                customerId: 'cust-sample-3',
+                customerName: 'Eng. Tariq Al-Ghamdi',
+                customerPhone: '+966 55 987 6543',
+                checkInDate: new Date('2026-09-14'),
+                checkOutDate: new Date('2026-09-17'),
+                adults: 2,
+                children: 2,
+                extraServices: [
+                    { serviceId: 'srv-sample-3', name: 'Full-Body Swedish Massage & Spa Pass', price: 350, qty: 1 }
+                ],
+                dailyRate: 1200,
+                discount: 0,
+                subtotal: 3950,
+                vat: 592.5,
+                totalAmount: 4542.5,
+                paidAmount: 4542.5,
+                paymentStatus: 'Paid',
+                status: 'CheckedIn',
+                notes: 'Family vacation. Requested late checkout at 14:00.',
+                tenantId
+            }
+        ];
+
+        const sampleLeases = [
+            {
+                tenantId,
+                unitId: 'unit-sample-301',
+                customerId: 'cust-sample-1',
+                startDate: new Date('2026-01-01'),
+                endDate: new Date('2027-12-31'),
+                rentAmount: 216000,
+                paymentFrequency: 'Quarterly',
+                installments: [
+                    { dueDate: new Date('2026-01-01'), amount: 54000, status: 'Paid' },
+                    { dueDate: new Date('2026-04-01'), amount: 54000, status: 'Paid' },
+                    { dueDate: new Date('2026-07-01'), amount: 54000, status: 'Paid' },
+                    { dueDate: new Date('2026-10-01'), amount: 54000, status: 'Pending' }
+                ],
+                managementFeeType: 'Percentage',
+                managementFeeValue: 10,
+                status: 'Active'
+            }
+        ];
+
+        const sampleLeads = [
+            {
+                id: 'lead-sample-1',
+                tenantId,
+                name: 'Fahad Al-Hussaini',
+                phone: '+966 54 111 2233',
+                email: 'fahad@hussaini-group.com',
+                source: 'Referral',
+                status: 'Viewing Scheduled',
+                interestedPropertyId: 'prop-sample-3',
+                budget: 25000,
+                notes: [{ date: new Date(), user: 'Agent', content: 'Interested in opening a specialty coffee flagship store on the ground floor.' }]
+            },
+            {
+                id: 'lead-sample-2',
+                tenantId,
+                name: 'Noura Al-Shehri',
+                phone: '+966 56 333 4455',
+                email: 'noura.shehri@gmail.com',
+                source: 'Social Media',
+                status: 'Contacted',
+                interestedPropertyId: 'prop-sample-2',
+                budget: 3200,
+                notes: [{ date: new Date(), user: 'Concierge', content: 'Inquired about booking the Private Sea-View Royal Villa for an anniversary weekend.' }]
+            }
+        ];
+
+        if (global.isMongoConnected) {
+            for (const o of sampleOwners) await PropertyOwner.updateOne({ id: o.id, tenantId }, { $set: o }, { upsert: true });
+            for (const p of sampleProperties) await Property.updateOne({ id: p.id, tenantId }, { $set: p }, { upsert: true });
+            for (const u of sampleUnits) await Unit.updateOne({ id: u.id, tenantId }, { $set: u }, { upsert: true });
+            for (const s of sampleServices) await HotelService.updateOne({ id: s.id, tenantId }, { $set: s }, { upsert: true });
+            for (const r of samplePriceRules) await PriceRule.updateOne({ id: r.id, tenantId }, { $set: r }, { upsert: true });
+            for (const c of sampleCustomers) await Customer.updateOne({ id: c.id, tenantId }, { $set: c }, { upsert: true });
+            for (const b of sampleBookings) await Booking.updateOne({ id: b.id, tenantId }, { $set: b }, { upsert: true });
+            
+            await LeaseContract.deleteMany({ unitId: 'unit-sample-301', tenantId });
+            for (const l of sampleLeases) await LeaseContract.create(l);
+            for (const ld of sampleLeads) await Lead.updateOne({ id: ld.id, tenantId }, { $set: ld }, { upsert: true });
+        } else {
+            const upsertMock = (arr, items, idKey = 'id') => {
+                items.forEach(item => {
+                    const idx = arr.findIndex(x => x[idKey] === item[idKey] && x.tenantId === tenantId);
+                    if (idx !== -1) arr[idx] = item;
+                    else arr.push(item);
+                });
+            };
+            upsertMock(mockDb.propertyOwners, sampleOwners);
+            upsertMock(mockDb.properties, sampleProperties);
+            upsertMock(mockDb.units, sampleUnits);
+            upsertMock(mockDb.hotelServices, sampleServices);
+            upsertMock(mockDb.priceRules, samplePriceRules);
+            upsertMock(mockDb.customers, sampleCustomers);
+            upsertMock(mockDb.bookings, sampleBookings);
+            upsertMock(mockDb.leaseContracts, sampleLeases, 'unitId');
+            upsertMock(mockDb.leads, sampleLeads);
+        }
+
+        res.json({
+            success: true,
+            message: 'Sample real estate and hotel data seeded successfully',
+            counts: {
+                properties: sampleProperties.length,
+                units: sampleUnits.length,
+                hotelServices: sampleServices.length,
+                priceRules: samplePriceRules.length,
+                bookings: sampleBookings.length,
+                owners: sampleOwners.length,
+                leads: sampleLeads.length
+            }
+        });
+    } catch (err) {
+        console.error('Error seeding real estate data:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Housekeeping Room Status Update
 router.put('/api/realestate/units/:id/cleaning-status', authenticateToken, async (req, res) => {
     try {

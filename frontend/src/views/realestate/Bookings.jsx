@@ -68,6 +68,31 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
         } catch (err) { console.error('Error fetching data', err); }
     };
 
+    const [seeding, setSeeding] = useState(false);
+    const handleSeedSampleData = async () => {
+        if (!window.confirm(isAr ? 'هل تريد تحميل بيانات فندقية وحجوزات تجريبية؟' : 'Load complete sample hotel, unit, and booking data?')) return;
+        try {
+            setSeeding(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/realestate/seed', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(isAr ? 'تم تحميل البيانات التجريبية بنجاح!' : 'Sample data loaded successfully!');
+                fetchData();
+            } else {
+                alert(data.error || 'Failed to seed data');
+            }
+        } catch (err) {
+            console.error('Error seeding data', err);
+            alert('Error seeding data');
+        } finally {
+            setSeeding(false);
+        }
+    };
+
     // Calculate nights & prices
     const calcNights = () => {
         const start = new Date(checkInDate);
@@ -252,7 +277,17 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                         {isAr ? 'نظام الحجوزات الفندقية المتكامل، تسجيل الوصول والمغادرة، وتبديل الغرف (مواصفات QloApps)' : 'Comprehensive hotel booking engine, instant check-in/out, and room allocation rack (QloApps Specs)'}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleSeedSampleData}
+                        disabled={seeding}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(59, 130, 246, 0.15)', borderColor: '#3b82f6', color: '#60a5fa' }}
+                    >
+                        <i className={seeding ? "ri-loader-4-line ri-spin" : "ri-database-2-line"}></i>
+                        {seeding ? (isAr ? 'جاري التحميل...' : 'Loading...') : (isAr ? 'بيانات تجريبية' : 'Sample Data')}
+                    </button>
                     <button className={`btn ${viewMode === 'frontDesk' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('frontDesk')}>
                         <i className="ri-dashboard-line"></i> {isAr ? 'لوحة الغرف (Room Rack)' : 'Room Rack'}
                     </button>

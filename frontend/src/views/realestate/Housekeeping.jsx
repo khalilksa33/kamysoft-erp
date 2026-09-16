@@ -37,6 +37,31 @@ const Housekeeping = ({ currentLanguage }) => {
         } catch (err) { console.error(err); }
     };
 
+    const [seeding, setSeeding] = useState(false);
+    const handleSeedSampleData = async () => {
+        if (!window.confirm(isAr ? 'هل تريد تحميل بيانات فندقية وعقارية تجريبية؟' : 'Load sample hotel & real estate data?')) return;
+        try {
+            setSeeding(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/realestate/seed', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(isAr ? 'تم تحميل البيانات التجريبية بنجاح!' : 'Sample data loaded successfully!');
+                fetchData();
+            } else {
+                alert(data.error || 'Failed to seed data');
+            }
+        } catch (err) {
+            console.error('Error seeding data', err);
+            alert('Error seeding data');
+        } finally {
+            setSeeding(false);
+        }
+    };
+
     const filtered = units.filter(u => {
         if (filterProperty && u.propertyId !== filterProperty) return false;
         if (filterStatus !== 'All' && u.cleaningStatus !== filterStatus) return false;
@@ -59,6 +84,18 @@ const Housekeeping = ({ currentLanguage }) => {
                     <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
                         {isAr ? 'متابعة حالة تنظيف الغرف، المعاينة، وجاهزية استقبال النزلاء بنقرة واحدة (مواصفات QloApps)' : 'Track room cleaning workflows, inspections, and readiness for check-in with 1-click updates (QloApps Specs)'}
                     </p>
+                </div>
+                <div>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleSeedSampleData}
+                        disabled={seeding}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.15)', borderColor: '#3b82f6', color: '#60a5fa' }}
+                    >
+                        <i className={seeding ? "ri-loader-4-line ri-spin" : "ri-database-2-line"}></i>
+                        {seeding ? (isAr ? 'جاري التحميل...' : 'Loading...') : (isAr ? 'بيانات تجريبية' : 'Sample Data')}
+                    </button>
                 </div>
             </div>
 

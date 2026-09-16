@@ -172,6 +172,31 @@ const Properties = ({ currentLanguage }) => {
         } catch (err) { console.error('Error selling property', err); }
     };
 
+    const [seeding, setSeeding] = useState(false);
+    const handleSeedSampleData = async () => {
+        if (!window.confirm(isAr ? 'هل تريد تحميل بيانات فندقية وعقارية تجريبية متكاملة؟' : 'Load complete sample hotel & real estate data?')) return;
+        try {
+            setSeeding(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/realestate/seed', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(isAr ? 'تم تحميل البيانات التجريبية بنجاح!' : 'Sample data loaded successfully!');
+                fetchData();
+            } else {
+                alert(data.error || 'Failed to seed data');
+            }
+        } catch (err) {
+            console.error('Error seeding data', err);
+            alert('Error seeding data');
+        } finally {
+            setSeeding(false);
+        }
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
@@ -183,6 +208,18 @@ const Properties = ({ currentLanguage }) => {
                     <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
                         {isAr ? 'تهيئة الفنادق، المنتجعات، الأبراج، والمجمعات السكنية مع المرافق والصور (مواصفات QloApps)' : 'Configure hotels, resorts, buildings, amenities, and multi-image galleries (QloApps Specs)'}
                     </p>
+                </div>
+                <div>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleSeedSampleData}
+                        disabled={seeding}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.15)', borderColor: '#3b82f6', color: '#60a5fa' }}
+                    >
+                        <i className={seeding ? "ri-loader-4-line ri-spin" : "ri-database-2-line"}></i>
+                        {seeding ? (isAr ? 'جاري التحميل...' : 'Loading Data...') : (isAr ? 'تحميل بيانات تجريبية (Sample Data)' : 'Load Sample Data')}
+                    </button>
                 </div>
             </div>
 
