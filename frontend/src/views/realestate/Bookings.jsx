@@ -41,6 +41,57 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
         setShowInvoiceModal(true);
     };
 
+    const handlePrintFolio = () => {
+        const printContent = document.getElementById('printable-hotel-folio');
+        if (!printContent) {
+            window.print();
+            return;
+        }
+        const win = window.open('', '_blank', 'width=950,height=850');
+        if (!win) {
+            window.print();
+            return;
+        }
+        win.document.write(`
+            <!DOCTYPE html>
+            <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}">
+            <head>
+                <meta charset="utf-8">
+                <title>${isAr ? 'فاتورة إقامة فندقية' : 'Hotel Guest Folio'} - ${invoiceBooking ? (invoiceBooking.bookingNumber || invoiceBooking.id) : ''}</title>
+                <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+                <style>
+                    @page { size: A4 portrait; margin: 12mm; }
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        background: #ffffff !important;
+                        color: #111827 !important;
+                        margin: 0;
+                        padding: 20px;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    * { box-sizing: border-box; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border-bottom: 1px solid #e2e8f0; }
+                    .no-print { display: none !important; }
+                </style>
+            </head>
+            <body>
+                ${printContent.innerHTML}
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.focus();
+                            window.print();
+                        }, 250);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    };
+
     // Active View Mode (Room Rack vs Table vs Invoices)
     const [viewMode, setViewMode] = useState(defaultTab || 'frontDesk'); // 'frontDesk' | 'table' | 'invoices'
 
@@ -859,7 +910,7 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                 
                 return (
                     <div className="modal-overlay" style={{ zIndex: 9999, overflowY: 'auto', padding: '20px' }}>
-                        <div className="glass-card" style={{ maxWidth: '800px', width: '100%', background: '#ffffff', color: '#1a202c', padding: '0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                        <div className="modal print-modal-content" style={{ maxWidth: '800px', width: '100%', background: '#ffffff', color: '#1a202c', padding: '0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
                             {/* Modal Action Bar (Hidden in Print) */}
                             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#2d3748', color: '#fff' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
@@ -870,8 +921,8 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                                     <button 
                                         type="button"
                                         className="btn btn-primary"
-                                        onClick={() => window.print()}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                                        onClick={handlePrintFolio}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 2px 6px rgba(37, 99, 235, 0.4)' }}
                                     >
                                         <i className="ri-printer-line"></i>
                                         {isAr ? 'طباعة الفاتورة' : 'Print Invoice'}
