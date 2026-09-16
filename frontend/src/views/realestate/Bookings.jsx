@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Bookings = ({ currentLanguage, formatCurrency }) => {
+const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
     const isAr = currentLanguage === 'ar';
     const [bookings, setBookings] = useState([]);
     const [units, setUnits] = useState([]);
@@ -34,14 +34,19 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
     // Folio / Invoice Modal State
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceBooking, setInvoiceBooking] = useState(null);
+    const [invoiceSearch, setInvoiceSearch] = useState('');
 
     const openInvoiceModal = (b) => {
         setInvoiceBooking(b);
         setShowInvoiceModal(true);
     };
 
-    // Active View Mode (List vs Front Desk Rack)
-    const [viewMode, setViewMode] = useState('frontDesk'); // 'frontDesk' | 'table'
+    // Active View Mode (Room Rack vs Table vs Invoices)
+    const [viewMode, setViewMode] = useState(defaultTab || 'frontDesk'); // 'frontDesk' | 'table' | 'invoices'
+
+    useEffect(() => {
+        if (defaultTab) setViewMode(defaultTab);
+    }, [defaultTab]);
 
     useEffect(() => {
         fetchData();
@@ -303,6 +308,18 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                     <button className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('table')}>
                         <i className="ri-table-line"></i> {isAr ? 'سجل الحجوزات' : 'Bookings Table'}
                     </button>
+                    <button 
+                        className={`btn ${viewMode === 'invoices' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setViewMode('invoices')}
+                        style={{
+                            background: viewMode === 'invoices' ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'rgba(37, 99, 235, 0.15)',
+                            borderColor: '#3b82f6',
+                            color: '#fff',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        <i className="ri-file-list-3-line"></i> {isAr ? 'فواتير النزلاء والإقامة (Invoices)' : 'Guest Invoices & Folios'}
+                    </button>
                 </div>
             </div>
 
@@ -369,7 +386,7 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                                     )}
 
                                     {/* Action buttons inside rack */}
-                                    <div style={{ display: 'flex', gap: '4px', marginTop: 'auto', paddingTop: '6px' }}>
+                                    <div style={{ display: 'flex', gap: '4px', marginTop: 'auto', paddingTop: '6px', flexWrap: 'wrap' }}>
                                         {currentBooking && currentBooking.status === 'Confirmed' && (
                                             <button className="btn btn-primary" style={{ flex: 1, padding: '4px 6px', fontSize: '10px' }} onClick={() => handleCheckIn(currentBooking)}>
                                                 {isAr ? 'دخول' : 'Check-In'}
@@ -382,8 +399,8 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                                         )}
                                         {currentBooking && (
                                             <>
-                                                <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px', color: 'var(--accent-gold)' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(currentBooking)}>
-                                                    <i className="ri-printer-line"></i>
+                                                <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '10px', background: 'rgba(37, 99, 235, 0.25)', borderColor: '#3b82f6', color: '#93c5fd', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(currentBooking)}>
+                                                    <i className="ri-printer-line"></i> {isAr ? 'الفاتورة' : 'Invoice'}
                                                 </button>
                                                 <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(currentBooking)}>
                                                     <i className="ri-arrow-left-right-line"></i>
@@ -397,6 +414,189 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                     </div>
                 </div>
             )}
+
+            {/* Dedicated View: Guest Invoices & Folios Management */}
+            {viewMode === 'invoices' && (() => {
+                const filteredInvoices = bookings.filter(b => {
+                    if (!invoiceSearch) return true;
+                    const searchLower = invoiceSearch.toLowerCase();
+                    const u = units.find(unit => unit.id === b.unitId);
+                    const p = u ? properties.find(prop => prop.id === u.propertyId) : null;
+                    return (
+                        (b.bookingNumber && b.bookingNumber.toLowerCase().includes(searchLower)) ||
+                        (b.customerName && b.customerName.toLowerCase().includes(searchLower)) ||
+                        (b.customerPhone && b.customerPhone.toLowerCase().includes(searchLower)) ||
+                        (u && u.unitNumber && u.unitNumber.toLowerCase().includes(searchLower)) ||
+                        (p && p.name && p.name.toLowerCase().includes(searchLower))
+                    );
+                });
+
+                const totalBilled = bookings.reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
+                const totalVat = bookings.reduce((sum, b) => sum + (Number(b.vat) || (Number(b.totalAmount) * 0.15 / 1.15) || 0), 0);
+                const paidCount = bookings.filter(b => b.paymentStatus === 'Paid').length;
+                const activeGuestsCount = bookings.filter(b => ['CheckedIn', 'Confirmed'].includes(b.status)).length;
+
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {/* KPI Summary Cards */}
+                        <div className="card-grid">
+                            <div className="glass-card green">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3>{isAr ? 'إجمالي المبيعات الفندقية' : 'Total Billed Revenue'}</h3>
+                                        <div className="stat-value">{totalBilled.toFixed(2)} SAR</div>
+                                    </div>
+                                    <div className="stat-icon"><i className="ri-money-dollar-circle-line"></i></div>
+                                </div>
+                            </div>
+                            <div className="glass-card cyan">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3>{isAr ? 'ضريبة القيمة المضافة (15%)' : 'Total VAT (15%)'}</h3>
+                                        <div className="stat-value">{totalVat.toFixed(2)} SAR</div>
+                                    </div>
+                                    <div className="stat-icon"><i className="ri-percent-line"></i></div>
+                                </div>
+                            </div>
+                            <div className="glass-card gold">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3>{isAr ? 'فواتير النزلاء المسددة' : 'Paid Guest Folios'}</h3>
+                                        <div className="stat-value">{paidCount} / {bookings.length}</div>
+                                    </div>
+                                    <div className="stat-icon"><i className="ri-checkbox-circle-line"></i></div>
+                                </div>
+                            </div>
+                            <div className="glass-card purple">
+                                <div className="card-stat">
+                                    <div className="stat-info">
+                                        <h3>{isAr ? 'النزلاء المقيمين حالياً' : 'Active In-House Guests'}</h3>
+                                        <div className="stat-value">{activeGuestsCount}</div>
+                                    </div>
+                                    <div className="stat-icon"><i className="ri-user-star-line"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Invoices List Card */}
+                        <div className="glass-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
+                                        <i className="ri-file-list-3-line" style={{ color: 'var(--accent-cyan)', marginRight: '6px' }}></i>
+                                        {isAr ? 'فواتير وكشوف حسابات النزلاء (Guest Tax Invoices & Folios)' : 'Guest Tax Invoices & Folios Directory'}
+                                    </h3>
+                                    <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                                        {isAr ? 'استعراض وطباعة الفواتير الضريبية المبسطة لجميع النزلاء المقيمين والمغادرين (ZATCA Compliant)' : 'View, verify, and print compliant ZATCA Phase 2 hotel invoices and guest stay folios'}
+                                    </p>
+                                </div>
+                                <div style={{ minWidth: '280px' }}>
+                                    <input 
+                                        type="text" 
+                                        className="form-control" 
+                                        placeholder={isAr ? '🔍 ابحث برقم الفاتورة، اسم النزيل، الغرفة...' : '🔍 Search by Guest, Invoice #, Room...'} 
+                                        value={invoiceSearch}
+                                        onChange={e => setInvoiceSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>{isAr ? 'رقم الفاتورة / الحجز' : 'Invoice / Booking #'}</th>
+                                            <th>{isAr ? 'النزيل' : 'Guest'}</th>
+                                            <th>{isAr ? 'الغرفة والفندق' : 'Room & Hotel'}</th>
+                                            <th>{isAr ? 'فترة الإقامة' : 'Stay Dates'}</th>
+                                            <th style={{ textAlign: 'right' }}>{isAr ? 'الإجمالي الشامل' : 'Total (SAR)'}</th>
+                                            <th style={{ textAlign: 'center' }}>{isAr ? 'حالة السداد' : 'Payment'}</th>
+                                            <th style={{ textAlign: 'center' }}>{isAr ? 'حالة الحجز' : 'Stay Status'}</th>
+                                            <th style={{ textAlign: 'center' }}>{isAr ? 'طباعة الفاتورة' : 'Print Invoice'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredInvoices.map(b => {
+                                            const u = units.find(unit => unit.id === b.unitId);
+                                            const p = u ? properties.find(prop => prop.id === u.propertyId) : null;
+                                            const bNights = Math.max(1, Math.ceil((new Date(b.checkOutDate) - new Date(b.checkInDate)) / (1000 * 60 * 60 * 24)));
+                                            const isPaid = b.paymentStatus === 'Paid';
+
+                                            return (
+                                                <tr key={b.id}>
+                                                    <td>
+                                                        <strong style={{ color: 'var(--accent-cyan)' }}>{b.bookingNumber || b.id}</strong>
+                                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{new Date(b.checkInDate).toLocaleDateString()}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ fontWeight: 'bold' }}>👤 {b.customerName || b.customerId}</div>
+                                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{b.customerPhone || 'N/A'}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div>🏨 <strong>#{u ? u.unitNumber : b.unitId}</strong> ({u ? u.roomType || u.type : 'Deluxe'})</div>
+                                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p ? p.name : ''}</div>
+                                                    </td>
+                                                    <td>
+                                                        <div>{new Date(b.checkInDate).toLocaleDateString()} ➔ {new Date(b.checkOutDate).toLocaleDateString()}</div>
+                                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{bNights} {isAr ? 'ليالي' : 'Nights'}</div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right' }}>
+                                                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--accent-success)' }}>
+                                                            {Number(b.totalAmount).toFixed(2)} SAR
+                                                        </div>
+                                                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                                                            {isAr ? 'شامل الضريبة 15%' : 'Incl. 15% VAT'}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span className={`status-badge ${isPaid ? 'valid' : b.paymentStatus === 'PartiallyPaid' ? 'warning' : 'danger'}`}>
+                                                            {isPaid ? (isAr ? 'مسددة بالكامل' : 'Paid') : b.paymentStatus === 'PartiallyPaid' ? (isAr ? 'مسددة جزئياً' : 'Partial') : (isAr ? 'غير مسددة' : 'Unpaid')}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span className={`status-badge ${b.status === 'CheckedIn' ? 'valid' : b.status === 'CheckedOut' ? 'valid' : 'warning'}`}>
+                                                            {b.status}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <button 
+                                                            className="btn btn-primary" 
+                                                            onClick={() => openInvoiceModal(b)}
+                                                            style={{ 
+                                                                padding: '6px 14px', 
+                                                                fontSize: '12px', 
+                                                                display: 'inline-flex', 
+                                                                alignItems: 'center', 
+                                                                gap: '6px',
+                                                                background: '#2563eb',
+                                                                borderColor: '#3b82f6',
+                                                                fontWeight: 'bold',
+                                                                borderRadius: '6px',
+                                                                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.4)'
+                                                            }}
+                                                        >
+                                                            <i className="ri-printer-line" style={{ fontSize: '15px' }}></i>
+                                                            {isAr ? 'عرض وطباعة الفاتورة' : 'View & Print Folio'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {filteredInvoices.length === 0 && (
+                                            <tr>
+                                                <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                                                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>🧾</div>
+                                                    <div>{isAr ? 'لا توجد فواتير مطابقة للبحث' : 'No guest invoices found.'}</div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* New Reservation Wizard (QloApps Engine) */}
             <div className="glass-card">
@@ -593,8 +793,8 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                                                             {isAr ? 'خروج' : 'Check-Out'}
                                                         </button>
                                                     )}
-                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: 'var(--accent-gold)' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(b)}>
-                                                        <i className="ri-printer-line"></i>
+                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', background: 'rgba(37, 99, 235, 0.2)', borderColor: '#3b82f6', color: '#60a5fa', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(b)}>
+                                                        <i className="ri-printer-line"></i> {isAr ? 'الفاتورة' : 'Invoice'}
                                                     </button>
                                                     <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(b)}>
                                                         <i className="ri-arrow-left-right-line"></i>

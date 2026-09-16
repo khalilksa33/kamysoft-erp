@@ -2488,7 +2488,7 @@ const handleB2BSubmit = () => {
                 {/* TAB: PROPERTY & HOSPITALITY MANAGEMENT (QloApps Replication) */}
                 {['property_properties'].includes(activeTab) && <Properties {...props} />}
                 {['property_units'].includes(activeTab) && <Units {...props} />}
-                {['property_bookings'].includes(activeTab) && <Bookings {...props} />}
+                {['property_bookings', 'property_invoices'].includes(activeTab) && <Bookings {...props} defaultTab={activeTab === 'property_invoices' ? 'invoices' : 'frontDesk'} />}
                 {['property_services'].includes(activeTab) && <ExtraServices {...props} />}
                 {['property_pricerules'].includes(activeTab) && <PriceRules {...props} />}
                 {['property_housekeeping'].includes(activeTab) && <Housekeeping {...props} />}
