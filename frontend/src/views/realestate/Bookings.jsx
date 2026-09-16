@@ -31,6 +31,15 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
     const [swapBooking, setSwapBooking] = useState(null);
     const [targetSwapUnitId, setTargetSwapUnitId] = useState('');
 
+    // Folio / Invoice Modal State
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [invoiceBooking, setInvoiceBooking] = useState(null);
+
+    const openInvoiceModal = (b) => {
+        setInvoiceBooking(b);
+        setShowInvoiceModal(true);
+    };
+
     // Active View Mode (List vs Front Desk Rack)
     const [viewMode, setViewMode] = useState('frontDesk'); // 'frontDesk' | 'table'
 
@@ -372,9 +381,14 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                                             </button>
                                         )}
                                         {currentBooking && (
-                                            <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(currentBooking)}>
-                                                <i className="ri-arrow-left-right-line"></i>
-                                            </button>
+                                            <>
+                                                <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px', color: 'var(--accent-gold)' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(currentBooking)}>
+                                                    <i className="ri-printer-line"></i>
+                                                </button>
+                                                <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(currentBooking)}>
+                                                    <i className="ri-arrow-left-right-line"></i>
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </div>
@@ -579,6 +593,9 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                                                             {isAr ? 'خروج' : 'Check-Out'}
                                                         </button>
                                                     )}
+                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: 'var(--accent-gold)' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(b)}>
+                                                        <i className="ri-printer-line"></i>
+                                                    </button>
                                                     <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(b)}>
                                                         <i className="ri-arrow-left-right-line"></i>
                                                     </button>
@@ -632,6 +649,215 @@ const Bookings = ({ currentLanguage, formatCurrency }) => {
                     </div>
                 </div>
             )}
+
+            {/* Hotel Folio & Tax Invoice Modal */}
+            {showInvoiceModal && invoiceBooking && (() => {
+                const u = units.find(unit => unit.id === invoiceBooking.unitId);
+                const p = u ? properties.find(prop => prop.id === u.propertyId) : null;
+                const bNights = Math.max(1, Math.ceil((new Date(invoiceBooking.checkOutDate) - new Date(invoiceBooking.checkInDate)) / (1000 * 60 * 60 * 24)));
+                const roomSub = (invoiceBooking.dailyRate || (u ? u.dailyRate : 0)) * bNights;
+                
+                return (
+                    <div className="modal-overlay" style={{ zIndex: 9999, overflowY: 'auto', padding: '20px' }}>
+                        <div className="glass-card" style={{ maxWidth: '800px', width: '100%', background: '#ffffff', color: '#1a202c', padding: '0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                            {/* Modal Action Bar (Hidden in Print) */}
+                            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#2d3748', color: '#fff' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
+                                    <i className="ri-file-list-3-line" style={{ color: '#60a5fa' }}></i>
+                                    {isAr ? 'فاتورة النزيل الضريبية الفندقية (Hotel Tax Folio)' : 'Hotel Guest Folio & Tax Invoice'}
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button 
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={() => window.print()}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                                    >
+                                        <i className="ri-printer-line"></i>
+                                        {isAr ? 'طباعة الفاتورة' : 'Print Invoice'}
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-secondary" 
+                                        onClick={() => setShowInvoiceModal(false)}
+                                        style={{ padding: '8px 14px', background: '#4b5563', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                    >
+                                        <i className="ri-close-line"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Printable Folio Content */}
+                            <div id="printable-hotel-folio" style={{ padding: '36px', background: '#ffffff', color: '#1a202c', fontFamily: 'system-ui, sans-serif' }}>
+                                {/* Invoice Header */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '24px' }}>
+                                    <div>
+                                        <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
+                                            {p ? p.name : 'KamySoft Luxury Hospitality'}
+                                        </h1>
+                                        <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
+                                            {'⭐'.repeat(p ? p.starRating || 5 : 5)}
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                                            <div>{p ? p.address || p.location : 'King Fahd Road, Riyadh, Saudi Arabia'}</div>
+                                            <div>{p ? p.city : 'Riyadh'} | Tel: {p ? p.phone || '+966 11 456 7890' : '+966 11 456 7890'}</div>
+                                            <div>Email: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
+                                            <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>VAT TRN: 310123456700003 (الرقم الضريبي)</div>
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ display: 'inline-block', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>
+                                            {isAr ? 'فاتورة ضريبية مبسطة' : 'SIMPLIFIED TAX INVOICE'}
+                                        </div>
+                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>
+                                            #{invoiceBooking.bookingNumber || invoiceBooking.id}
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                            {isAr ? 'تاريخ الإصدار:' : 'Date:'} {new Date().toLocaleDateString()}
+                                        </div>
+                                        <div style={{ marginTop: '6px' }}>
+                                            <span style={{
+                                                fontSize: '11px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px',
+                                                background: invoiceBooking.paymentStatus === 'Paid' ? '#dcfce7' : '#fef3c7',
+                                                color: invoiceBooking.paymentStatus === 'Paid' ? '#15803d' : '#b45309'
+                                            }}>
+                                                {invoiceBooking.paymentStatus === 'Paid' ? 'PAID / مدفوعة بالكامل' : 'PARTIALLY PAID / مدفوعة جزئياً'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Guest & Reservation Information Box */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', fontSize: '13px' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', color: '#475569', marginBottom: '8px', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px' }}>
+                                            {isAr ? 'بيانات النزيل (Guest Details)' : 'Guest Information'}
+                                        </div>
+                                        <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الاسم:' : 'Name:'}</strong> {invoiceBooking.customerName || invoiceBooking.customerId}</div>
+                                        <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الهاتف:' : 'Phone:'}</strong> {invoiceBooking.customerPhone || 'N/A'}</div>
+                                        <div><strong>{isAr ? 'النزلاء:' : 'Occupancy:'}</strong> {invoiceBooking.adults || 1} {isAr ? 'بالغين' : 'Adults'}, {invoiceBooking.children || 0} {isAr ? 'أطفال' : 'Children'}</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', color: '#475569', marginBottom: '8px', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px' }}>
+                                            {isAr ? 'تفاصيل الإقامة (Stay Details)' : 'Stay Information'}
+                                        </div>
+                                        <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الغرفة:' : 'Unit / Room:'}</strong> #{u ? u.unitNumber : invoiceBooking.unitId} ({u ? u.roomType || u.type : ''}) - {isAr ? `طابق ${u ? u.floor : 1}` : `Floor ${u ? u.floor : 1}`}</div>
+                                        <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الوصول:' : 'Check-In:'}</strong> {new Date(invoiceBooking.checkInDate).toLocaleDateString()} ({p ? p.checkInTime || '14:00' : '14:00'})</div>
+                                        <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'المغادرة:' : 'Check-Out:'}</strong> {new Date(invoiceBooking.checkOutDate).toLocaleDateString()} ({p ? p.checkOutTime || '12:00' : '12:00'})</div>
+                                        <div><strong>{isAr ? 'إجمالي الليالي:' : 'Total Nights:'}</strong> {bNights} {isAr ? 'ليالي' : 'Nights'}</div>
+                                    </div>
+                                </div>
+
+                                {/* Itemized Charges Table */}
+                                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #cbd5e1', color: '#334155', textAlign: 'left' }}>
+                                            <th style={{ padding: '10px 12px' }}>{isAr ? 'البند والوصف' : 'Description'}</th>
+                                            <th style={{ padding: '10px 12px', textAlign: 'center' }}>{isAr ? 'الكمية / الليالي' : 'Qty / Nights'}</th>
+                                            <th style={{ padding: '10px 12px', textAlign: 'right' }}>{isAr ? 'سعر الوحدة' : 'Rate (SAR)'}</th>
+                                            <th style={{ padding: '10px 12px', textAlign: 'right' }}>{isAr ? 'المجموع' : 'Amount (SAR)'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {/* Room Charge */}
+                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <td style={{ padding: '12px' }}>
+                                                <div style={{ fontWeight: 'bold', color: '#1e293b' }}>
+                                                    {isAr ? `إقامة فندقية - غرفة #${u ? u.unitNumber : ''} (${u ? u.roomType : 'Deluxe'})` : `Hotel Accommodation - Room #${u ? u.unitNumber : ''} (${u ? u.roomType : 'Deluxe'})`}
+                                                </div>
+                                                <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                                    {new Date(invoiceBooking.checkInDate).toLocaleDateString()} ➔ {new Date(invoiceBooking.checkOutDate).toLocaleDateString()}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '12px', textAlign: 'center' }}>{bNights}</td>
+                                            <td style={{ padding: '12px', textAlign: 'right' }}>{Number(invoiceBooking.dailyRate || (u ? u.dailyRate : 0)).toFixed(2)}</td>
+                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: '600' }}>{roomSub.toFixed(2)}</td>
+                                        </tr>
+
+                                        {/* Extra Hotel Services */}
+                                        {Array.isArray(invoiceBooking.extraServices) && invoiceBooking.extraServices.map((srv, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td style={{ padding: '10px 12px' }}>
+                                                    <div style={{ fontWeight: 'bold', color: '#1e293b' }}>✨ {srv.name}</div>
+                                                    <div style={{ fontSize: '11px', color: '#64748b' }}>{isAr ? 'خدمة فندقية إضافية' : 'Extra Hotel Service'}</div>
+                                                </td>
+                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>{srv.qty || 1}</td>
+                                                <td style={{ padding: '10px 12px', textAlign: 'right' }}>{Number(srv.price).toFixed(2)}</td>
+                                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600' }}>{(Number(srv.price) * (srv.qty || 1)).toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {/* Summary & ZATCA QR Code Row */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', borderTop: '2px solid #e2e8f0', paddingTop: '16px' }}>
+                                    {/* QR Code Simulation & Legal Notice */}
+                                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                                        <div style={{ width: '90px', height: '90px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6px', textAlign: 'center' }}>
+                                            <i className="ri-qr-code-line" style={{ fontSize: '48px', color: '#1e293b' }}></i>
+                                            <span style={{ fontSize: '8px', color: '#64748b', fontWeight: 'bold' }}>ZATCA VERIFIED</span>
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', maxWidth: '280px', lineHeight: '1.4' }}>
+                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#334155' }}>
+                                                {isAr ? 'فاتورة إلكترونية معتمدة' : 'Electronic Tax Invoice'}
+                                            </p>
+                                            <p style={{ margin: 0 }}>
+                                                {isAr ? 'تم إنشاء هذه الفاتورة إلكترونياً وهي متوافقة مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA Phase 2).' : 'Generated electronically in compliance with ZATCA Phase 2 e-invoicing standards.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Financial Breakdown */}
+                                    <div style={{ minWidth: '260px', fontSize: '13px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: '#475569' }}>
+                                            <span>{isAr ? 'المجموع الفرعي (غير شامل الضريبة):' : 'Subtotal (Excl. VAT):'}</span>
+                                            <span style={{ fontWeight: '600' }}>{Number(invoiceBooking.subtotal || (invoiceBooking.totalAmount / 1.15)).toFixed(2)} SAR</span>
+                                        </div>
+                                        {invoiceBooking.discount > 0 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: '#dc2626' }}>
+                                                <span>{isAr ? 'الخصم:' : 'Discount:'}</span>
+                                                <span>-{Number(invoiceBooking.discount).toFixed(2)} SAR</span>
+                                            </div>
+                                        )}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: '#475569' }}>
+                                            <span>{isAr ? 'ضريبة القيمة المضافة (15%):' : 'VAT (15%):'}</span>
+                                            <span style={{ fontWeight: '600' }}>{Number(invoiceBooking.vat || (invoiceBooking.totalAmount - (invoiceBooking.totalAmount / 1.15))).toFixed(2)} SAR</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '2px solid #cbd5e1', borderBottom: '2px solid #cbd5e1', marginTop: '8px', fontSize: '16px', fontWeight: 'bold', color: '#0f172a' }}>
+                                            <span>{isAr ? 'الإجمالي الكلي:' : 'Grand Total:'}</span>
+                                            <span style={{ color: '#16a34a' }}>{Number(invoiceBooking.totalAmount).toFixed(2)} SAR</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '12px', color: '#64748b' }}>
+                                            <span>{isAr ? 'المبلغ المدفوع:' : 'Paid Amount:'}</span>
+                                            <span>{Number(invoiceBooking.paidAmount || invoiceBooking.totalAmount).toFixed(2)} SAR</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '12px', fontWeight: 'bold', color: (Number(invoiceBooking.totalAmount) - Number(invoiceBooking.paidAmount || invoiceBooking.totalAmount)) > 0 ? '#dc2626' : '#16a34a' }}>
+                                            <span>{isAr ? 'المتبقي:' : 'Balance Due:'}</span>
+                                            <span>{(Number(invoiceBooking.totalAmount) - Number(invoiceBooking.paidAmount || invoiceBooking.totalAmount)).toFixed(2)} SAR</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Guest Signature & Reception Footer */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '36px', paddingTop: '20px', borderTop: '1px dashed #cbd5e1', fontSize: '12px', color: '#64748b' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ height: '40px' }}></div>
+                                        <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '4px', fontWeight: '600' }}>
+                                            {isAr ? 'توقيع النزيل (Guest Signature)' : 'Guest Signature'}
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ height: '40px' }}></div>
+                                        <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '4px', fontWeight: '600' }}>
+                                            {isAr ? 'ختم الاستقبال والمنشأة (Reception Official Stamp)' : 'Hotel Receptionist / Cashier Stamp'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 };
