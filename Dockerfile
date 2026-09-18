@@ -10,7 +10,9 @@ RUN npm run build
 FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --only=production
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN apk add --no-cache python3 make g++
+RUN npm install --omit=dev
 COPY . .
 # Copy compiled frontend assets to backend served path
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
