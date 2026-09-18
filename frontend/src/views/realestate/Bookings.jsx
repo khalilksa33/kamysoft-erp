@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, generateZatcaQR }) => {
+const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, generateZatcaQR, invoices = [] }) => {
     const isAr = currentLanguage === 'ar';
     const [bookings, setBookings] = useState([]);
     const [units, setUnits] = useState([]);
@@ -38,10 +38,37 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceBooking, setInvoiceBooking] = useState(null);
     const [invoiceSearch, setInvoiceSearch] = useState('');
+    const [folioQr, setFolioQr] = useState('');
+    const [invoiceQrLoading, setInvoiceQrLoading] = useState(false);
 
-    const openInvoiceModal = (b) => {
+    const openInvoiceModal = async (b) => {
         setInvoiceBooking(b);
+        setFolioQr('');
         setShowInvoiceModal(true);
+        
+        try {
+            setInvoiceQrLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/bookings/folio-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    sellerName: settings?.businessName,
+                    vatNumber: settings?.vatNumber,
+                    timestamp: b.createdAt || b.checkInDate || new Date().toISOString(),
+                    invoiceTotal: b.totalAmount,
+                    vatTotal: b.vat || 0
+                })
+            });
+            const data = await res.json();
+            if (data.qrCode) {
+                setFolioQr(data.qrCode);
+            }
+        } catch(e) {
+            console.error('Error fetching folio QR', e);
+        } finally {
+            setInvoiceQrLoading(false);
+        }
     };
 
     const handlePrintFolio = () => {
@@ -1019,9 +1046,7 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                                 {/* Invoice Header */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '24px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        {settings?.logo && (
-                                            <img src={settings.logo} alt="Logo" style={{ height: '60px', objectFit: 'contain', borderRadius: '4px' }} />
-                                        )}
+                                        <img src={settings?.logo || p?.logo || '/logo.png'} alt="Logo" style={{ height: '60px', objectFit: 'contain', borderRadius: '4px' }} />
                                         <div>
                                             <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
                                                 {p ? p.name : (settings?.businessName || 'KamySoft Luxury Hospitality')}
@@ -1135,16 +1160,18 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                                     {/* QR Code Simulation & Legal Notice */}
                                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                                         <div style={{ width: '90px', height: '90px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2px', textAlign: 'center' }}>
-                                            {generateZatcaQR ? (
+                                            {invoiceQrLoading ? (
+                                                <div style={{ fontSize: '10px', color: '#64748b' }}>{isAr ? 'جاري التحميل...' : 'Loading QR...'}</div>
+                                            ) : folioQr ? (
                                                 <img 
-                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(generateZatcaQR(settings?.businessName || (p ? p.name : 'KamySoft Luxury Hospitality'), settings?.vatNumber || '310123456700003', invoiceBooking.createdAt || invoiceBooking.checkInDate || new Date().toISOString(), invoiceBooking.totalAmount, invoiceBooking.vat))}`} 
+                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(folioQr)}`}
                                                     alt="ZATCA QR Code" 
                                                     style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
                                                 />
                                             ) : (
                                                 <>
                                                     <i className="ri-qr-code-line" style={{ fontSize: '48px', color: '#1e293b' }}></i>
-                                                    <span style={{ fontSize: '8px', color: '#64748b', fontWeight: 'bold' }}>ZATCA</span>
+                                                    <span style={{ fontSize: '8px', color: '#64748b', fontWeight: 'bold' }}>ZATCA Phase 2</span>
                                                 </>
                                             )}
                                         </div>

@@ -446,6 +446,8 @@ const bookingSchema = new mongoose.Schema({
     paymentStatus: { type: String, enum: ['Unpaid', 'PartiallyPaid', 'Paid', 'Refunded'], default: 'Paid' },
     status: { type: String, enum: ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled', 'NoShow'], default: 'Confirmed' },
     notes: { type: String },
+    zatcaQrCode: { type: String },
+    zatcaInvoiceId: { type: String },
     tenantId: { type: String, default: 'default', index: true }
 });
 const Booking = mongoose.model('Booking', bookingSchema);
