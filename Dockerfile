@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN apk add --no-cache python3 make g++
-RUN npm install --omit=dev
+RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
 COPY . .
 # Copy compiled frontend assets to backend served path
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
