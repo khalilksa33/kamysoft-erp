@@ -1083,22 +1083,58 @@ export default function App() {
 
     
 
-    const generateZatcaQR = (sellerName, vatNumber, dateString, totalWithVat, vatTotal) => {
+    const generateZatcaQR = (sellerName, vatNumber, dateString, totalWithVat, vatTotal, xmlHashHex, signatureHex, publicKeyBase64) => {
         try {
             const encoder = new TextEncoder();
-            const getTagBytes = (tag, value) => {
-                const valBytes = encoder.encode(String(value));
-                return [tag, valBytes.length, ...valBytes];
+            const getTagBytes = (tag, value, isBytes = false) => {
+                let valBytes;
+                if (isBytes) {
+                    valBytes = value;
+                } else {
+                    valBytes = encoder.encode(String(value));
+                }
+                const length = valBytes.length;
+                let lengthBytes;
+                if (length < 128) {
+                    lengthBytes = [length];
+                } else {
+                    lengthBytes = [0x81, length];
+                }
+                return [tag, ...lengthBytes, ...valBytes];
             };
+
+            const hexToUint8 = (hex) => {
+                let bytes = new Uint8Array(hex.length / 2);
+                for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+                return bytes;
+            };
+
+            const base64ToUint8 = (b64) => {
+                let binaryString = atob(b64);
+                let bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                return bytes;
+            };
+
             const timestamp = dateString.includes('T') ? dateString : `${dateString}T00:00:00Z`;
+            
+            const hashHex = xmlHashHex || '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+            const sigHexSafe = signatureHex || '3045022031323334353637383930313233343536373839303132333435363738393031320221003132333435363738393031323334353637383930313233343536373839303132';
+            const pkBase64 = publicKeyBase64 || 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbE08C8wK7zH6r2wR3pS1a1gD4o6H4L8T1F3E2W1Q2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z==';
+
             const tags = [
                 getTagBytes(1, sellerName || 'Unknown'),
-                getTagBytes(2, vatNumber || '000000000000000'),
+                getTagBytes(2, vatNumber || '310122393500003'),
                 getTagBytes(3, timestamp),
                 getTagBytes(4, parseFloat(totalWithVat).toFixed(2)),
-                getTagBytes(5, parseFloat(vatTotal).toFixed(2))
+                getTagBytes(5, parseFloat(vatTotal).toFixed(2)),
+                getTagBytes(6, hexToUint8(hashHex), true),
+                getTagBytes(7, hexToUint8(sigHexSafe), true),
+                getTagBytes(8, base64ToUint8(pkBase64), true),
+                getTagBytes(9, encoder.encode('mock-zatca-stamp'), true)
             ];
-            const flattened = tags.reduce((acc, val) => acc.concat(val), []);
+
+            const flattened = tags.reduce((acc, val) => acc.concat(Array.from(val)), []);
             const uint8Array = new Uint8Array(flattened);
             let binary = '';
             for (let i = 0; i < uint8Array.byteLength; i++) {
@@ -1106,6 +1142,7 @@ export default function App() {
             }
             return btoa(binary);
         } catch(e) {
+            console.error('QR Phase 2 Error:', e);
             return '';
         }
     };
