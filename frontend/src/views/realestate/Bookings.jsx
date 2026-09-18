@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
+const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, generateZatcaQR }) => {
     const isAr = currentLanguage === 'ar';
     const [bookings, setBookings] = useState([]);
     const [units, setUnits] = useState([]);
@@ -25,6 +25,9 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
     const [selectedServices, setSelectedServices] = useState([]);
     const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
+    const [groupBlocks, setGroupBlocks] = useState([]);
+    const [groupBlockId, setGroupBlockId] = useState('');
+    const [billingRouting, setBillingRouting] = useState({ roomCharges: 'Guest', extraCharges: 'Guest', companyId: '' });
 
     // Room Swap Modal
     const [showSwapModal, setShowSwapModal] = useState(false);
@@ -92,6 +95,23 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
         win.document.close();
     };
 
+    const handleShareFolio = () => {
+        if (!invoiceBooking) return;
+        const text = isAr 
+            ? `مرحباً بك.\nفاتورة الإقامة الفندقية رقم: ${invoiceBooking.bookingNumber || invoiceBooking.id}\nالإجمالي: ${invoiceBooking.totalAmount} SAR\nالنزيل: ${invoiceBooking.customerName || invoiceBooking.customerId}`
+            : `Welcome.\nHotel Stay Folio #: ${invoiceBooking.bookingNumber || invoiceBooking.id}\nTotal: ${invoiceBooking.totalAmount} SAR\nGuest: ${invoiceBooking.customerName || invoiceBooking.customerId}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: isAr ? 'فاتورة الإقامة' : 'Hotel Folio',
+                text: text,
+            }).catch(err => console.error(err));
+        } else {
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+        }
+    };
+
     // Active View Mode (Room Rack vs Table vs Invoices)
     const [viewMode, setViewMode] = useState(defaultTab || 'frontDesk'); // 'frontDesk' | 'table' | 'invoices'
 
@@ -106,18 +126,20 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const [bookRes, unitRes, propRes, custRes, srvRes] = await Promise.all([
+            const [bookRes, unitRes, propRes, custRes, srvRes, grpRes] = await Promise.all([
                 fetch('/api/bookings', { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch('/api/units', { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch('/api/properties', { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch('/api/customers', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/realestate/services', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetch('/api/realestate/services', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/groups', { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
             const bookData = await bookRes.json();
             const unitData = await unitRes.json();
             const propData = await propRes.json();
             const custData = await custRes.json();
             const srvData = await srvRes.json();
+            const grpData = await grpRes.json();
             
             if (Array.isArray(bookData)) setBookings(bookData); else setBookings([]);
             if (Array.isArray(unitData)) {
@@ -130,6 +152,7 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
             } else setProperties([]);
             if (Array.isArray(custData)) setCustomers(custData); else setCustomers([]);
             if (Array.isArray(srvData)) setHotelServices(srvData); else setHotelServices([]);
+            if (Array.isArray(grpData)) setGroupBlocks(grpData); else setGroupBlocks([]);
         } catch (err) { console.error('Error fetching data', err); }
     };
 
@@ -220,6 +243,8 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                 customerId: assignedCustomerId || 'CUST-GUEST',
                 customerName: assignedCustomerName || (isAr ? 'نزيل فندقي' : 'Hotel Guest'),
                 customerPhone: newCustomerPhone,
+                groupBlockId: groupBlockId || undefined,
+                billingRouting,
                 checkInDate: new Date(checkInDate).toISOString(),
                 checkOutDate: new Date(checkOutDate).toISOString(),
                 adults: Number(adults),
@@ -453,6 +478,22 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                                                 <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '10px', background: 'rgba(37, 99, 235, 0.25)', borderColor: '#3b82f6', color: '#93c5fd', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(currentBooking)}>
                                                     <i className="ri-printer-line"></i> {isAr ? 'الفاتورة' : 'Invoice'}
                                                 </button>
+                                                {currentBooking.status === 'CheckedIn' && (
+                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '10px', background: 'rgba(16, 185, 129, 0.25)', borderColor: '#10b981', color: '#6ee7b7', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }} title={isAr ? 'برمجة مفتاح الغرفة' : 'Encode Keycard'} onClick={async () => {
+                                                        try {
+                                                            const token = localStorage.getItem('token');
+                                                            const res = await fetch('/api/hardware/keycard/encode', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                                body: JSON.stringify({ bookingId: currentBooking.id, roomNumber: u.unitNumber })
+                                                            });
+                                                            const data = await res.json();
+                                                            alert(data.message);
+                                                        } catch (err) { alert('Hardware integration error'); }
+                                                    }}>
+                                                        <i className="ri-key-2-line"></i> {isAr ? 'المفتاح' : 'Keycard'}
+                                                    </button>
+                                                )}
                                                 <button className="btn btn-secondary" style={{ padding: '4px 6px', fontSize: '10px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(currentBooking)}>
                                                     <i className="ri-arrow-left-right-line"></i>
                                                 </button>
@@ -712,8 +753,34 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                             <input type="number" className="form-control" min="1" value={adults} onChange={e => setAdults(e.target.value)} />
                         </div>
                         <div className="form-group">
+                        <div className="form-group">
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'الأطفال' : 'Children'}</label>
                             <input type="number" className="form-control" min="0" value={children} onChange={e => setChildren(e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Group Block & Billing Routing (OPERA PMS) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '15px' }}>
+                        <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'مجموعة الحجز' : 'Group Block'}</label>
+                            <select className="form-control" value={groupBlockId} onChange={e => setGroupBlockId(e.target.value)}>
+                                <option value="">-- {isAr ? 'بدون مجموعة' : 'None'} --</option>
+                                {groupBlocks.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'مسار الغرفة' : 'Room Routing'}</label>
+                            <select className="form-control" value={billingRouting.roomCharges} onChange={e => setBillingRouting({ ...billingRouting, roomCharges: e.target.value })}>
+                                <option value="Guest">{isAr ? 'دفع النزيل' : 'Guest Pays'}</option>
+                                <option value="Company">{isAr ? 'دفع الشركة' : 'Company Pays'}</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'مسار الخدمات' : 'Extras Routing'}</label>
+                            <select className="form-control" value={billingRouting.extraCharges} onChange={e => setBillingRouting({ ...billingRouting, extraCharges: e.target.value })}>
+                                <option value="Guest">{isAr ? 'دفع النزيل' : 'Guest Pays'}</option>
+                                <option value="Company">{isAr ? 'دفع الشركة' : 'Company Pays'}</option>
+                            </select>
                         </div>
                     </div>
 
@@ -921,6 +988,15 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                                     <button 
                                         type="button"
                                         className="btn btn-primary"
+                                        onClick={handleShareFolio}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.4)' }}
+                                    >
+                                        <i className="ri-share-line"></i>
+                                        {isAr ? 'مشاركة' : 'Share'}
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        className="btn btn-primary"
                                         onClick={handlePrintFolio}
                                         style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 2px 6px rgba(37, 99, 235, 0.4)' }}
                                     >
@@ -942,18 +1018,23 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                             <div id="printable-hotel-folio" style={{ padding: '36px', background: '#ffffff', color: '#1a202c', fontFamily: 'system-ui, sans-serif' }}>
                                 {/* Invoice Header */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '24px' }}>
-                                    <div>
-                                        <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
-                                            {p ? p.name : 'KamySoft Luxury Hospitality'}
-                                        </h1>
-                                        <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
-                                            {'⭐'.repeat(p ? p.starRating || 5 : 5)}
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
-                                            <div>{p ? p.address || p.location : 'King Fahd Road, Riyadh, Saudi Arabia'}</div>
-                                            <div>{p ? p.city : 'Riyadh'} | Tel: {p ? p.phone || '+966 11 456 7890' : '+966 11 456 7890'}</div>
-                                            <div>Email: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
-                                            <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>VAT TRN: 310123456700003 (الرقم الضريبي)</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        {settings?.logo && (
+                                            <img src={settings.logo} alt="Logo" style={{ height: '60px', objectFit: 'contain', borderRadius: '4px' }} />
+                                        )}
+                                        <div>
+                                            <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
+                                                {p ? p.name : (settings?.businessName || 'KamySoft Luxury Hospitality')}
+                                            </h1>
+                                            <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
+                                                {'⭐'.repeat(p ? p.starRating || 5 : 5)}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                                                <div>{p ? p.address || p.location : (settings?.address || 'King Fahd Road, Riyadh, Saudi Arabia')}</div>
+                                                <div>{p ? p.city : 'Riyadh'} | Tel: {p ? p.phone || '+966 11 456 7890' : (settings?.phone || '+966 11 456 7890')}</div>
+                                                <div>Email: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
+                                                <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>VAT TRN: {settings?.vatNumber || '310123456700003'} (الرقم الضريبي)</div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
@@ -987,12 +1068,21 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                                         <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الاسم:' : 'Name:'}</strong> {invoiceBooking.customerName || invoiceBooking.customerId}</div>
                                         <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الهاتف:' : 'Phone:'}</strong> {invoiceBooking.customerPhone || 'N/A'}</div>
                                         <div><strong>{isAr ? 'النزلاء:' : 'Occupancy:'}</strong> {invoiceBooking.adults || 1} {isAr ? 'بالغين' : 'Adults'}, {invoiceBooking.children || 0} {isAr ? 'أطفال' : 'Children'}</div>
+                                        {invoiceBooking.billingRouting && (
+                                            <div style={{ marginTop: '8px', padding: '6px', background: '#e0e7ff', borderRadius: '4px', fontSize: '11px', color: '#3730a3' }}>
+                                                <strong>{isAr ? 'مسار الفاتورة (Routing):' : 'Billing Routing:'}</strong><br/>
+                                                Room: {invoiceBooking.billingRouting.roomCharges} Pays | Extras: {invoiceBooking.billingRouting.extraCharges} Pays
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 'bold', color: '#475569', marginBottom: '8px', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px' }}>
                                             {isAr ? 'تفاصيل الإقامة (Stay Details)' : 'Stay Information'}
                                         </div>
                                         <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الغرفة:' : 'Unit / Room:'}</strong> #{u ? u.unitNumber : invoiceBooking.unitId} ({u ? u.roomType || u.type : ''}) - {isAr ? `طابق ${u ? u.floor : 1}` : `Floor ${u ? u.floor : 1}`}</div>
+                                        {invoiceBooking.groupBlockId && (
+                                            <div style={{ marginBottom: '4px', color: '#0369a1' }}><strong>{isAr ? 'المجموعة:' : 'Group Block:'}</strong> {groupBlocks.find(g => g.id === invoiceBooking.groupBlockId)?.name || invoiceBooking.groupBlockId}</div>
+                                        )}
                                         <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'الوصول:' : 'Check-In:'}</strong> {new Date(invoiceBooking.checkInDate).toLocaleDateString()} ({p ? p.checkInTime || '14:00' : '14:00'})</div>
                                         <div style={{ marginBottom: '4px' }}><strong>{isAr ? 'المغادرة:' : 'Check-Out:'}</strong> {new Date(invoiceBooking.checkOutDate).toLocaleDateString()} ({p ? p.checkOutTime || '12:00' : '12:00'})</div>
                                         <div><strong>{isAr ? 'إجمالي الليالي:' : 'Total Nights:'}</strong> {bNights} {isAr ? 'ليالي' : 'Nights'}</div>
@@ -1044,9 +1134,19 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab }) => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', borderTop: '2px solid #e2e8f0', paddingTop: '16px' }}>
                                     {/* QR Code Simulation & Legal Notice */}
                                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                                        <div style={{ width: '90px', height: '90px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6px', textAlign: 'center' }}>
-                                            <i className="ri-qr-code-line" style={{ fontSize: '48px', color: '#1e293b' }}></i>
-                                            <span style={{ fontSize: '8px', color: '#64748b', fontWeight: 'bold' }}>ZATCA VERIFIED</span>
+                                        <div style={{ width: '90px', height: '90px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2px', textAlign: 'center' }}>
+                                            {generateZatcaQR ? (
+                                                <img 
+                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(generateZatcaQR(settings?.businessName || (p ? p.name : 'KamySoft Luxury Hospitality'), settings?.vatNumber || '310123456700003', invoiceBooking.createdAt || invoiceBooking.checkInDate || new Date().toISOString(), invoiceBooking.totalAmount, invoiceBooking.vat))}`} 
+                                                    alt="ZATCA QR Code" 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
+                                                />
+                                            ) : (
+                                                <>
+                                                    <i className="ri-qr-code-line" style={{ fontSize: '48px', color: '#1e293b' }}></i>
+                                                    <span style={{ fontSize: '8px', color: '#64748b', fontWeight: 'bold' }}>ZATCA</span>
+                                                </>
+                                            )}
                                         </div>
                                         <div style={{ fontSize: '11px', color: '#64748b', maxWidth: '280px', lineHeight: '1.4' }}>
                                             <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#334155' }}>
