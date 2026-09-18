@@ -16,7 +16,7 @@
     "@peculiar/webcrypto": "^1.7.1",
     "@peculiar/x509": "^2.0.0",
     "@sendgrid/mail": "^8.1.6",
-    "@talha7k/zatca": "^0.11.1",
+    "@talha7k/zatca": "^0.13.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
