@@ -211,7 +211,13 @@ const settingsSchema = new mongoose.Schema({
     
     // SaaS Themes
     activeTheme: { type: String, default: 'default' },
-    themeConfig: { type: Object, default: {} }
+    themeConfig: { type: Object, default: {} },
+
+    // Hardware Integrations
+    keycardConfig: {
+        vendor: { type: String, default: 'mock' }, // e.g. AssaAbloy, VingCard
+        endpoint: { type: String, default: 'http://localhost:5000' }
+    }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -395,6 +401,19 @@ const unitSchema = new mongoose.Schema({
 });
 const Unit = mongoose.model('Unit', unitSchema);
 
+const groupBlockSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    status: { type: String, enum: ['Tentative', 'Definite', 'Cancelled'], default: 'Tentative' },
+    companyId: { type: String }, // For corporate events
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    roomsBlocked: { type: Number, required: true },
+    rate: { type: Number, required: true },
+    tenantId: { type: String, default: 'default', index: true }
+});
+const GroupBlock = mongoose.model('GroupBlock', groupBlockSchema);
+
 const bookingSchema = new mongoose.Schema({
     id: { type: String, required: true },
     bookingNumber: { type: String },
@@ -402,6 +421,12 @@ const bookingSchema = new mongoose.Schema({
     customerId: { type: String, required: true },
     customerName: { type: String },
     customerPhone: { type: String },
+    groupBlockId: { type: String }, // Links to GroupBlock
+    billingRouting: {
+        roomCharges: { type: String, enum: ['Guest', 'Company'], default: 'Guest' },
+        extraCharges: { type: String, enum: ['Guest', 'Company'], default: 'Guest' },
+        companyId: { type: String }
+    },
     checkInDate: { type: Date, required: true },
     checkOutDate: { type: Date, required: true },
     adults: { type: Number, default: 1 },
@@ -613,7 +638,8 @@ module.exports = {
     ReturnInvoice,
     SubscriptionPayment,
     Account,
+    SubscriptionPayment,
     PropertyOwner,
-    Property, Unit, Booking, HotelService, PriceRule, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain,
+    Property, Unit, Booking, GroupBlock, HotelService, PriceRule, MaintenanceTask, PropertyInvoice, LeaseContract, Lead, CustomDomain,
     PrinterConfig, RestaurantOrder
 };

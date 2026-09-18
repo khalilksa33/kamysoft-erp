@@ -83,6 +83,23 @@ const Vouchers = ({ currentLanguage, translations, formatCurrency, activeTab }) 
 
     const filteredVouchers = vouchers.filter(v => v.type === (isReceipt ? 'RECEIPT' : 'PAYMENT'));
 
+    const handleShareVoucher = () => {
+        if (!printVoucher) return;
+        const text = isReceipt 
+            ? (currentLanguage === 'ar' ? `سند قبض رقم: ${printVoucher.voucherId}\nالمبلغ: ${printVoucher.amount}\nالبيان: ${printVoucher.description}` : `Receipt Voucher #: ${printVoucher.voucherId}\nAmount: ${printVoucher.amount}\nDescription: ${printVoucher.description}`)
+            : (currentLanguage === 'ar' ? `سند صرف رقم: ${printVoucher.voucherId}\nالمبلغ: ${printVoucher.amount}\nالبيان: ${printVoucher.description}` : `Payment Voucher #: ${printVoucher.voucherId}\nAmount: ${printVoucher.amount}\nDescription: ${printVoucher.description}`);
+        
+        if (navigator.share) {
+            navigator.share({
+                title: currentLanguage === 'ar' ? 'سند' : 'Voucher',
+                text: text,
+            }).catch(err => console.error(err));
+        } else {
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+        }
+    };
+
     return (
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -244,6 +261,10 @@ const Vouchers = ({ currentLanguage, translations, formatCurrency, activeTab }) 
                         </div>
                         <div className="no-print" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '20px' }}>
                             <button className="btn btn-secondary" onClick={() => setPrintVoucher(null)}>{translations[currentLanguage].close}</button>
+                            <button className="btn btn-primary" onClick={handleShareVoucher} style={{ background: '#10b981', borderColor: '#10b981' }}>
+                                <i className="ri-share-line" style={{ marginRight: '4px' }}></i>
+                                {currentLanguage === 'ar' ? 'مشاركة' : 'Share'}
+                            </button>
                             <button className="btn btn-primary" onClick={() => window.print()}>{currentLanguage === 'ar' ? 'طباعة' : 'Print'}</button>
                         </div>
                     </div>
