@@ -73,23 +73,30 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                             ? 'اكتشف أفضل خيارات الإقامة لدينا. احجز غرفتك بكل سهولة وسرعة من خلال بوابتنا الإلكترونية.'
                             : 'Discover our premium accommodation options. Book your stay easily and securely through our online portal.'}
                     </p>
-                    <a 
-                        href="/book"
-                        style={{ 
-                            display: 'inline-block',
-                            padding: '16px 40px', 
-                            backgroundColor: '#3b82f6', 
-                            color: '#fff', 
-                            textDecoration: 'none',
-                            borderRadius: '50px',
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.4)'
-                        }}
-                    >
-                        <i className="ri-calendar-check-line" style={{ marginRight: isAr ? '0' : '8px', marginLeft: isAr ? '8px' : '0' }}></i>
-                        {isAr ? 'احجز الآن (Book Now)' : 'Book Now'}
-                    </a>
+                    <form action="/book" method="GET" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginTop: '20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: 1, minWidth: '140px' }}>
+                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'تاريخ الوصول' : 'Check-in Date'}</label>
+                            <input type="date" name="date_from" required style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: 1, minWidth: '140px' }}>
+                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'تاريخ المغادرة' : 'Check-out Date'}</label>
+                            <input type="date" name="date_to" required style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', width: '90px' }}>
+                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'بالغين' : 'Adults'}</label>
+                            <input type="number" name="adults" min="1" defaultValue="1" style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', width: '90px' }}>
+                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'أطفال' : 'Children'}</label>
+                            <input type="number" name="children" min="0" defaultValue="0" style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', minWidth: '150px' }}>
+                            <button type="submit" style={{ padding: '12px 24px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', height: '46px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
+                                <i className="ri-search-line" style={{ marginRight: isAr ? '0' : '8px', marginLeft: isAr ? '8px' : '0' }}></i>
+                                {isAr ? 'بحث عن التوافر' : 'Check Availability'}
+                            </button>
+                        </div>
+                    </form>>
                 </div>
 
                                 { (settings?.portalDescription || settings?.portalDescriptionAr) && (
