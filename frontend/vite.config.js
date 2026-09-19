@@ -1,40 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-import { VitePWA } from 'vite-plugin-pwa';
+// import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'logo.png'],
-      workbox: {
-        maximumFileSizeToCacheInBytes: 5000000 // 5 MB
-      },
-      manifest: {
-        name: '26i ERP and property management system',
-        short_name: '26i ERP',
-        description: '26i ERP and property management system',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        icons: [
-          {
-            src: '/logo.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/logo.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    })
+    /* VitePWA disabled temporarily */
   ],
   server: {
     port: 3000,
