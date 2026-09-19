@@ -15,6 +15,7 @@ const Settings = (props) => {
         { id: 'zatca', label: translations[currentLanguage].zatcaSettings || 'ZATCA Connection Settings', icon: 'ri-cloud-line', color: 'var(--accent-cyan)' },
         { id: 'email', label: currentLanguage === 'ar' ? 'إعدادات البريد' : 'Email / SMTP Settings', icon: 'ri-mail-send-line', color: 'var(--accent-primary)' },
         { id: 'storefront', label: currentLanguage === 'ar' ? 'إعدادات الواجهة' : 'Storefront Settings', icon: 'ri-store-2-line', color: '#ec4899' },
+        { id: 'portal', label: currentLanguage === 'ar' ? 'بوابة العميل العامة' : 'Public Web Portal', icon: 'ri-global-line', color: '#10b981' },
         { id: 'danger', label: currentLanguage === 'ar' ? 'إغلاق الحساب' : 'Close Account', icon: 'ri-error-warning-line', color: '#f87171' }
     ];
 
