@@ -782,7 +782,6 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                             <input type="number" className="form-control" min="1" value={adults} onChange={e => setAdults(e.target.value)} />
                         </div>
                         <div className="form-group">
-                        <div className="form-group">
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'الأطفال' : 'Children'}</label>
                             <input type="number" className="form-control" min="0" value={children} onChange={e => setChildren(e.target.value)} />
                         </div>
