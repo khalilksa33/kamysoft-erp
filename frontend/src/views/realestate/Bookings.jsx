@@ -426,6 +426,18 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                     >
                         <i className="ri-file-list-3-line"></i> {isAr ? 'فواتير النزلاء والإقامة (Invoices)' : 'Guest Invoices & Folios'}
                     </button>
+                    <button 
+                        className={`btn ${viewMode === 'bookingEngine' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setViewMode('bookingEngine')}
+                        style={{
+                            background: viewMode === 'bookingEngine' ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(16, 185, 129, 0.15)',
+                            borderColor: '#10b981',
+                            color: '#fff',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        <i className="ri-global-line"></i> {isAr ? 'محرك الحجز الإلكتروني' : 'Online Booking Engine'}
+                    </button>
                 </div>
             </div>
 
@@ -1269,6 +1281,20 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                     </div>
                 );
             })()}
+
+            {/* Online Booking Engine Iframe */}
+            {viewMode === 'bookingEngine' && (
+                <div className="glass-card" style={{ padding: '0', overflow: 'hidden', height: '80vh', borderRadius: '12px' }}>
+                    <iframe 
+                        src="https://aleairyfurnishedapartmentsmadina3.reservehotel.net/hotel?muid=734635cd-306e-4b69-ab0a-737de6a205d3" 
+                        title="Online Booking Engine"
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 'none' }}
+                        allowFullScreen
+                    ></iframe>
+                </div>
+            )}
         </div>
     );
 };
