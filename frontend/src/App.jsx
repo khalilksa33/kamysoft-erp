@@ -7,6 +7,7 @@ import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
 import Storefront from './views/storefront/Storefront';
 import BookingPortal from './views/realestate/BookingPortal';
+import TenantWebPortal from './views/realestate/TenantWebPortal';
 import StorefrontSettings from './views/storefront/StorefrontSettings';
 import DigitalAssets from './views/storefront/DigitalAssets';
 import Reports from './views/reports/Reports';
@@ -2161,7 +2162,21 @@ const handleB2BSubmit = () => {
         );
     }
 
+
+    const isRootPath = window.location.pathname === '/';
+    // Public Tenant Web Portal at root URL
+    if (routeMode === 'customer' && isRootPath && !token) {
+        return (
+            <TenantWebPortal 
+                tenantId={tenantId}
+                currentLanguage={currentLanguage}
+                setLanguage={setCurrentLanguage}
+            />
+        );
+    }
+
     if (!token) {
+
         if (authView === 'forgot-password') {
             return (
                 <>
