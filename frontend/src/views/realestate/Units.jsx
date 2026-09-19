@@ -14,6 +14,7 @@ const Units = ({ currentLanguage }) => {
     const [floor, setFloor] = useState('1');
     const [dailyRate, setDailyRate] = useState('');
     const [cleaningStatus, setCleaningStatus] = useState('Clean');
+    const [images, setImages] = useState([]);
     const [editId, setEditId] = useState(null);
 
     useEffect(() => {
@@ -50,7 +51,7 @@ const Units = ({ currentLanguage }) => {
                 body: JSON.stringify({
                     propertyId, unitNumber, type, roomType,
                     beds: Number(beds), maxAdults: Number(maxAdults), maxChildren: Number(maxChildren),
-                    floor, dailyRate: Number(dailyRate), cleaningStatus
+                    floor, dailyRate: Number(dailyRate), cleaningStatus, images
                 })
             });
             resetForm();

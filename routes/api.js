@@ -2914,6 +2914,19 @@ router.delete('/api/properties/:id', authenticateToken, async (req, res) => {
 });
 
 // Units
+// Public Units endpoint for Tenant Web Portal
+router.get('/api/public/units', async (req, res) => {
+    try {
+        const tenantId = req.headers['x-tenant-id'] || 'default';
+        if (global.isMongoConnected) {
+            const units = await Unit.find({ tenantId, status: 'Available' });
+            res.json(units);
+        } else {
+            res.json(mockDb.units.filter(u => u.tenantId === tenantId && u.status === 'Available'));
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.get('/api/units', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);

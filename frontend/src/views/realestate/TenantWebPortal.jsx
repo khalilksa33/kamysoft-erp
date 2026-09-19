@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
     const [settings, setSettings] = useState(null);
+    const [units, setUnits] = useState([]);
     const isAr = currentLanguage === 'ar';
 
     useEffect(() => {
@@ -9,6 +10,13 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
             .then(res => res.json())
             .then(data => {
                 if(data && !data.error) setSettings(data);
+            })
+            .catch(err => console.error(err));
+            
+        fetch('/api/public/units', { headers: { 'x-tenant-id': tenantId } })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setUnits(data);
             })
             .catch(err => console.error(err));
     }, [tenantId]);
@@ -84,16 +92,16 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                     </a>
                 </div>
 
-                {settings?.portalRooms && settings.portalRooms.length > 0 && (
+                {units && units.length > 0 && (
                     <div style={{ width: '100%', maxWidth: '1000px' }}>
                         <h3 style={{ fontSize: '24px', color: '#1e293b', marginBottom: '20px', textAlign: isAr ? 'right' : 'left', fontWeight: '700' }}>
                             {isAr ? 'الغرف والأجنحة المتاحة' : 'Available Rooms & Suites'}
                         </h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                            {settings.portalRooms.map((room, idx) => (
-                                <div key={idx} style={{ backgroundColor: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s' }}>
-                                    {room.imageUrl ? (
-                                        <img src={room.imageUrl} alt={room.name} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                            {units.map((unit, idx) => (
+                                <div key={unit.id || idx} style={{ backgroundColor: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s' }}>
+                                    {unit.images && unit.images.length > 0 ? (
+                                        <img src={unit.images[0]} alt={unit.name || unit.unitNumber} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                                     ) : (
                                         <div style={{ width: '100%', height: '200px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <i className="ri-image-line" style={{ fontSize: '32px', color: '#94a3b8' }}></i>
@@ -101,12 +109,17 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                     )}
                                     <div style={{ padding: '20px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                                            <h4 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 'bold' }}>{room.name}</h4>
-                                            {room.price && <span style={{ background: '#ecfdf5', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}></span>}
+                                            <h4 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 'bold' }}>
+                                                {unit.name || ${unit.type} }
+                                            </h4>
+                                            {unit.dailyRate && <span style={{ background: '#ecfdf5', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}> / {isAr ? 'يوم' : 'day'}</span>}
                                         </div>
-                                        <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#64748b', lineHeight: '1.5' }}>{room.description}</p>
+                                        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', color: '#64748b', fontSize: '13px' }}>
+                                            <span><i className="ri-hotel-bed-line"></i> {unit.beds || 1} {isAr ? 'سرير' : 'Beds'}</span>
+                                            <span><i className="ri-user-line"></i> {unit.maxAdults || 2} {isAr ? 'أشخاص' : 'Adults'}</span>
+                                        </div>
                                         <a href="/book" style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#f8fafc', color: '#3b82f6', textDecoration: 'none', borderRadius: '8px', fontWeight: '600', border: '1px solid #e2e8f0' }}>
-                                            {isAr ? 'عرض التفاصيل والحجز' : 'View Details & Book'}
+                                            {isAr ? 'احجز الآن' : 'Book Now'}
                                         </a>
                                     </div>
                                 </div>
