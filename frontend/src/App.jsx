@@ -6,6 +6,7 @@ import LandingPage from './LandingPage';
 import Invoices from './views/invoices/Invoices';
 import Settings from './views/settings/Settings';
 import Storefront from './views/storefront/Storefront';
+import BookingPortal from './views/realestate/BookingPortal';
 import StorefrontSettings from './views/storefront/StorefrontSettings';
 import DigitalAssets from './views/storefront/DigitalAssets';
 import Reports from './views/reports/Reports';
