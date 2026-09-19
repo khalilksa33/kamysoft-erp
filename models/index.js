@@ -209,6 +209,21 @@ const settingsSchema = new mongoose.Schema({
     emailVerificationToken: { type: String },
     licenseExpiresAt: { type: Date },
     
+    // Public Portal Settings
+    portalImages: [{ type: String }],
+    portalDescription: { type: String },
+    portalDescriptionAr: { type: String },
+    portalAmenities: [{ type: String }],
+    contactEmail: { type: String },
+    contactPhone: { type: String },
+    contactAddress: { type: String },
+    contactAddressAr: { type: String },
+    socialLinks: {
+        facebook: { type: String },
+        instagram: { type: String },
+        twitter: { type: String }
+    },
+    
     // SaaS Themes
     activeTheme: { type: String, default: 'default' },
     themeConfig: { type: Object, default: {} },

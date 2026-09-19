@@ -3,9 +3,20 @@ import React, { useState } from 'react';
 const PortalSettings = ({ settings, setSettings, currentLanguage, onSave }) => {
     const isAr = currentLanguage === 'ar';
     const [images, setImages] = useState(settings.portalImages || []);
-    const [rooms, setRooms] = useState(settings.portalRooms || []);
     const [newImage, setNewImage] = useState('');
-    const [newRoom, setNewRoom] = useState({ name: '', description: '', price: '', imageUrl: '' });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        if (name.startsWith('social_')) {
+            const platform = name.split('_')[1];
+            setSettings({
+                ...settings,
+                socialLinks: { ...(settings.socialLinks || {}), [platform]: value }
+            });
+        } else {
+            setSettings({ ...settings, [name]: value });
+        }
+    };
 
     const handleAddImage = () => {
         if (!newImage) return;
@@ -19,20 +30,6 @@ const PortalSettings = ({ settings, setSettings, currentLanguage, onSave }) => {
         const updatedImages = images.filter((_, i) => i !== index);
         setImages(updatedImages);
         setSettings({ ...settings, portalImages: updatedImages });
-    };
-
-    const handleAddRoom = () => {
-        if (!newRoom.name) return;
-        const updatedRooms = [...rooms, newRoom];
-        setRooms(updatedRooms);
-        setSettings({ ...settings, portalRooms: updatedRooms });
-        setNewRoom({ name: '', description: '', price: '', imageUrl: '' });
-    };
-
-    const handleRemoveRoom = (index) => {
-        const updatedRooms = rooms.filter((_, i) => i !== index);
-        setRooms(updatedRooms);
-        setSettings({ ...settings, portalRooms: updatedRooms });
     };
 
     return (
@@ -79,44 +76,59 @@ const PortalSettings = ({ settings, setSettings, currentLanguage, onSave }) => {
                 </div>
             </div>
 
-            <div className="form-group" style={{ padding: '20px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <label style={{ fontWeight: '600', color: '#334155' }}>
-                    {isAr ? 'الغرف والأجنحة' : 'Rooms & Suites'}
-                </label>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <input type="text" className="form-control" placeholder={isAr ? 'اسم الغرفة/الجناح' : 'Room/Suite Name'} value={newRoom.name} onChange={e => setNewRoom({...newRoom, name: e.target.value})} />
-                        <input type="number" className="form-control" placeholder={isAr ? 'السعر' : 'Price'} value={newRoom.price} onChange={e => setNewRoom({...newRoom, price: e.target.value})} />
-                    </div>
-                    <input type="text" className="form-control" placeholder={isAr ? 'وصف قصير' : 'Short Description'} value={newRoom.description} onChange={e => setNewRoom({...newRoom, description: e.target.value})} />
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <input type="text" className="form-control" placeholder={isAr ? 'رابط صورة الغرفة' : 'Room Image URL'} value={newRoom.imageUrl} onChange={e => setNewRoom({...newRoom, imageUrl: e.target.value})} />
-                        <button className="btn btn-secondary" onClick={handleAddRoom} style={{ whiteSpace: 'nowrap' }}>
-                            <i className="ri-add-line"></i> {isAr ? 'إضافة غرفة' : 'Add Room'}
-                        </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                <div className="form-group" style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <label style={{ fontWeight: '600', color: '#334155' }}>{isAr ? 'معلومات التواصل' : 'Contact Information'}</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+                        <div>
+                            <label className="text-sm">{isAr ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                            <input type="email" name="contactEmail" className="form-control" value={settings.contactEmail || ''} onChange={handleChange} />
+                        </div>
+                        <div>
+                            <label className="text-sm">{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
+                            <input type="text" name="contactPhone" className="form-control" value={settings.contactPhone || ''} onChange={handleChange} />
+                        </div>
+                        <div>
+                            <label className="text-sm">{isAr ? 'العنوان' : 'Address (English)'}</label>
+                            <input type="text" name="contactAddress" className="form-control" value={settings.contactAddress || ''} onChange={handleChange} />
+                        </div>
+                        <div>
+                            <label className="text-sm">{isAr ? 'العنوان (بالعربية)' : 'Address (Arabic)'}</label>
+                            <input type="text" name="contactAddressAr" className="form-control" value={settings.contactAddressAr || ''} onChange={handleChange} />
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {rooms.map((room, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            {room.imageUrl ? (
-                                <img src={room.imageUrl} alt={room.name} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
-                            ) : (
-                                <div style={{ width: '80px', height: '60px', background: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                                    <i className="ri-image-line" style={{ fontSize: '24px' }}></i>
-                                </div>
-                            )}
-                            <div style={{ flex: 1 }}>
-                                <h4 style={{ margin: '0 0 5px 0', fontSize: '16px' }}>{room.name} <span style={{ color: '#10b981', marginLeft: '10px' }}>{room.price ? $ : ''}</span></h4>
-                                <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{room.description}</p>
-                            </div>
-                            <button className="btn btn-danger-soft" onClick={() => handleRemoveRoom(idx)} style={{ padding: '8px' }}>
-                                <i className="ri-delete-bin-line"></i>
-                            </button>
+                <div className="form-group" style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <label style={{ fontWeight: '600', color: '#334155' }}>{isAr ? 'روابط التواصل الاجتماعي' : 'Social Media Links'}</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+                        <div>
+                            <label className="text-sm">Facebook</label>
+                            <input type="text" name="social_facebook" className="form-control" value={settings.socialLinks?.facebook || ''} onChange={handleChange} placeholder="https://facebook.com/..." />
                         </div>
-                    ))}
+                        <div>
+                            <label className="text-sm">Instagram</label>
+                            <input type="text" name="social_instagram" className="form-control" value={settings.socialLinks?.instagram || ''} onChange={handleChange} placeholder="https://instagram.com/..." />
+                        </div>
+                        <div>
+                            <label className="text-sm">Twitter / X</label>
+                            <input type="text" name="social_twitter" className="form-control" value={settings.socialLinks?.twitter || ''} onChange={handleChange} placeholder="https://twitter.com/..." />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="form-group" style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <label style={{ fontWeight: '600', color: '#334155' }}>{isAr ? 'عن المنشأة' : 'About the Property'}</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+                    <div>
+                        <label className="text-sm">{isAr ? 'الوصف' : 'Description (English)'}</label>
+                        <textarea name="portalDescription" className="form-control" rows="4" value={settings.portalDescription || ''} onChange={handleChange}></textarea>
+                    </div>
+                    <div>
+                        <label className="text-sm">{isAr ? 'الوصف (بالعربية)' : 'Description (Arabic)'}</label>
+                        <textarea name="portalDescriptionAr" className="form-control" rows="4" value={settings.portalDescriptionAr || ''} onChange={handleChange}></textarea>
+                    </div>
                 </div>
             </div>
         </div>

@@ -92,6 +92,17 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                     </a>
                 </div>
 
+                                { (settings?.portalDescription || settings?.portalDescriptionAr) && (
+                    <div style={{ maxWidth: '1000px', width: '100%', backgroundColor: '#fff', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', textAlign: isAr ? 'right' : 'left', marginBottom: '40px' }}>
+                        <h3 style={{ fontSize: '24px', color: '#1e293b', marginBottom: '20px', fontWeight: '700' }}>
+                            {isAr ? 'عن المنشأة' : 'About the Property'}
+                        </h3>
+                        <p style={{ fontSize: '16px', color: '#64748b', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                            {isAr ? (settings.portalDescriptionAr || settings.portalDescription) : (settings.portalDescription || settings.portalDescriptionAr)}
+                        </p>
+                    </div>
+                )}
+                
                 {units && units.length > 0 && (
                     <div style={{ width: '100%', maxWidth: '1000px' }}>
                         <h3 style={{ fontSize: '24px', color: '#1e293b', marginBottom: '20px', textAlign: isAr ? 'right' : 'left', fontWeight: '700' }}>
@@ -130,8 +141,44 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
             </main>
 
             
-            <footer style={{ padding: '20px', textAlign: 'center', backgroundColor: '#fff', color: '#94a3b8', fontSize: '14px', borderTop: '1px solid #e2e8f0' }}>
-                &copy; {new Date().getFullYear()} {businessName}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'} | Powered by KamySoft ERP
+                        <footer style={{ padding: '40px 20px', backgroundColor: '#0f172a', color: '#cbd5e1', fontSize: '14px', borderTop: '1px solid #1e293b' }}>
+                <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px', marginBottom: '30px', textAlign: isAr ? 'right' : 'left' }}>
+                    <div>
+                        <h4 style={{ color: '#fff', fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>{businessName}</h4>
+                        <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
+                            <i className="ri-map-pin-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
+                            {isAr ? (settings?.contactAddressAr || settings?.contactAddress || settings?.businessAddress || 'العنوان غير متوفر') : (settings?.contactAddress || settings?.businessAddress || 'Address not provided')}
+                        </p>
+                        {settings?.contactPhone && (
+                            <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
+                                <i className="ri-phone-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
+                                {settings.contactPhone}
+                            </p>
+                        )}
+                        {settings?.contactEmail && (
+                            <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
+                                <i className="ri-mail-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
+                                {settings.contactEmail}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <h4 style={{ color: '#fff', fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>{isAr ? 'تواصل معنا' : 'Connect With Us'}</h4>
+                        <div style={{ display: 'flex', gap: '15px', fontSize: '24px' }}>
+                            {settings?.socialLinks?.facebook && <a href={settings.socialLinks.facebook} target="_blank" rel="noreferrer" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color='#3b5998'} onMouseOut={e => e.target.style.color='#cbd5e1'}><i className="ri-facebook-circle-fill"></i></a>}
+                            {settings?.socialLinks?.instagram && <a href={settings.socialLinks.instagram} target="_blank" rel="noreferrer" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color='#e1306c'} onMouseOut={e => e.target.style.color='#cbd5e1'}><i className="ri-instagram-line"></i></a>}
+                            {settings?.socialLinks?.twitter && <a href={settings.socialLinks.twitter} target="_blank" rel="noreferrer" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color='#1da1f2'} onMouseOut={e => e.target.style.color='#cbd5e1'}><i className="ri-twitter-x-line"></i></a>}
+                            {(!settings?.socialLinks?.facebook && !settings?.socialLinks?.instagram && !settings?.socialLinks?.twitter) && (
+                                <span style={{ fontSize: '14px' }}>{isAr ? 'لا توجد روابط متوفرة.' : 'No social links provided.'}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style={{ borderTop: '1px solid #334155', paddingTop: '20px', textAlign: 'center', marginTop: '20px' }}>
+                    &copy; {new Date().getFullYear()} {businessName}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'} | <a href="https://kamysoft.com" target="_blank" style={{ color: '#3b82f6', textDecoration: 'none' }}>Powered by KamySoft ERP</a>
+                </div>
             </footer>
         </div>
     );
