@@ -61,7 +61,9 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                 })
             });
             const data = await res.json();
-            if (data.qrCode) {
+            if (data.qrDataUrl) {
+                setFolioQr(data.qrDataUrl);
+            } else if (data.qrCode) {
                 setFolioQr(data.qrCode);
             }
         } catch(e) {
@@ -1164,7 +1166,7 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                                                 <div style={{ fontSize: '10px', color: '#64748b' }}>{isAr ? 'جاري التحميل...' : 'Loading QR...'}</div>
                                             ) : folioQr ? (
                                                 <img 
-                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(folioQr)}`}
+                                                    src={folioQr.startsWith('data:image') ? folioQr : `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(folioQr)}`}
                                                     alt="ZATCA QR Code" 
                                                     style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
                                                 />

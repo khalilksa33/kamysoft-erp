@@ -3047,7 +3047,10 @@ router.post('/api/bookings/folio-qr', authenticateToken, async (req, res) => {
             keys.publicKeyPem
         );
         
-        res.json({ qrCode: qrBase64 });
+        const QRCode = require('qrcode');
+        const qrDataUrl = await QRCode.toDataURL(qrBase64, { errorCorrectionLevel: 'M', margin: 2, width: 250 });
+        
+        res.json({ qrCode: qrBase64, qrDataUrl });
     } catch (err) {
         console.error('Folio QR error', err);
         res.status(500).json({ error: err.message });
