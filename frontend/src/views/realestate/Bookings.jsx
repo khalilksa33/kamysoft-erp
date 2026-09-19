@@ -929,26 +929,31 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                                                 </span>
                                             </td>
                                             <td>
-                                                <div style={{ display: 'flex', gap: '6px' }}>
-                                                    {b.status === 'Confirmed' && (
-                                                        <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleCheckIn(b)}>
-                                                            {isAr ? 'دخول' : 'Check-In'}
+                                                <div className="actions-dropdown">
+                                                    <button className="actions-dropdown-btn">
+                                                        <i className="ri-settings-4-line"></i> {isAr ? 'إجراءات' : 'Actions'} <i className="ri-arrow-down-s-line"></i>
+                                                    </button>
+                                                    <div className="actions-dropdown-content">
+                                                        {b.status === 'Confirmed' && (
+                                                            <button onClick={() => handleCheckIn(b)}>
+                                                                <i className="ri-login-box-line"></i> {isAr ? 'دخول' : 'Check-In'}
+                                                            </button>
+                                                        )}
+                                                        {b.status === 'CheckedIn' && (
+                                                            <button className="danger" onClick={() => handleCheckOut(b)}>
+                                                                <i className="ri-logout-box-line"></i> {isAr ? 'خروج' : 'Check-Out'}
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => openInvoiceModal(b)}>
+                                                            <i className="ri-printer-line"></i> {isAr ? 'عرض الفاتورة' : 'View Folio'}
                                                         </button>
-                                                    )}
-                                                    {b.status === 'CheckedIn' && (
-                                                        <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleCheckOut(b)}>
-                                                            {isAr ? 'خروج' : 'Check-Out'}
+                                                        <button onClick={() => openSwapRoom(b)}>
+                                                            <i className="ri-arrow-left-right-line"></i> {isAr ? 'تبديل الغرفة' : 'Swap Room'}
                                                         </button>
-                                                    )}
-                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', background: 'rgba(37, 99, 235, 0.2)', borderColor: '#3b82f6', color: '#60a5fa', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }} title={isAr ? 'عرض وطباعة الفاتورة' : 'Print Invoice / Folio'} onClick={() => openInvoiceModal(b)}>
-                                                        <i className="ri-printer-line"></i> {isAr ? 'الفاتورة' : 'Invoice'}
-                                                    </button>
-                                                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} title={isAr ? 'تبديل الغرفة' : 'Swap Room'} onClick={() => openSwapRoom(b)}>
-                                                        <i className="ri-arrow-left-right-line"></i>
-                                                    </button>
-                                                    <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleDelete(b.id)}>
-                                                        <i className="ri-delete-bin-line"></i>
-                                                    </button>
+                                                        <button className="danger" onClick={() => handleDelete(b.id)}>
+                                                            <i className="ri-delete-bin-line"></i> {isAr ? 'حذف' : 'Delete'}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>

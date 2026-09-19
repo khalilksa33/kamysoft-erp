@@ -46,7 +46,16 @@ const WarehouseManagement = ({ currentLanguage, translations }) => {
                                     <td>{w.location}</td>
                                     <td>{w.manager}</td>
                                     <td>
-                                        <button className="btn btn-sm btn-outline"><i className="ri-edit-line"></i></button>
+                                        <div className="actions-dropdown">
+                                            <button className="actions-dropdown-btn">
+                                                <i className="ri-settings-4-line"></i> {currentLanguage === 'ar' ? 'الإجراءات' : 'Actions'} <i className="ri-arrow-down-s-line"></i>
+                                            </button>
+                                            <div className="actions-dropdown-content">
+                                                <button>
+                                                    <i className="ri-edit-line"></i> {currentLanguage === 'ar' ? 'تعديل' : 'Edit'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

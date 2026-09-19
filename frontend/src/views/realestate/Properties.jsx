@@ -352,34 +352,37 @@ const Properties = ({ currentLanguage }) => {
                                         </span>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                            <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleViewGallery(p)}>
-                                                <i className="ri-image-line"></i> {p.images?.length || 0}
+                                        <div className="actions-dropdown">
+                                            <button className="actions-dropdown-btn">
+                                                <i className="ri-settings-4-line"></i> {isAr ? 'إجراءات' : 'Actions'} <i className="ri-arrow-down-s-line"></i>
                                             </button>
-                                            
-                                            <input 
-                                                type="file" 
-                                                multiple 
-                                                accept="image/*" 
-                                                style={{ display: 'none' }} 
-                                                id={`upload-${p.id}`}
-                                                onChange={(e) => handleImageUpload(e, p.id)} 
-                                            />
-                                            <label htmlFor={`upload-${p.id}`} className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '4px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <i className="ri-upload-2-line"></i>
-                                            </label>
-
-                                            {p.status !== 'Sold' && (
-                                                <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: 'var(--accent-gold)' }} onClick={() => handleSell(p)}>
-                                                    <i className="ri-shopping-cart-line"></i> {isAr ? 'بيع' : 'Sell'}
+                                            <div className="actions-dropdown-content">
+                                                <button onClick={() => handleViewGallery(p)}>
+                                                    <i className="ri-image-line"></i> {isAr ? 'معرض الصور' : 'Gallery'} ({p.images?.length || 0})
                                                 </button>
-                                            )}
-                                            <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleEdit(p)}>
-                                                <i className="ri-edit-line"></i>
-                                            </button>
-                                            <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleDelete(p.id)}>
-                                                <i className="ri-delete-bin-line"></i>
-                                            </button>
+                                                <label htmlFor={`upload-${p.id}`} style={{ margin: 0, padding: '10px 16px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)', transition: 'all 0.15s ease' }} className="dropdown-label-item">
+                                                    <i className="ri-upload-2-line" style={{ fontSize: '15px', opacity: 0.8 }}></i> {isAr ? 'رفع صور' : 'Upload Images'}
+                                                </label>
+                                                <input 
+                                                    type="file" 
+                                                    multiple 
+                                                    accept="image/*" 
+                                                    style={{ display: 'none' }} 
+                                                    id={`upload-${p.id}`}
+                                                    onChange={(e) => handleImageUpload(e, p.id)} 
+                                                />
+                                                {p.status !== 'Sold' && (
+                                                    <button onClick={() => handleSell(p)}>
+                                                        <i className="ri-shopping-cart-line" style={{ color: 'var(--accent-gold)' }}></i> {isAr ? 'بيع' : 'Sell'}
+                                                    </button>
+                                                )}
+                                                <button onClick={() => handleEdit(p)}>
+                                                    <i className="ri-edit-line"></i> {isAr ? 'تعديل' : 'Edit'}
+                                                </button>
+                                                <button className="danger" onClick={() => handleDelete(p.id)}>
+                                                    <i className="ri-delete-bin-line"></i> {isAr ? 'حذف' : 'Delete'}
+                                                </button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

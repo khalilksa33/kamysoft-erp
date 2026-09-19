@@ -2630,14 +2630,19 @@ const handleB2BSubmit = () => {
                                                 <td>{exp.date}</td>
                                                 <td>{formatCurrency(exp.amount)}</td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <button className="btn btn-secondary" onClick={() => { setExpForm(exp); setShowExpenseModal(true); }}>
-                                                            <i className="ri-edit-line"></i>
-                                                        </button>
-                                                        <button className="btn btn-danger" onClick={() => handleDeleteExpense(exp.id)}>
-                                                            <i className="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </div>
+                                                    <div className="actions-dropdown">
+        <button className="actions-dropdown-btn">
+            <i className="ri-settings-4-line"></i> {translations[currentLanguage].actions} <i className="ri-arrow-down-s-line"></i>
+        </button>
+        <div className="actions-dropdown-content">
+            <button onClick={() => { setExpForm(exp); setShowExpenseModal(true); }}>
+                <i className="ri-edit-line"></i> {currentLanguage === 'ar' ? 'تعديل' : 'Edit'}
+            </button>
+            <button className="danger" onClick={() => handleDeleteExpense(exp.id)}>
+                <i className="ri-delete-bin-line"></i> {currentLanguage === 'ar' ? 'حذف' : 'Delete'}
+            </button>
+        </div>
+    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -2689,8 +2694,8 @@ const handleB2BSubmit = () => {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <select className="form-control" style={{ padding: '4px 8px', fontSize: '12px' }} value={ord.status} onChange={e => {
+                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <select className="form-control" style={{ padding: '4px 8px', fontSize: '12px' }} value={ord.status} onChange={e => {
                                                             const updatedStatus = e.target.value;
                                                             fetch(`/api/orders/${ord.id}`, {
                                                                 method: 'PUT',
@@ -2710,13 +2715,20 @@ const handleB2BSubmit = () => {
                                                             <option value="Ready">{translations[currentLanguage].statusReady}</option>
                                                             <option value="Delivered">{translations[currentLanguage].statusDelivered}</option>
                                                         </select>
-                                                        <button className="btn btn-secondary" onClick={() => { setOrderForm(ord); setShowOrderModal(true); }}>
-                                                            <i className="ri-edit-line"></i>
-                                                        </button>
-                                                        <button className="btn btn-danger" onClick={() => handleDeleteOrder(ord.id)}>
-                                                            <i className="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </div>
+            <div className="actions-dropdown">
+                <button className="actions-dropdown-btn">
+                    <i className="ri-settings-4-line"></i> {translations[currentLanguage].actions} <i className="ri-arrow-down-s-line"></i>
+                </button>
+                <div className="actions-dropdown-content">
+                    <button onClick={() => { setOrderForm(ord); setShowOrderModal(true); }}>
+                        <i className="ri-edit-line"></i> {currentLanguage === 'ar' ? 'تعديل' : 'Edit'}
+                    </button>
+                    <button className="danger" onClick={() => handleDeleteOrder(ord.id)}>
+                        <i className="ri-delete-bin-line"></i> {currentLanguage === 'ar' ? 'حذف' : 'Delete'}
+                    </button>
+                </div>
+            </div>
+        </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -2770,14 +2782,19 @@ const handleB2BSubmit = () => {
                                                 </td>
                                                 <td>
                                                     {user && user.role === 'Admin' && (
-                                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                                            <button className="btn btn-secondary" onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
-                                                                <i className="ri-edit-line"></i>
-                                                            </button>
-                                                            <button className="btn btn-danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === user.id}>
-                                                                <i className="ri-delete-bin-line"></i>
-                                                            </button>
-                                                        </div>
+                                                        <div className="actions-dropdown">
+        <button className="actions-dropdown-btn">
+            <i className="ri-settings-4-line"></i> {translations[currentLanguage].actions} <i className="ri-arrow-down-s-line"></i>
+        </button>
+        <div className="actions-dropdown-content">
+            <button onClick={() => { setUserForm({ ...u, password: '' }); setShowUserModal(true); }}>
+                <i className="ri-edit-line"></i> {currentLanguage === 'ar' ? 'تعديل' : 'Edit'}
+            </button>
+            <button className="danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === user.id}>
+                <i className="ri-delete-bin-line"></i> {currentLanguage === 'ar' ? 'حذف' : 'Delete'}
+            </button>
+        </div>
+    </div>
                                                     )}
                                                 </td>
                                             </tr>

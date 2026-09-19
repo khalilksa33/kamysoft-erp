@@ -264,13 +264,18 @@ const Units = ({ currentLanguage }) => {
                                             </select>
                                         </td>
                                         <td>
-                                            <div style={{ display: 'flex', gap: '6px' }}>
-                                                <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleEdit(u)}>
-                                                    <i className="ri-edit-line"></i>
+                                            <div className="actions-dropdown">
+                                                <button className="actions-dropdown-btn">
+                                                    <i className="ri-settings-4-line"></i> {isAr ? 'إجراءات' : 'Actions'} <i className="ri-arrow-down-s-line"></i>
                                                 </button>
-                                                <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleDelete(u.id)}>
-                                                    <i className="ri-delete-bin-line"></i>
-                                                </button>
+                                                <div className="actions-dropdown-content">
+                                                    <button onClick={() => handleEdit(u)}>
+                                                        <i className="ri-edit-line"></i> {isAr ? 'تعديل' : 'Edit'}
+                                                    </button>
+                                                    <button className="danger" onClick={() => handleDelete(u.id)}>
+                                                        <i className="ri-delete-bin-line"></i> {isAr ? 'حذف' : 'Delete'}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
