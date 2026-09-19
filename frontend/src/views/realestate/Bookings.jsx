@@ -1046,43 +1046,69 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
                             {/* Printable Folio Content */}
                             <div id="printable-hotel-folio" style={{ padding: '36px', background: '#ffffff', color: '#1a202c', fontFamily: 'system-ui, sans-serif' }}>
                                 {/* Invoice Header */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '24px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <img src={settings?.logo || p?.logo || '/logo.png'} alt="Logo" style={{ height: '60px', objectFit: 'contain', borderRadius: '4px' }} />
-                                        <div>
-                                            <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
-                                                {p ? p.name : (settings?.businessName || 'KamySoft Luxury Hospitality')}
-                                            </h1>
-                                            <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
-                                                {'⭐'.repeat(p ? p.starRating || 5 : 5)}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
-                                                <div>{p ? p.address || p.location : (settings?.address || 'King Fahd Road, Riyadh, Saudi Arabia')}</div>
-                                                <div>{p ? p.city : 'Riyadh'} | Tel: {p ? p.phone || '+966 11 456 7890' : (settings?.phone || '+966 11 456 7890')}</div>
-                                                <div>Email: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
-                                                <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>VAT TRN: {settings?.vatNumber || '310123456700003'} (الرقم الضريبي)</div>
-                                            </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'flex-start', gap: '20px', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '20px' }}>
+                                    {/* Left Side: English Info */}
+                                    <div style={{ textAlign: 'left' }}>
+                                        <h1 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
+                                            {p ? (p.nameEN || p.name) : (settings?.businessNameEN || settings?.businessName || 'KamySoft Luxury Hospitality')}
+                                        </h1>
+                                        <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
+                                            {'⭐'.repeat(p ? p.starRating || 5 : 5)}
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                                            <div>{p ? p.address || p.location : (settings?.address || 'King Fahd Road, Riyadh, Saudi Arabia')}</div>
+                                            <div>{p ? p.city : 'Riyadh'} | Tel: {p ? p.phone || '+966 11 456 7890' : (settings?.phone || '+966 11 456 7890')}</div>
+                                            <div>Email: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
+                                            <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>VAT TRN: {settings?.vatNumber || '310123456700003'}</div>
                                         </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ display: 'inline-block', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>
-                                            {isAr ? 'فاتورة ضريبية مبسطة' : 'SIMPLIFIED TAX INVOICE'}
+
+                                    {/* Center: Logo (Elevated) */}
+                                    <div style={{ textAlign: 'center', marginTop: '-12px' }}>
+                                        <img src={settings?.logo || p?.logo || '/logo.png'} alt="Logo" style={{ height: '80px', objectFit: 'contain', borderRadius: '4px' }} />
+                                    </div>
+
+                                    {/* Right Side: Arabic Info */}
+                                    <div style={{ textAlign: 'right', direction: 'rtl' }}>
+                                        <h1 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
+                                            {p ? (p.nameAR || p.name) : (settings?.businessNameAR || settings?.businessName || 'كاميسوفت للضيافة الفاخرة')}
+                                        </h1>
+                                        <div style={{ color: '#d97706', fontSize: '14px', marginBottom: '6px' }}>
+                                            {'⭐'.repeat(p ? p.starRating || 5 : 5)}
                                         </div>
-                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>
-                                            #{invoiceBooking.bookingNumber || invoiceBooking.id}
+                                        <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5' }}>
+                                            <div>{p ? (p.addressAR || p.address || p.location) : (settings?.addressAR || settings?.address || 'طريق الملك فهد، الرياض، المملكة العربية السعودية')}</div>
+                                            <div>{p ? (p.cityAR || p.city) : 'الرياض'} | هاتف: {p ? p.phone || '+966 11 456 7890' : (settings?.phone || '+966 11 456 7890')}</div>
+                                            <div>البريد: {p ? p.email || 'concierge@kamysoft.sa' : 'concierge@kamysoft.sa'}</div>
+                                            <div style={{ fontWeight: '600', color: '#334155', marginTop: '2px' }}>الرقم الضريبي: {settings?.vatNumber || '310123456700003'}</div>
                                         </div>
-                                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                                            {isAr ? 'تاريخ الإصدار:' : 'Date:'} {new Date().toLocaleDateString()}
+                                    </div>
+                                </div>
+
+                                {/* Invoice Meta Info Bar */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ display: 'inline-block', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', lineHeight: '1.4' }}>
+                                            SIMPLIFIED TAX INVOICE<br/>فاتورة ضريبية مبسطة
                                         </div>
-                                        <div style={{ marginTop: '6px' }}>
-                                            <span style={{
-                                                fontSize: '11px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px',
-                                                background: invoiceBooking.paymentStatus === 'Paid' ? '#dcfce7' : '#fef3c7',
-                                                color: invoiceBooking.paymentStatus === 'Paid' ? '#15803d' : '#b45309'
-                                            }}>
-                                                {invoiceBooking.paymentStatus === 'Paid' ? 'PAID / مدفوعة بالكامل' : 'PARTIALLY PAID / مدفوعة جزئياً'}
-                                            </span>
-                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '2px', fontWeight: 'bold' }}>Invoice No / رقم الفاتورة</div>
+                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#0f172a' }}>#{invoiceBooking.bookingNumber || invoiceBooking.id}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '2px', fontWeight: 'bold' }}>Date / تاريخ الإصدار</div>
+                                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{new Date().toLocaleDateString()}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', fontWeight: 'bold' }}>Status / حالة الدفع</div>
+                                        <span style={{
+                                            fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px',
+                                            background: invoiceBooking.paymentStatus === 'Paid' ? '#dcfce7' : '#fef3c7',
+                                            color: invoiceBooking.paymentStatus === 'Paid' ? '#15803d' : '#b45309'
+                                        }}>
+                                            {invoiceBooking.paymentStatus === 'Paid' ? 'PAID / مدفوعة بالكامل' : 'PARTIALLY PAID / مدفوعة جزئياً'}
+                                        </span>
                                     </div>
                                 </div>
 
