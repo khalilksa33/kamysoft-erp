@@ -3437,15 +3437,15 @@ const handleB2BSubmit = () => {
                         </h3>
                         <form onSubmit={handleSaveUser}>
                             <div className="form-group">
-                                <label>Username / اسم المستخدم</label>
+                                <label>{currentLanguage === 'ar' ? 'اسم المستخدم' : 'Username'}</label>
                                 <input type="text" className="form-control" value={userForm.username || ''} onChange={e => setUserForm({ ...userForm, username: e.target.value })} required />
                             </div>
                             <div className="form-group">
-                                <label>Password / كلمة المرور {userForm.id && '(Leave blank to keep current / اترك فارغاً للحفاظ على الحالية)'}</label>
+                                <label>{currentLanguage === 'ar' ? 'كلمة المرور' : 'Password'} {userForm.id && (currentLanguage === 'ar' ? '(اترك فارغاً للحفاظ على الحالية)' : '(Leave blank to keep current)')}</label>
                                 <input type="password" className="form-control" value={userForm.password || ''} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required={!userForm.id} />
                             </div>
                             <div className="form-group">
-                                <label>User Role / دور الصلاحية</label>
+                                <label>{currentLanguage === 'ar' ? 'دور الصلاحية' : 'User Role'}</label>
                                 <select className="form-control" value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
                                     <option value="Admin">{translations[currentLanguage].roleAdmin}</option>
                                     <option value="Manager">{translations[currentLanguage].roleManager}</option>
