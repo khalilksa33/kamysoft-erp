@@ -89,6 +89,7 @@ const Bookings = ({ currentLanguage, formatCurrency, defaultTab, settings, gener
             <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}">
             <head>
                 <meta charset="utf-8">
+                <base href="${window.location.origin}/">
                 <title>${isAr ? 'فاتورة إقامة فندقية' : 'Hotel Guest Folio'} - ${invoiceBooking ? (invoiceBooking.bookingNumber || invoiceBooking.id) : ''}</title>
                 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
                 <style>
