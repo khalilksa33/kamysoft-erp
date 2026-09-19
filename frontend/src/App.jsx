@@ -2840,8 +2840,7 @@ const handleB2BSubmit = () => {
                                         ].map((feat, idx) => (
                                             <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                                                 <td style={{ padding: '12px' }}>
-                                                    <strong>{feat.en}</strong><br/>
-                                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{feat.ar}</span>
+                                                    <strong>{currentLanguage === 'ar' ? feat.ar : feat.en}</strong>
                                                 </td>
                                                 <td style={{ padding: '12px', textAlign: 'center' }}>
                                                     <i className="ri-checkbox-circle-fill" style={{ color: 'var(--accent-success)', fontSize: '20px' }}></i>
