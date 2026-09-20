@@ -46,60 +46,63 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
             </header>
 
             
-            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', background: '#f8fafc' }}>
-                {settings?.portalImages && settings.portalImages.length > 0 && (
-                    <div style={{ width: '100%', maxWidth: '1000px', marginBottom: '40px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', height: '400px', position: 'relative' }}>
-                        <div style={{ display: 'flex', width: '100%', height: '100%', overflowX: 'auto', scrollSnapType: 'x mandatory' }}>
-                            {settings.portalImages.map((img, idx) => (
-                                <img key={idx} src={img} alt="Property" style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0, scrollSnapAlign: 'start' }} />
-                            ))}
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0', background: '#fdfdfd' }}>
+                {/* Hero Section */}
+                <section style={{ position: 'relative', display: 'flex', minHeight: '85vh', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden', width: '100%' }}>
+                    <img 
+                        src={settings?.portalImages?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1920'} 
+                        alt="Hero" 
+                        style={{ position: 'absolute', inset: 0, height: '100%', width: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{ position: 'absolute', inset: 0, background: isAr ? 'linear-gradient(to left, rgba(28,25,23,0.85), rgba(28,25,23,0.45), transparent)' : 'linear-gradient(to right, rgba(28,25,23,0.85), rgba(28,25,23,0.45), transparent)' }}></div>
+                    
+                    <div style={{ position: 'relative', zIndex: 10, margin: '0 auto', width: '100%', maxWidth: '1200px', padding: '120px 24px 60px', display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                        <div style={{ maxWidth: '700px' }}>
+                            <p style={{ marginBottom: '24px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.3em', color: '#d4af37', textTransform: 'uppercase' }}>
+                                {isAr ? 'بوابة الحجز المباشر' : 'Hotel Booking Portal'}
+                            </p>
+                            <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', lineHeight: 1.15, color: '#fff', fontWeight: '600', marginBottom: '24px' }}>
+                                {isAr ? 'جوهر الفخامة العربية' : 'The soul of Arabian luxury'}
+                            </h1>
+                            <p style={{ maxWidth: '600px', fontSize: '18px', lineHeight: 1.8, fontWeight: 300, color: 'rgba(255,255,255,0.8)' }}>
+                                {isAr 
+                                    ? 'اكتشف أفضل خيارات الإقامة لدينا. احجز غرفتك بكل سهولة وسرعة من خلال بوابتنا الإلكترونية.'
+                                    : 'Discover our premium accommodation options. Book your stay easily and securely through our online portal.'}
+                            </p>
                         </div>
-                        {settings.portalImages.length > 1 && (
-                            <div style={{ position: 'absolute', bottom: '15px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                                {settings.portalImages.map((_, idx) => (
-                                    <div key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.7)' }}></div>
-                                ))}
-                            </div>
-                        )}
+
+                        {/* Search Widget */}
+                        <div style={{ marginTop: '48px', maxWidth: '1000px' }}>
+                            <form action="/book" method="GET" style={{ display: 'grid', gap: '15px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', alignItems: 'end', background: 'rgba(255, 255, 255, 0.95)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.25)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                    <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'تاريخ الوصول' : 'Check-in'}</label>
+                                    <input type="date" name="date_from" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                    <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'تاريخ المغادرة' : 'Check-out'}</label>
+                                    <input type="date" name="date_to" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                        <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'بالغين' : 'Adults'}</label>
+                                        <input type="number" name="adults" min="1" defaultValue="1" style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                        <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'أطفال' : 'Children'}</label>
+                                        <input type="number" name="children" min="0" defaultValue="0" style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                    </div>
+                                </div>
+                                <button type="submit" style={{ height: '44px', padding: '0 24px', backgroundColor: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', width: '100%' }}>
+                                    {isAr ? 'بحث عن التوافر' : 'Search availability'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                )}
-
-                <div style={{ maxWidth: '800px', width: '100%', backgroundColor: '#fff', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', textAlign: 'center', marginBottom: '40px' }}>
-                    <h2 style={{ fontSize: '32px', color: '#0f172a', marginBottom: '16px', fontWeight: '800' }}>
-                        {isAr ? 'مرحباً بك في' : 'Welcome to'} <span style={{ color: '#3b82f6' }}>{businessName}</span>
-                    </h2>
-                    <p style={{ fontSize: '18px', color: '#64748b', marginBottom: '30px', lineHeight: '1.6' }}>
-                        {isAr 
-                            ? 'اكتشف أفضل خيارات الإقامة لدينا. احجز غرفتك بكل سهولة وسرعة من خلال بوابتنا الإلكترونية.'
-                            : 'Discover our premium accommodation options. Book your stay easily and securely through our online portal.'}
-                    </p>
-                    <form action="/book" method="GET" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginTop: '20px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: 1, minWidth: '140px' }}>
-                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'تاريخ الوصول' : 'Check-in Date'}</label>
-                            <input type="date" name="date_from" required style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: 1, minWidth: '140px' }}>
-                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'تاريخ المغادرة' : 'Check-out Date'}</label>
-                            <input type="date" name="date_to" required style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', width: '90px' }}>
-                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'بالغين' : 'Adults'}</label>
-                            <input type="number" name="adults" min="1" defaultValue="1" style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', width: '90px' }}>
-                            <label style={{ fontSize: '13px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>{isAr ? 'أطفال' : 'Children'}</label>
-                            <input type="number" name="children" min="0" defaultValue="0" style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'flex-end', minWidth: '150px' }}>
-                            <button type="submit" style={{ padding: '12px 24px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', height: '46px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
-                                <i className="ri-search-line" style={{ marginRight: isAr ? '0' : '8px', marginLeft: isAr ? '8px' : '0' }}></i>
-                                {isAr ? 'بحث عن التوافر' : 'Check Availability'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                                { (settings?.portalDescription || settings?.portalDescriptionAr) && (
+                </section>
+                
+                {/* Rooms Section Wrap */}
+                <div style={{ padding: '80px 24px', width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    { (settings?.portalDescription || settings?.portalDescriptionAr) && (
                     <div style={{ maxWidth: '1000px', width: '100%', backgroundColor: '#fff', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', textAlign: isAr ? 'right' : 'left', marginBottom: '40px' }}>
                         <h3 style={{ fontSize: '24px', color: '#1e293b', marginBottom: '20px', fontWeight: '700' }}>
                             {isAr ? 'عن المنشأة' : 'About the Property'}
@@ -145,7 +148,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                         </div>
                     </div>
                 )}
-            </main>
+            </div></main>
 
             
                         <footer style={{ padding: '40px 20px', backgroundColor: '#0f172a', color: '#cbd5e1', fontSize: '14px', borderTop: '1px solid #1e293b' }}>
