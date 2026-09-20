@@ -4,6 +4,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
     const [settings, setSettings] = useState(null);
     const [units, setUnits] = useState([]);
     const isAr = currentLanguage === 'ar';
+    const [showBookingModal, setShowBookingModal] = useState(false);
 
     useEffect(() => {
         fetch('/api/settings', { headers: { 'x-tenant-id': tenantId } })
@@ -22,6 +23,8 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
     }, [tenantId]);
 
     const businessName = settings?.businessName || (tenantId ? tenantId.toUpperCase() : 'Property');
+    const fallbackUrl = "https://aleairyfurnishedapartmentsmadina3.reservehotel.net/hotel?muid=734635cd-306e-4b69-ab0a-737de6a205d3";
+    const engineUrl = settings?.bookingEngineUrl || fallbackUrl;
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }} dir={isAr ? 'rtl' : 'ltr'}>
@@ -73,26 +76,29 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
 
                         {/* Search Widget */}
                         <div style={{ marginTop: '48px', maxWidth: '1000px' }}>
-                            <form action="/book" method="GET" style={{ display: 'grid', gap: '15px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', alignItems: 'end', background: 'rgba(255, 255, 255, 0.95)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.25)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                            <form 
+                            onSubmit={(e) => { e.preventDefault(); setShowBookingModal(true); }}
+                            style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', background: 'rgba(255, 255, 255, 0.95)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.25)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}
+                        >
+                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: '1 1 150px' }}>
                                     <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'تاريخ الوصول' : 'Check-in'}</label>
-                                    <input type="date" name="date_from" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                    <input type="date" id="rd-checkin" name="date_from" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: '1 1 150px' }}>
                                     <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'تاريخ المغادرة' : 'Check-out'}</label>
-                                    <input type="date" name="date_to" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
+                                    <input type="date" id="rd-checkout" name="date_to" required style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                <div style={{ display: 'flex', gap: '15px', flex: '2 1 200px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: '1 1 150px' }}>
                                         <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'بالغين' : 'Adults'}</label>
                                         <input type="number" name="adults" min="1" defaultValue="1" style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: '1 1 150px' }}>
                                         <label style={{ fontSize: '12px', color: '#1e293b', fontWeight: '600', marginBottom: '6px' }}>{isAr ? 'أطفال' : 'Children'}</label>
                                         <input type="number" name="children" min="0" defaultValue="0" style={{ height: '44px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'transparent' }} />
                                     </div>
                                 </div>
-                                <button type="submit" style={{ height: '44px', padding: '0 24px', backgroundColor: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', width: '100%' }}>
+                                <button type="submit" style={{ height: '44px', padding: '0 24px', backgroundColor: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', flex: '1 1 150px' }}>
                                     {isAr ? 'بحث عن التوافر' : 'Search availability'}
                                 </button>
                             </form>
@@ -151,7 +157,42 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
             </div></main>
 
             
-                        <footer style={{ padding: '40px 20px', backgroundColor: '#0f172a', color: '#cbd5e1', fontSize: '14px', borderTop: '1px solid #1e293b' }}>
+            
+            {/* Embedded Booking Modal */}
+            {showBookingModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div style={{ width: '100%', maxWidth: '1200px', height: '90vh', backgroundColor: '#fff', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+                        
+                        <div style={{ padding: '15px 30px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{isAr ? 'أكمل حجزك' : 'Complete your booking'}</h3>
+                            <button 
+                                onClick={() => setShowBookingModal(false)}
+                                style={{ background: '#e2e8f0', border: 'none', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px', color: '#475569' }}
+                            >
+                                <i className="ri-close-line"></i>
+                            </button>
+                        </div>
+                        
+                        <iframe 
+                            src={(() => {
+                                let url = engineUrl;
+                                const checkin = document.getElementById('rd-checkin') ? document.getElementById('rd-checkin').value : '';
+                                const checkout = document.getElementById('rd-checkout') ? document.getElementById('rd-checkout').value : '';
+                                if (checkin && checkout) {
+                                    const sep = url.includes('?') ? '&' : '?';
+                                    url += sep + 'date_from=' + checkin + '&date_to=' + checkout;
+                                }
+                                return url;
+                            })()}
+                            title="Booking Engine"
+                            style={{ flex: 1, border: 'none', width: '100%' }}
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </div>
+            )}
+
+            <footer style={{ padding: '40px 20px', backgroundColor: '#0f172a', color: '#cbd5e1', fontSize: '14px', borderTop: '1px solid #1e293b' }}>
                 <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px', marginBottom: '30px', textAlign: isAr ? 'right' : 'left' }}>
                     <div>
                         <h4 style={{ color: '#fff', fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>{businessName}</h4>
