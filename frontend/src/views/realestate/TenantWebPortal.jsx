@@ -96,7 +96,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                 {isAr ? 'بحث عن التوافر' : 'Check Availability'}
                             </button>
                         </div>
-                    </form>>
+                    </form>
                 </div>
 
                                 { (settings?.portalDescription || settings?.portalDescriptionAr) && (
@@ -128,7 +128,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                     <div style={{ padding: '20px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                                             <h4 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 'bold' }}>
-                                                {unit.name || ${unit.type} }
+                                                {unit.name || unit.type}
                                             </h4>
                                             {unit.dailyRate && <span style={{ background: '#ecfdf5', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}> / {isAr ? 'يوم' : 'day'}</span>}
                                         </div>
