@@ -136,8 +136,8 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                             <span><i className="ri-hotel-bed-line"></i> {unit.beds || 1} {isAr ? 'سرير' : 'Beds'}</span>
                                             <span><i className="ri-user-line"></i> {unit.maxAdults || 2} {isAr ? 'أشخاص' : 'Adults'}</span>
                                         </div>
-                                        <a href="/book" style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#f8fafc', color: '#3b82f6', textDecoration: 'none', borderRadius: '8px', fontWeight: '600', border: '1px solid #e2e8f0' }}>
-                                            {isAr ? 'احجز الآن' : 'Book Now'}
+                                        <a href={/room/} style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#f8fafc', color: '#3b82f6', textDecoration: 'none', borderRadius: '8px', fontWeight: '600', border: '1px solid #e2e8f0' }}>
+                                            {isAr ? 'عرض التفاصيل' : 'View Details'}
                                         </a>
                                     </div>
                                 </div>

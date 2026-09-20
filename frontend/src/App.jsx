@@ -8,6 +8,7 @@ import Settings from './views/settings/Settings';
 import Storefront from './views/storefront/Storefront';
 import BookingPortal from './views/realestate/BookingPortal';
 import TenantWebPortal from './views/realestate/TenantWebPortal';
+import RoomDetails from './views/realestate/RoomDetails';
 import StorefrontSettings from './views/storefront/StorefrontSettings';
 import DigitalAssets from './views/storefront/DigitalAssets';
 import Reports from './views/reports/Reports';
@@ -2165,6 +2166,17 @@ const handleB2BSubmit = () => {
 
     const isRootPath = window.location.pathname === '/';
     // Public Tenant Web Portal at root URL (always shown at / for customers)
+        const isRoomPath = window.location.pathname.startsWith('/room/');
+    if (routeMode === 'customer' && isRoomPath) {
+        return (
+            <RoomDetails 
+                tenantId={tenantId}
+                currentLanguage={currentLanguage}
+                setLanguage={setCurrentLanguage}
+            />
+        );
+    }
+
     if (routeMode === 'customer' && isRootPath) {
         return (
             <TenantWebPortal 
