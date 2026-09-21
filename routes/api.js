@@ -3080,6 +3080,28 @@ router.post('/api/bookings/folio-qr', authenticateToken, async (req, res) => {
     }
 });
 
+
+router.post('/api/public/bookings', async (req, res) => {
+    try {
+        const tenantId = req.headers['x-tenant-id'];
+        if (!tenantId) return res.status(400).json({ error: 'Missing tenant ID' });
+        
+        const bookingNumber = 'WEB-' + Date.now().toString().slice(-6);
+        const newBooking = { ...req.body, bookingNumber, tenantId, id: 'book-' + Date.now(), status: 'Pending', source: 'Web Portal' };
+        
+        if (global.isMongoConnected) {
+            await Booking.create(newBooking);
+            // Optionally reserve unit
+            await Unit.updateOne({ id: newBooking.unitId, tenantId }, { status: 'Reserved' });
+        } else {
+            mockDb.bookings.push(newBooking);
+            const unit = mockDb.units.find(u => u.id === newBooking.unitId && u.tenantId === tenantId);
+            if(unit) unit.status = 'Reserved';
+        }
+        res.status(201).json(newBooking);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.post('/api/bookings', authenticateToken, async (req, res) => {
     try {
         const tenantId = getTenantId(req);
