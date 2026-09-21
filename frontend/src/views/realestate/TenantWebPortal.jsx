@@ -23,7 +23,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
     }, [tenantId]);
 
     const businessName = settings?.businessName || (tenantId ? tenantId.toUpperCase() : 'Property');
-    const fallbackUrl = "https://aleairyfurnishedapartmentsmadina3.reservehotel.net/hotel?muid=734635cd-306e-4b69-ab0a-737de6a205d3";
+    const fallbackUrl = "https://demo.qloapps.com"; // Default demo URL until configured by tenant
     const engineUrl = settings?.bookingEngineUrl || fallbackUrl;
 
     return (

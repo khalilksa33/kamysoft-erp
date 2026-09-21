@@ -39,7 +39,7 @@ const RoomDetails = ({ tenantId, currentLanguage, setLanguage }) => {
     }
 
     const businessName = settings?.businessName || (isAr ? 'بوابة العميل' : 'Web Portal');
-    const fallbackUrl = "https://aleairyfurnishedapartmentsmadina3.reservehotel.net/hotel?muid=734635cd-306e-4b69-ab0a-737de6a205d3";
+    const fallbackUrl = "https://demo.qloapps.com"; // Default demo URL until configured by tenant
     const engineUrl = settings?.bookingEngineUrl || fallbackUrl;
 
     const mainImage = (unit.images && unit.images.length > 0) ? unit.images[0] : null;

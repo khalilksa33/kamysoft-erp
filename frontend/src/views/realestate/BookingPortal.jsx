@@ -15,7 +15,7 @@ const BookingPortal = ({ tenantId, currentLanguage, setLanguage }) => {
 
     const isAr = currentLanguage === 'ar';
     // Use the fallback requested by the user, but allow overriding via settings
-    const fallbackUrl = "https://aleairyfurnishedapartmentsmadina3.reservehotel.net/hotel?muid=734635cd-306e-4b69-ab0a-737de6a205d3";
+    const fallbackUrl = "https://demo.qloapps.com"; // Default demo URL until configured by tenant
     let engineUrl = settings?.bookingEngineUrl || fallbackUrl;
     if (window.location.search) {
         engineUrl += engineUrl.includes('?') ? window.location.search.replace('?', '&') : window.location.search;
