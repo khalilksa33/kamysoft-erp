@@ -218,6 +218,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
 
                                     const payload = {
                                         unitId: selectedUnit.id || selectedUnit._id,
+                                        customerId: 'web-' + Date.now().toString(),
                                         customerName: name, customerPhone: phone, customerEmail: email,
                                         checkInDate: new Date(checkin).toISOString(),
                                         checkOutDate: new Date(checkout).toISOString(),
@@ -230,11 +231,15 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantId },
                                         body: JSON.stringify(payload)
-                                    }).then(res => res.json()).then(data => {
+                                    }).then(async (res) => {
+                                        const data = await res.json();
+                                        if (!res.ok) throw new Error(data.error || 'Server error');
+                                        return data;
+                                    }).then(data => {
                                         alert(isAr ? 'تم تأكيد حجزك بنجاح وسيتم التواصل معك' : 'Your booking request has been sent and we will contact you!');
                                         setSelectedUnit(null);
                                     }).catch(err => {
-                                        alert('Error completing booking.');
+                                        alert('Error completing booking: ' + err.message);
                                     });
                                 }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
