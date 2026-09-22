@@ -134,9 +134,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                     {unit.images && unit.images.length > 0 ? (
                                         <img src={unit.images[0]} alt={unit.name || unit.unitNumber} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                                     ) : (
-                                        <div style={{ width: '100%', height: '200px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <i className="ri-image-line" style={{ fontSize: '32px', color: '#94a3b8' }}></i>
-                                        </div>
+                                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800" alt={unit.name || unit.unitNumber} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                                     )}
                                     <div style={{ padding: '20px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
@@ -174,9 +172,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                 {selectedUnit.images && selectedUnit.images.length > 0 ? (
                                     <img src={selectedUnit.images[0]} alt="Room" style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '16px', marginBottom: '20px' }} />
                                 ) : (
-                                    <div style={{ width: '100%', height: '250px', backgroundColor: '#e2e8f0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                                        <i className="ri-image-line" style={{ fontSize: '48px', color: '#94a3b8' }}></i>
-                                    </div>
+                                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800" alt="Room" style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '16px', marginBottom: '20px' }} />
                                 )}
                                 <div style={{ display: 'flex', gap: '15px', color: '#64748b', fontSize: '15px', marginBottom: '20px', fontWeight: '500' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="ri-user-line" style={{ color: '#3b82f6' }}></i> {selectedUnit.maxAdults || 2} {isAr ? 'بالغين' : 'Adults'}</span>
