@@ -221,8 +221,9 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                     const name = document.getElementById('modal-name').value;
                                     const phone = document.getElementById('modal-phone').value;
                                     const email = document.getElementById('modal-email').value;
+                                    const paymentMethod = document.getElementById('modal-payment').value;
 
-                                    if (!checkin || !checkout || !name || !phone) {
+                                    if (!checkin || !checkout || !name || !phone || !paymentMethod) {
                                         alert(isAr ? 'الرجاء تعبئة الحقول المطلوبة' : 'Please fill required fields');
                                         return;
                                     }
@@ -235,7 +236,8 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                         checkOutDate: new Date(checkout).toISOString(),
                                         source: 'Web Portal', status: 'Pending',
                                         totalAmount: selectedUnit.dailyRate || 0,
-                                        dailyRate: selectedUnit.dailyRate || 0
+                                        dailyRate: selectedUnit.dailyRate || 0,
+                                        notes: 'Payment Method: ' + paymentMethod
                                     };
 
                                     fetch('/api/public/bookings', {
@@ -276,6 +278,23 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                                                 <input id="modal-checkout" required type="date" defaultValue={document.getElementById('rd-checkout')?.value} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
                                             </div>
                                         </div>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>{isAr ? 'طريقة الدفع *' : 'Payment Method *'}</label>
+                                                <select id="modal-payment" required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }} onChange={(e) => {
+                                                    const ibanContainer = document.getElementById('iban-container');
+                                                    if (ibanContainer) ibanContainer.style.display = e.target.value === 'Bank Transfer' ? 'block' : 'none';
+                                                }}>
+                                                    <option value="">{isAr ? '-- اختر --' : '-- Select --'}</option>
+                                                    <option value="Bank Transfer">{isAr ? 'حوالة بنكية' : 'Bank Transfer'}</option>
+                                                    <option value="VISA">{isAr ? 'فيزا / بطاقة ائتمان' : 'VISA / Credit Card'}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div id="iban-container" style={{ display: 'none', padding: '12px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', color: '#1e40af', fontSize: '13px' }}>
+                                            <strong>{isAr ? 'الآيبان (IBAN):' : 'IBAN:'}</strong> {settings?.iban || (isAr ? 'غير متوفر' : 'Not available')}
+                                            <p style={{ margin: '4px 0 0 0', fontSize: '12px' }}>{isAr ? 'الرجاء تحويل المبلغ إلى الحساب المذكور.' : 'Please transfer the amount to the provided IBAN.'}</p>
+                                        </div>
                                         <button type="submit" style={{ marginTop: '10px', width: '100%', padding: '14px', backgroundColor: '#e11d48', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
                                             {isAr ? 'تأكيد الحجز' : 'Reserve Now'}
                                         </button>
@@ -305,6 +324,12 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                             <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
                                 <i className="ri-mail-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
                                 {settings.contactEmail}
+                            </p>
+                        )}
+                        {settings?.iban && (
+                            <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
+                                <i className="ri-bank-card-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
+                                <strong>{isAr ? 'الآيبان:' : 'IBAN:'}</strong> {settings.iban}
                             </p>
                         )}
                     </div>

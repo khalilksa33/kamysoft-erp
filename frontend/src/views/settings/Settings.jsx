@@ -265,6 +265,10 @@ const Settings = (props) => {
                                 <input type="text" className="form-control" value={settings.contactNumber || ''} onChange={e => setSettings({ ...settings, contactNumber: e.target.value })} />
                             </div>
                             <div className="form-group">
+                                <label>{currentLanguage === 'ar' ? 'رقم الآيبان (IBAN)' : 'IBAN Number'}</label>
+                                <input type="text" className="form-control" value={settings.iban || ''} onChange={e => setSettings({ ...settings, iban: e.target.value })} />
+                            </div>
+                            <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'شعار الشركة' : 'Company Logo'}</label>
                                 <input type="file" accept="image/*" className="form-control" onChange={e => {
                                     const file = e.target.files[0];

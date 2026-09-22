@@ -218,6 +218,7 @@ const settingsSchema = new mongoose.Schema({
     contactPhone: { type: String },
     contactAddress: { type: String },
     contactAddressAr: { type: String },
+    iban: { type: String },
     socialLinks: {
         facebook: { type: String },
         instagram: { type: String },
