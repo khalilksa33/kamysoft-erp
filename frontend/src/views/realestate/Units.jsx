@@ -14,7 +14,7 @@ const Units = ({ currentLanguage }) => {
     const [floor, setFloor] = useState('1');
     const [dailyRate, setDailyRate] = useState('');
     const [cleaningStatus, setCleaningStatus] = useState('Clean');
-    const [images, setImages] = useState([]);
+    const [images, setImages] = useState(['https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800', 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800']);
     const [editId, setEditId] = useState(null);
 
     useEffect(() => {
@@ -69,6 +69,7 @@ const Units = ({ currentLanguage }) => {
         setFloor('1');
         setDailyRate('');
         setCleaningStatus('Clean');
+        setImages(['https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800', 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800']);
         setEditId(null);
     };
 
@@ -84,6 +85,7 @@ const Units = ({ currentLanguage }) => {
         setFloor(u.floor || '1');
         setDailyRate(u.dailyRate);
         setCleaningStatus(u.cleaningStatus || 'Clean');
+        setImages(u.images && u.images.length > 0 ? u.images : ['https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800', 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800']);
     };
 
     const handleDelete = async (id) => {
@@ -185,6 +187,10 @@ const Units = ({ currentLanguage }) => {
                                 <option value="Inspecting">{isAr ? 'قيد المعاينة (Inspecting)' : 'Inspecting'}</option>
                                 <option value="OutOfService">{isAr ? 'خارج الخدمة (Out of Service)' : 'Out of Service'}</option>
                             </select>
+                        </div>
+                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{isAr ? 'صور الوحدة (روابط مفصولة بفاصلة)' : 'Room Photos (Comma-separated URLs)'}</label>
+                            <textarea className="form-control" rows="2" placeholder="https://image1.jpg, https://image2.jpg" value={images.join(', ')} onChange={e => setImages(e.target.value.split(',').map(s => s.trim()).filter(s => s))} />
                         </div>
                     </div>
 
