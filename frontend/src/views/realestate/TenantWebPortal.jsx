@@ -42,7 +42,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                     >
                         <i className="ri-translate-2"></i> {isAr ? 'English' : 'عربي'}
                     </button>
-                    <a href="/login" style={{ textDecoration: 'none', color: '#3b82f6', fontWeight: '600', fontSize: '15px' }}>
+                    <a href={`/login${window.location.search}`} style={{ textDecoration: 'none', color: '#3b82f6', fontWeight: '600', fontSize: '15px' }}>
                         {isAr ? 'تسجيل دخول الموظفين' : 'Staff Login'}
                     </a>
                 </div>

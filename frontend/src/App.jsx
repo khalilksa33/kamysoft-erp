@@ -125,7 +125,7 @@ window.fetch = function (url, options = {}) {
             if (typeof url === 'string' && url.includes('/api/') && !url.includes('/api/auth/login')) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = '/';
+                window.location.href = '/' + window.location.search;
             }
         }
         return response;
@@ -1034,7 +1034,7 @@ export default function App() {
             setToken(data.token);
             setUser(data.user);
             setActiveTab('dashboard');
-            window.history.pushState({}, '', '/admin');
+            window.history.pushState({}, '', '/admin' + window.location.search);
         })
         .catch(err => {
             if (err.message === 'Failed to fetch') {
@@ -1055,7 +1055,7 @@ export default function App() {
                     setToken('mock-token-secret');
                     setUser(mockUser);
                     setActiveTab('dashboard');
-                    window.history.pushState({}, '', '/admin');
+                    window.history.pushState({}, '', '/admin' + window.location.search);
                 } else {
                     setAuthError(currentLanguage === 'ar' ? 'خطأ في الاتصال بالشبكة' : 'Network error or backend unreachable.');
                 }
