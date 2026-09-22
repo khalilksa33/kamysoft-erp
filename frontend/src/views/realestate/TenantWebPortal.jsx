@@ -77,7 +77,11 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                         {/* Search Widget */}
                         <div style={{ marginTop: '48px', maxWidth: '1000px' }}>
                             <form 
-                            onSubmit={(e) => { e.preventDefault(); setShowBookingModal(true); }}
+                            onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                const el = document.getElementById('rooms-section');
+                                if(el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
                             style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', background: 'rgba(255, 255, 255, 0.95)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.25)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}
                         >
                                 <div style={{ display: 'flex', flexDirection: 'column', textAlign: isAr ? 'right' : 'left', flex: '1 1 150px' }}>
@@ -107,7 +111,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                 </section>
                 
                 {/* Rooms Section Wrap */}
-                <div style={{ padding: '80px 24px', width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div id="rooms-section" style={{ padding: '80px 24px', width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     { (settings?.portalDescription || settings?.portalDescriptionAr) && (
                     <div style={{ maxWidth: '1000px', width: '100%', backgroundColor: '#fff', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', textAlign: isAr ? 'right' : 'left', marginBottom: '40px' }}>
                         <h3 style={{ fontSize: '24px', color: '#1e293b', marginBottom: '20px', fontWeight: '700' }}>
@@ -158,104 +162,6 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
 
             
             
-            {/* Embedded Booking Modal */}
-            {showBookingModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div style={{ width: '100%', maxWidth: '1200px', height: '90vh', backgroundColor: '#fff', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-                        
-                        
-                        <div style={{ padding: '15px 30px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{isAr ? 'احجز إقامتك' : 'Book Your Stay'}</h3>
-                            <button 
-                                onClick={() => setShowBookingModal(false)}
-                                style={{ background: '#e2e8f0', border: 'none', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px', color: '#475569' }}
-                            >
-                                <i className="ri-close-line"></i>
-                            </button>
-                        </div>
-                        <div style={{ padding: '30px', overflowY: 'auto' }}>
-                            <form onSubmit={(e) => {
-                                e.preventDefault();
-                                const checkin = document.getElementById('modal-checkin').value;
-                                const checkout = document.getElementById('modal-checkout').value;
-                                const name = document.getElementById('modal-name').value;
-                                const phone = document.getElementById('modal-phone').value;
-                                const email = document.getElementById('modal-email').value;
-                                const unitId = document.getElementById('modal-unit-select').value;
-
-                                if (!checkin || !checkout || !name || !unitId) {
-                                    alert(isAr ? 'الرجاء تعبئة جميع الحقول' : 'Please fill all fields');
-                                    return;
-                                }
-
-                                const payload = {
-                                    unitId: unitId,
-                                    customerName: name,
-                                    customerPhone: phone,
-                                    customerEmail: email,
-                                    checkInDate: new Date(checkin).toISOString(),
-                                    checkOutDate: new Date(checkout).toISOString(),
-                                    source: 'Web Portal',
-                                    status: 'Pending',
-                                    totalAmount: 0 // Will be calculated by admin
-                                };
-
-                                fetch('/api/public/bookings', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantId },
-                                    body: JSON.stringify(payload)
-                                }).then(res => res.json()).then(data => {
-                                    alert(isAr ? 'تم تأكيد حجزك المبدئي بنجاح وسيتم التواصل معك' : 'Your booking request has been sent and we will contact you!');
-                                    setShowBookingModal(false);
-                                }).catch(err => {
-                                    alert('Error completing booking.');
-                                });
-                            }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'الوحدة / الغرفة' : 'Room / Unit'}</label>
-                                        <select id="modal-unit-select" required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                                            <option value="">{isAr ? 'اختر الغرفة...' : 'Select a room...'}</option>
-                                            {units.map(u => (
-                                                <option key={u.id || u._id} value={u.id || u._id}>{u.unitNumber} - {u.type} (SAR {u.dailyRate}/night)</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'الاسم الكامل' : 'Full Name'}</label>
-                                        <input id="modal-name" required type="text" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '15px' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
-                                            <input id="modal-phone" required type="tel" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'البريد الإلكتروني (اختياري)' : 'Email (Optional)'}</label>
-                                            <input id="modal-email" type="email" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '15px' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'الوصول' : 'Check-in Date'}</label>
-                                            <input id="modal-checkin" required type="date" defaultValue={document.getElementById('portal-checkin')?.value} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{isAr ? 'المغادرة' : 'Check-out Date'}</label>
-                                            <input id="modal-checkout" required type="date" defaultValue={document.getElementById('portal-checkout')?.value} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                        </div>
-                                    </div>
-                                    <button type="submit" style={{ marginTop: '20px', width: '100%', padding: '15px', backgroundColor: '#e11d48', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                        {isAr ? 'تأكيد الحجز' : 'Submit Booking Request'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                    </div>
-                </div>
-            )}
-
             <footer style={{ padding: '40px 20px', backgroundColor: '#0f172a', color: '#cbd5e1', fontSize: '14px', borderTop: '1px solid #1e293b' }}>
                 <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px', marginBottom: '30px', textAlign: isAr ? 'right' : 'left' }}>
                     <div>
