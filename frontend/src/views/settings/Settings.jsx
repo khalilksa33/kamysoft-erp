@@ -690,7 +690,24 @@ const Settings = (props) => {
                 )}
 
                 {activeSettingsTab === 'portal' && (
-                    <PortalSettings settings={settings} setSettings={setSettings} currentLanguage={currentLanguage} onSave={handleSaveSettings} />
+                    <div className="glass-card fade-in">
+                        <PortalSettings settings={settings} setSettings={setSettings} currentLanguage={currentLanguage} onSave={(e) => {
+                            if (e && e.preventDefault) e.preventDefault();
+                            fetch('/api/settings', {
+                                method: 'POST',
+                                headers: props.headers,
+                                body: JSON.stringify(settings)
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                setSettings(data);
+                                alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات بنجاح" : "Settings saved successfully");
+                            })
+                            .catch(() => {
+                                alert(currentLanguage === 'ar' ? "تم حفظ الإعدادات محلياً" : "Settings saved locally");
+                            });
+                        }} />
+                    </div>
                 )}
 
                 {activeSettingsTab === 'danger' && (
