@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PortalSettings from './PortalSettings';
+
 
 const Settings = (props) => {
     const { 
@@ -685,6 +687,10 @@ const Settings = (props) => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {activeSettingsTab === 'portal' && (
+                    <PortalSettings settings={settings} setSettings={setSettings} currentLanguage={currentLanguage} onSave={handleSaveSettings} />
                 )}
 
                 {activeSettingsTab === 'danger' && (
