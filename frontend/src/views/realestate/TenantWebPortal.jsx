@@ -6,6 +6,17 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
     const isAr = currentLanguage === 'ar';
     const [selectedUnit, setSelectedUnit] = useState(null);
 
+    const formatAddress = (addressStr) => {
+        if (!addressStr) return '';
+        try {
+            const a = typeof addressStr === 'string' ? JSON.parse(addressStr) : addressStr;
+            if (a && typeof a === 'object') {
+                return `${a.buildingNo || ''} ${a.street || ''}, ${a.district || ''}, ${a.city || ''} ${a.postalCode || ''}`.trim();
+            }
+        } catch (e) {}
+        return addressStr;
+    };
+
     useEffect(() => {
         fetch('/api/settings', { headers: { 'x-tenant-id': tenantId } })
             .then(res => res.json())
@@ -282,7 +293,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                         <h4 style={{ color: '#fff', fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>{businessName}</h4>
                         <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
                             <i className="ri-map-pin-line" style={{ marginRight: isAr ? 0 : '8px', marginLeft: isAr ? '8px' : 0 }}></i>
-                            {isAr ? (settings?.contactAddressAr || settings?.contactAddress || settings?.businessAddress || 'العنوان غير متوفر') : (settings?.contactAddress || settings?.businessAddress || 'Address not provided')}
+                            {isAr ? formatAddress(settings?.contactAddressAr || settings?.contactAddress || settings?.businessAddress || 'العنوان غير متوفر') : formatAddress(settings?.contactAddress || settings?.businessAddress || 'Address not provided')}
                         </p>
                         {settings?.contactPhone && (
                             <p style={{ lineHeight: '1.6', marginBottom: '10px' }}>
@@ -312,7 +323,7 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                 </div>
                 
                 <div style={{ borderTop: '1px solid #334155', paddingTop: '20px', textAlign: 'center', marginTop: '20px' }}>
-                    &copy; {new Date().getFullYear()} {businessName}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'} | <a href="https://kamysoft.com" target="_blank" style={{ color: '#3b82f6', textDecoration: 'none' }}>Powered by KamySoft ERP</a>
+                    &copy; {new Date().getFullYear()} {businessName}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'} | <a href="https://dynapulsar.com/" target="_blank" style={{ color: '#3b82f6', textDecoration: 'none' }}>Powered by KamySoft ERP</a>
                 </div>
             </footer>
         </div>
