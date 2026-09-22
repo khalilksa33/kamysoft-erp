@@ -169,11 +169,21 @@ const TenantWebPortal = ({ tenantId, currentLanguage, setLanguage }) => {
                         <div style={{ padding: '30px', overflowY: 'auto', display: 'flex', flexWrap: 'wrap', gap: '30px' }}>
                             {/* Left: Details */}
                             <div style={{ flex: '1 1 400px' }}>
-                                {selectedUnit.images && selectedUnit.images.length > 0 ? (
-                                    <img src={selectedUnit.images[0]} alt="Room" style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '16px', marginBottom: '20px' }} />
-                                ) : (
-                                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800" alt="Room" style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '16px', marginBottom: '20px' }} />
-                                )}
+                                {(() => {
+                                    const imgs = (selectedUnit.images && selectedUnit.images.length > 0) ? selectedUnit.images : [
+                                        'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800',
+                                        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800',
+                                        'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=800'
+                                    ];
+                                    return (
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                                            <img src={imgs[0]} alt="Room" style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '16px', gridColumn: imgs.length > 1 ? '1 / -1' : 'auto' }} />
+                                            {imgs.length > 1 && imgs.slice(1, 3).map((img, i) => (
+                                                <img key={i} src={img} alt="Room" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '16px' }} />
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
                                 <div style={{ display: 'flex', gap: '15px', color: '#64748b', fontSize: '15px', marginBottom: '20px', fontWeight: '500' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="ri-user-line" style={{ color: '#3b82f6' }}></i> {selectedUnit.maxAdults || 2} {isAr ? 'بالغين' : 'Adults'}</span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="ri-user-smile-line" style={{ color: '#3b82f6' }}></i> {selectedUnit.maxChildren || 0} {isAr ? 'أطفال' : 'Children'}</span>
