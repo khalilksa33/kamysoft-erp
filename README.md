@@ -144,3 +144,47 @@ mongosh "mongodb://localhost:27017/kamysoft-erp" --eval "db.products.dropIndex('
 ---
 
 #   T r i g g e r   D e p l o y m e n t :   0 6 / 2 7 / 2 0 2 6
+## Local Development & Installation
+
+### Using Docker (Recommended)
+
+1. Clone the repository:
+`ash
+git clone https://github.com/khalilksa33/kamysoft-erp.git
+cd kamysoft-erp
+`
+
+2. Create a .env file from the sample (or copy the variables below):
+`env
+MONGODB_URI=mongodb://mongo:27017/kamysoft-erp
+JWT_SECRET=development-secret
+SAAS_ADMIN_KEY=development-admin-key
+`
+
+3. Start the application using Docker Compose:
+`ash
+docker-compose up -d --build
+`
+
+4. Access the application:
+- Landing Page: http://localhost:8089
+- SaaS Admin Panel: http://localhost:8089/saas-admin
+
+### Manual Installation (Node.js)
+
+1. Clone the repository.
+2. Install dependencies for the frontend and build it:
+`ash
+cd frontend
+npm install
+npm run build
+cd ..
+`
+3. Install backend dependencies:
+`ash
+npm install
+`
+4. Start the server:
+`ash
+node server.js
+`

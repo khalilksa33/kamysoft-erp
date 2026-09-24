@@ -385,7 +385,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                 top: '16px', 
                 margin: '16px auto', 
                 width: 'calc(100% - 32px)', 
-                maxWidth: '1200px', 
+                maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', 
                 zIndex: 100, 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -428,6 +428,28 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
                         <span style={{ fontSize: '12px', fontWeight: '500' }}>{currentLanguage === 'ar' ? 'English' : 'العربية'}</span>
                     </button>
                     
+                    {/* GitHub Button */}
+                    <a 
+                        href="https://github.com/khalilksa33/kamysoft-erp" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary" 
+                        style={{ padding: '8px 12px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                    >
+                        <i className="ri-github-fill" style={{ fontSize: '16px' }}></i>
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>GitHub</span>
+                    </a>
+                    
+                    {/* Super Admin Login */}
+                    <a 
+                        href="/saas-admin"
+                        className="btn btn-secondary" 
+                        style={{ padding: '8px 12px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                    >
+                        <i className="ri-shield-keyhole-line" style={{ fontSize: '16px', color: 'var(--accent-purple)' }}></i>
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>Superadmin</span>
+                    </a>
+                    
                     {/* App CTA */}
                     <button 
                         className="btn btn-primary" 
@@ -451,9 +473,9 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             
             {/* HERO SECTION */}
             <section style={{ 
-                maxWidth: '1200px', 
+                maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', 
                 margin: '80px auto 40px auto', 
-                padding: '0 20px', 
+                 
                 display: 'grid', 
                 gridTemplateColumns: '1fr 1fr', 
                 gap: '40px',
@@ -592,7 +614,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             
             {/* STATS STRIP */}
             <section style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--glass-border)', borderBottom: '1px solid var(--glass-border)', padding: '24px 0', margin: '60px 0' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }} className="stats-strip">
+                <div style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '0 auto',  display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }} className="stats-strip">
                     <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
                         <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--accent-purple)' }}>12,000+</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{currentLanguage === 'ar' ? 'متاجر نشطة عالمياً' : 'Global Active Stores'}</div>
@@ -613,7 +635,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </section>
             
             {/* BUSINESS SIMULATOR SECTION */}
-            <section id="sectors" style={{ maxWidth: '1200px', margin: '80px auto', padding: '0 20px' }}>
+            <section id="sectors" style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '80px auto', }}>
                 <div style={{ textAlign: 'center', marginBottom: '48px' }}>
                     <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.simTitle}</h2>
                     <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.simSub}</p>
@@ -924,7 +946,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             
             {/* MULTI-BRANCH HQ FEATURE SECTION */}
             <section style={{ background: 'var(--bg-secondary)', padding: '80px 0', borderTop: '1px solid var(--glass-border)' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center' }} className="landing-hq-grid">
+                <div style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '0 auto',  display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center' }} className="landing-hq-grid">
                     <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                         <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: 'var(--accent-purple)' }}>
                             <i className="ri-git-merge-line" style={{ marginRight: '8px' }}></i>
@@ -981,7 +1003,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </section>
             
             {/* PRICING MATRIX */}
-            <section id="pricing" style={{ maxWidth: '1200px', margin: '80px auto', padding: '0 20px' }}>
+            <section id="pricing" style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '80px auto', }}>
                 <div style={{ textAlign: 'center', marginBottom: '48px' }}>
                     <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.pricingTitle}</h2>
                     <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '14px' }}>{t.pricingSub}</p>
@@ -1086,7 +1108,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </section>
             
             {/* DEMO REQUEST / CONTACT FORM */}
-            <section id="contact" style={{ maxWidth: '600px', margin: '80px auto', padding: '0 20px' }}>
+            <section id="contact" style={{ maxWidth: '600px', margin: '80px auto', }}>
                 <div className="glass-card" style={{ padding: '40px', borderRadius: '12px', border: '1px solid var(--glass-border)', position: 'relative' }}>
                     <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                         <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px' }}>{t.formTitle}</h2>
@@ -1166,7 +1188,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </section>
             
             {/* BLOG SECTION */}
-            <section id="blog" style={{ maxWidth: '1200px', margin: '80px auto', padding: '0 20px' }}>
+            <section id="blog" style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '80px auto', }}>
                 {selectedArticle ? (
                     <div style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--bg-secondary)', borderRadius: '12px', overflow: 'hidden', padding: '0 0 40px 0', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                         <button onClick={() => setSelectedArticle(null)} className="btn btn-secondary" style={{ margin: '20px' }}>
@@ -1211,7 +1233,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             </section>
             
             {/* FAQ ACCORDION */}
-            <section id="faq" style={{ maxWidth: '800px', margin: '80px auto', padding: '0 20px' }}>
+            <section id="faq" style={{ maxWidth: '800px', margin: '80px auto', }}>
                 <div style={{ textAlign: 'center', marginBottom: '48px' }}>
                     <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '12px' }}>{t.faqTitle}</h2>
                 </div>
@@ -1267,7 +1289,7 @@ export default function LandingPage({ currentLanguage, setCurrentLanguage, theme
             
             {/* FOOTER */}
             <footer style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--glass-border)', padding: '40px 0', textAlign: 'center' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }} className="landing-footer">
+                <div style={{ maxWidth: '100%', paddingLeft: '5%', paddingRight: '5%', margin: '0 auto',  display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }} className="landing-footer">
                     <div className="brand" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <i className="ri-store-2-line"></i>
                         <span>{t.brandName}</span>
