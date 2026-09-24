@@ -2121,7 +2121,12 @@ const handleB2BSubmit = () => {
     };
 
     // Check if admin panel is requested via URL path
-    if (window.location.pathname === '/saas-admin' || window.location.pathname.startsWith('/saas-admin/')) {
+    const isSaaSDomain = (routeMode === 'marketing');
+    if (
+        window.location.pathname === '/saas-admin' || 
+        window.location.pathname.startsWith('/saas-admin/') || 
+        (isSaaSDomain && (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')))
+    ) {
         return <SaasAdmin baseDomain={baseDomain} />;
     }
 

@@ -5,27 +5,27 @@ A premium, multi-tenant Web-based POS and ERP application with full bilingual (E
 ## Live URLs
 | URL | Purpose |
 |-----|---------|
-| `https://26i.uk` | Marketing landing page + store registration |
-| `https://demo.26i.uk` | Public demo store |
-| `https://26i.uk/admin` | **SaaS provider admin panel** |
-| `https://{storename}.26i.uk` | Tenant store (e.g. `harby.26i.uk`) |
+| `https://yourdomain.com` | Marketing landing page + store registration |
+| `https://demo.yourdomain.com` | Public demo store |
+| `https://yourdomain.com/admin` | **SaaS provider admin panel** |
+| `https://{storename}.yourdomain.com` | Tenant store (e.g. `tenant1.yourdomain.com`) |
 
 ---
 
 ## ⚠️ CRITICAL: Wildcard DNS + IIS Setup for Tenant Subdomains
 
-When a new store is created (e.g. `harby-mobile3`), it needs to be reachable at `harby-mobile3.26i.uk`.
+When a new store is created (e.g. `tenant1-mobile3`), it needs to be reachable at `tenant1-mobile3.yourdomain.com`.
 This requires **two one-time configurations** on your server — DNS and IIS.
 
 ### Step 1 — Add Wildcard DNS Record (in your DNS Provider / Cloudflare)
 
-Log in to wherever `26i.uk` DNS is managed (Cloudflare, GoDaddy, etc.) and add:
+Log in to wherever `yourdomain.com` DNS is managed (Cloudflare, GoDaddy, etc.) and add:
 
 | Type | Name | Value | Proxy |
 |------|------|-------|-------|
 | `A` | `*` | `<your-server-IP>` | ✅ Proxied (or DNS only) |
 
-This routes **every subdomain** (`*.26i.uk`) to your server IP.  
+This routes **every subdomain** (`*.yourdomain.com`) to your server IP.  
 You only need to do this **once** — it covers all future stores.
 
 > **Cloudflare users**: Go to DNS → Add Record → Type: A, Name: `*`, IPv4: `your-server-IP`, Proxied: ON
@@ -43,20 +43,20 @@ Open **IIS Manager** on the server:
    - **Type**: `https` (or `http` if not using SSL yet)
    - **IP Address**: `All Unassigned`
    - **Port**: `443` (or `80`)
-   - **Host name**: `*.26i.uk`
+   - **Host name**: `*.yourdomain.com`
 5. Click **OK**
 
-> If you already have a binding for `26i.uk`, keep it — add `*.26i.uk` as a **second binding** on the same site.
+> If you already have a binding for `yourdomain.com`, keep it — add `*.yourdomain.com` as a **second binding** on the same site.
 
 ---
 
 ### Step 3 — SSL Certificate for Wildcard (HTTPS)
 
-For HTTPS on all subdomains, your SSL certificate must be a **wildcard cert** for `*.26i.uk`.
+For HTTPS on all subdomains, your SSL certificate must be a **wildcard cert** for `*.yourdomain.com`.
 
 **Option A — Certbot (Let's Encrypt) on the server:**
 ```bash
-certbot certonly --manual --preferred-challenges dns -d "*.26i.uk" -d "26i.uk"
+certbot certonly --manual --preferred-challenges dns -d "*.yourdomain.com" -d "yourdomain.com"
 ```
 Then import the generated `.pem` files into IIS via the **Server Certificates** panel.
 
@@ -66,12 +66,12 @@ Set Cloudflare SSL mode to **Full** or **Full (Strict)**. Cloudflare handles the
 ---
 
 ## Features
-- **Multi-tenant SaaS**: Each store gets its own isolated MongoDB namespace at `storename.26i.uk`
+- **Multi-tenant SaaS**: Each store gets its own isolated MongoDB namespace at `storename.yourdomain.com`
 - **POS / Cashier System**: Shopping cart with Saudi VAT (15%) and discounts
 - **ZATCA-Compliant Invoicing**: Simplified Tax Invoices with QR codes (Phase 2)
 - **A4 & Thermal Invoice Printing**: Both print formats bilingual (EN/AR)
 - **Dashboard & Analytics**: Sales charts, low-stock alerts, multi-branch support
-- **Provider Admin Panel**: Manage all tenant stores at `26i.uk/admin`
+- **Provider Admin Panel**: Manage all tenant stores at `yourdomain.com/admin`
 
 ---
 
@@ -100,8 +100,8 @@ npm install --production
 2. Open **IIS Manager** → Right-click **Sites** → **Add Website**
 3. Set **Physical Path** to your folder
 4. Add two **Host bindings**:
-   - `26i.uk` → port 443
-   - `*.26i.uk` → port 443 (wildcard — covers all tenant stores)
+   - `yourdomain.com` → port 443
+   - `*.yourdomain.com` → port 443 (wildcard — covers all tenant stores)
 5. Grant `IIS_IUSRS` read/write on the folder
 
 ### Environment Variables (.env)
@@ -115,7 +115,7 @@ SAAS_ADMIN_KEY=your-secret-admin-key
 PORT=8089
 ```
 
-> The `SAAS_ADMIN_KEY` is what you enter at `26i.uk/admin` to log in as the SaaS provider.  
+> The `SAAS_ADMIN_KEY` is what you enter at `yourdomain.com/admin` to log in as the SaaS provider.  
 > Default key (if not set): `kamysoft-saas-admin-2026`
 
 ---
