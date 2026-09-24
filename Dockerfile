@@ -1,17 +1,18 @@
 # Build Stage for React Frontend
-FROM node:22-alpine AS frontend-builder
+FROM node:22-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci || npm install
 COPY frontend/ ./
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Production Stage for Node Express Backend
-FROM node:22-alpine
+FROM node:22-slim
 WORKDIR /app
 COPY package*.json ./
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps
 COPY . .
 # Copy compiled frontend assets to backend served path
