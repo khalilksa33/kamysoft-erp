@@ -2,7 +2,7 @@
 FROM node:22-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci || npm install
+RUN rm -f package-lock.json && npm install
 COPY frontend/ ./
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
