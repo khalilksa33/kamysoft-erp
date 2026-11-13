@@ -3,18 +3,30 @@ import ProductList from './ProductList';
 import ProductDetail from './ProductDetail';
 import CartCheckout from './CartCheckout';
 
-const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
+const Storefront = ({ tenantId, currentLanguage, setLanguage, initialSettings }) => {
     const [products, setProducts] = useState([]);
+    const [storeSettings, setStoreSettings] = useState(initialSettings || null);
     const [cart, setCart] = useState([]);
     const [view, setView] = useState('products'); // 'products', 'cart', 'productDetail', or 'success'
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [orderSuccess, setOrderSuccess] = useState(null);
 
     useEffect(() => {
+        fetch('/api/settings', {
+            headers: {
+                'x-tenant-id': tenantId || 'default'
+            }
+        })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && !data.error) setStoreSettings(data);
+        })
+        .catch(() => {});
+
         // Fetch products for this tenant
         fetch('/api/storefront/products', {
             headers: {
-                'x-tenant-id': tenantId
+                'x-tenant-id': tenantId || 'default'
             }
         })
         .then(res => res.json())
@@ -95,15 +107,16 @@ const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
     };
 
     const cartItemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+    const storeTitle = storeSettings?.storefront?.storeName || storeSettings?.businessName || (tenantId && tenantId !== 'default' ? `${tenantId.toUpperCase()} Store` : 'Online Storefront');
 
     return (
         <div className="storefront-app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <header className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 0, borderBottom: '1px solid var(--glass-border)' }}>
-                <h1 style={{ margin: 0, color: 'var(--accent-primary)', cursor: 'pointer' }} onClick={() => setView('products')}>
-                    <i className="ri-store-2-line" style={{ marginRight: '10px' }}></i>
-                    Storefront
+            <header className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 0, borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '12px' }}>
+                <h1 style={{ margin: 0, color: 'var(--accent-primary)', cursor: 'pointer', fontSize: '22px', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setView('products')}>
+                    <i className="ri-store-2-line"></i>
+                    <span>{storeTitle}</span>
                 </h1>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <button className="btn btn-secondary" onClick={() => setLanguage(currentLanguage === 'ar' ? 'en' : 'ar')}>
                         <i className="ri-translate-2"></i> {currentLanguage === 'ar' ? 'English' : 'عربي'}
                     </button>
@@ -115,6 +128,14 @@ const Storefront = ({ tenantId, currentLanguage, setLanguage }) => {
                             </span>
                         )}
                     </button>
+                    <a
+                        href={`/login${window.location.search}`}
+                        className="btn btn-secondary"
+                        style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
+                    >
+                        <i className="ri-shield-user-line"></i>
+                        <span>{currentLanguage === 'ar' ? 'دخول الموظفين' : 'Staff Login'}</span>
+                    </a>
                 </div>
             </header>
 

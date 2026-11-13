@@ -13,7 +13,7 @@ const SECTOR_LABELS = {
     'tailoring': 'Bespoke Tailoring & Workshop / خياطة وتفصيل ومشغل'
 };
 
-const StoreCreationModal = ({ isOpen, onClose, baseDomain = 'kamysoft.com', isRtl = false, onSuccess }) => {
+const StoreCreationModal = ({ isOpen, onClose, baseDomain = '26i.uk', isRtl = false, onSuccess }) => {
     const [registerForm, setRegisterForm] = useState({
         tenantId: '',
         email: '',
@@ -133,20 +133,48 @@ const StoreCreationModal = ({ isOpen, onClose, baseDomain = 'kamysoft.com', isRt
                                 <div style={{ fontFamily: 'sans-serif', fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{isRtl ? 'تجربة مجانية لمدة 14 يومًا' : '14-Day Free Trial Active'}</div>
                             </div>
                         )}
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button 
-                                onClick={() => {
-                                    onClose();
-                                    window.location.href = `http://${registeredTenantId || registerForm.tenantId.toLowerCase()}.${baseDomain}/login`;
-                                }}
-                                style={{ flex: 1, padding: '12px', fontSize: '15px', background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer' }}
-                            >
-                                <i className="ri-login-box-line" style={{ marginRight: '8px' }}></i>
-                                <span>{isRtl ? 'الانتقال لصفحة الدخول' : 'Go to Login Page'}</span>
-                            </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <button 
+                                    onClick={() => {
+                                        onClose();
+                                        const targetTenant = registeredTenantId || registerForm.tenantId.toLowerCase();
+                                        const isLocal = baseDomain === 'localhost' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                        if (isLocal) {
+                                            localStorage.setItem('simulatedDomain', 'customer');
+                                            localStorage.setItem('simulatedTenant', targetTenant);
+                                            window.location.href = `${window.location.origin}/?simDomain=customer&simTenant=${targetTenant}`;
+                                        } else {
+                                            window.location.href = `https://${targetTenant}.${baseDomain}/`;
+                                        }
+                                    }}
+                                    style={{ flex: 1, padding: '12px', fontSize: '14px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
+                                >
+                                    <i className="ri-global-line" style={{ marginInlineEnd: '8px' }}></i>
+                                    <span>{isRtl ? 'فتح الصفحة الرئيسية للمنشأة' : 'Open Public Landing Page'}</span>
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        onClose();
+                                        const targetTenant = registeredTenantId || registerForm.tenantId.toLowerCase();
+                                        const isLocal = baseDomain === 'localhost' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                        if (isLocal) {
+                                            localStorage.setItem('simulatedDomain', 'customer');
+                                            localStorage.setItem('simulatedTenant', targetTenant);
+                                            window.location.href = `${window.location.origin}/login?simDomain=customer&simTenant=${targetTenant}`;
+                                        } else {
+                                            window.location.href = `https://${targetTenant}.${baseDomain}/login`;
+                                        }
+                                    }}
+                                    style={{ flex: 1, padding: '12px', fontSize: '14px', background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
+                                >
+                                    <i className="ri-login-box-line" style={{ marginInlineEnd: '8px' }}></i>
+                                    <span>{isRtl ? 'الانتقال لصفحة دخول الإدارة' : 'Go to Admin Login'}</span>
+                                </button>
+                            </div>
                             <button 
                                 onClick={onClose}
-                                style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '14px' }}
+                                style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '14px' }}
                             >
                                 {isRtl ? 'إغلاق' : 'Close'}
                             </button>

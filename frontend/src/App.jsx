@@ -1020,6 +1020,8 @@ export default function App() {
     }, [routeMode, token]);
 
     // Auto-configure POS Business Type based on Subdomain or URL ?sector=X parameter (and fetch tenant settings for unauthenticated portal)
+    const [portalSettingsLoaded, setPortalSettingsLoaded] = useState(() => !(routeMode === 'customer' && tenantId && !token));
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const querySector = params.get('sector');
@@ -1062,6 +1064,7 @@ export default function App() {
 
         // Also load tenant settings publicly on customer subdomains when unauthenticated so root portal knows businessType
         if (routeMode === 'customer' && tenantId && !token) {
+            setPortalSettingsLoaded(false);
             fetch('/api/settings', { headers: { 'x-tenant-id': tenantId } })
                 .then(res => res.ok ? res.json() : null)
                 .then(data => {
@@ -1069,7 +1072,10 @@ export default function App() {
                         setSettings(prev => ({ ...prev, ...data }));
                     }
                 })
-                .catch(() => {});
+                .catch(() => {})
+                .finally(() => setPortalSettingsLoaded(true));
+        } else {
+            setPortalSettingsLoaded(true);
         }
     }, [routeMode, tenantId, token]);
 
@@ -2367,27 +2373,26 @@ const handleB2BSubmit = () => {
     }
     
     // Auth Overlay Login page (for demo.26i.uk or cust-x.26i.uk)
-    // Storefront Routing (Public, Unauthenticated)
+    // Storefront & Sector Portal Routing (Public, Unauthenticated)
     const isAdminPath = window.location.pathname.startsWith('/admin');
     const isStorefrontPath = window.location.pathname.startsWith('/store');
-    if (routeMode === 'customer' && isStorefrontPath) {
+    if ((routeMode === 'customer' || routeMode === 'demo') && isStorefrontPath) {
         return (
             <Storefront 
-                tenantId={tenantId}
+                tenantId={tenantId || 'default'}
                 currentLanguage={currentLanguage}
                 setLanguage={setCurrentLanguage}
+                initialSettings={settings}
             />
         );
     }
 
-
     const isRootPath = window.location.pathname === '/';
-    // Public Tenant Web Portal at root URL (always shown at / for customers)
-        const isRoomPath = window.location.pathname.startsWith('/room/');
-    if (routeMode === 'customer' && isRoomPath) {
+    const isRoomPath = window.location.pathname.startsWith('/room/');
+    if ((routeMode === 'customer' || routeMode === 'demo') && isRoomPath) {
         return (
             <RoomDetails 
-                tenantId={tenantId}
+                tenantId={tenantId || 'default'}
                 currentLanguage={currentLanguage}
                 setLanguage={setCurrentLanguage}
             />
@@ -2406,15 +2411,49 @@ const handleB2BSubmit = () => {
         );
     }
 
+    const isPropertyPortalPath = window.location.pathname === '/property-portal' || window.location.pathname.startsWith('/property-portal/');
+    if ((routeMode === 'customer' || routeMode === 'demo') && isPropertyPortalPath) {
+        return (
+            <TenantWebPortal 
+                tenantId={tenantId || 'default'}
+                currentLanguage={currentLanguage}
+                setLanguage={setCurrentLanguage}
+            />
+        );
+    }
+
+    // Public Tenant Web Portal at root URL (strictly isolated by tenant sector: Tailoring, Real Estate, or E-Commerce Storefront)
     if (routeMode === 'customer' && isRootPath) {
+        if (!portalSettingsLoaded) {
+            return (
+                <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c0f17', color: '#fff' }}>
+                    <div style={{ textAlign: 'center', opacity: 0.8 }}>Loading store...</div>
+                </div>
+            );
+        }
+
         const lowerTenant = (tenantId || '').toLowerCase();
+        const querySector = new URLSearchParams(window.location.search).get('sector')?.toLowerCase() || '';
+        const bizType = (querySector || settings?.businessType || '').toLowerCase();
+
         const isTailoringTenant =
-            settings?.businessType === 'tailoring' ||
-            (settings?.enabledModules?.tailoring && !settings?.enabledModules?.propertyManagement && settings?.businessType !== 'realestate') ||
+            bizType === 'tailoring' ||
+            (settings?.enabledModules?.tailoring && !settings?.enabledModules?.propertyManagement && bizType !== 'realestate') ||
             lowerTenant.includes('tailor') ||
             lowerTenant.includes('thobe') ||
             lowerTenant.includes('atelier') ||
             lowerTenant.includes('khayata');
+
+        const isRealEstateTenant =
+            !isTailoringTenant && (
+                bizType === 'realestate' ||
+                (settings?.enabledModules?.propertyManagement && !settings?.enabledModules?.ecommerce) ||
+                lowerTenant.includes('hotel') ||
+                lowerTenant.includes('property') ||
+                lowerTenant.includes('realestate') ||
+                lowerTenant.includes('resort') ||
+                lowerTenant.includes('suites')
+            );
 
         if (isTailoringTenant) {
             return (
@@ -2428,11 +2467,7 @@ const handleB2BSubmit = () => {
         }
 
         // Property-management stores keep the property portal; every other business type
-        // gets a home page designed for its kind of business (it used to be the property
-        // portal for everyone).
-        const isRealEstateTenant =
-            settings?.businessType === 'realestate' ||
-            (!settings?.businessType && settings?.enabledModules?.propertyManagement);
+        // gets a home page designed for its kind of business (with /store for online shopping).
         if (isRealEstateTenant) {
             return (
                 <TenantWebPortal

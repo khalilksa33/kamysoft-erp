@@ -92,7 +92,8 @@ const sidebarTranslations = {
         tailoringMeasurements: "Customer Measurements",
         tailoringOrders: "Tailoring Orders & Deposits",
         tailoringWorkshop: "Workshop Kanban & Pay",
-        tailoringPortal: "Client Web Portal (Atelier)"
+        tailoringPortal: "Client Web Portal (Atelier)",
+        propertyPortal: "Client Web Portal (Booking)"
     },
     ar: {
         dashboard: "الرئيسية",
@@ -183,7 +184,8 @@ const sidebarTranslations = {
         tailoringMeasurements: "سجل مقاسات العملاء",
         tailoringOrders: "أوامر التفصيل والعربون",
         tailoringWorkshop: "لوحة المشغل والعمولات",
-        tailoringPortal: "بوابة العميل (موقع المشغل)"
+        tailoringPortal: "بوابة العميل (موقع المشغل)",
+        propertyPortal: "بوابة العميل (موقع الحجز)"
     }
 };
 
@@ -231,7 +233,8 @@ const menuConfig = [
             { id: 'property_leasing', labelKey: 'propertyLeasing' },
             { id: 'property_crm', labelKey: 'propertyCrm' },
             { id: 'property_owners', labelKey: 'propertyOwners' },
-            { id: 'property_owner_accounting', labelKey: 'ownerAccounting' }
+            { id: 'property_owner_accounting', labelKey: 'ownerAccounting' },
+            { id: 'property_portal', labelKey: 'propertyPortal' }
         ]
     },
     {
@@ -356,6 +359,10 @@ const Sidebar = ({ handleLogout, settings, mobileMenuOpen, setMobileMenuOpen, cu
         }
         if (subMenuItemId === 'tailoring_portal') {
             window.open('/tailoring-portal' + window.location.search, '_blank');
+            return;
+        }
+        if (subMenuItemId === 'property_portal') {
+            window.open('/property-portal' + window.location.search, '_blank');
             return;
         }
         setActiveTab(subMenuItemId);

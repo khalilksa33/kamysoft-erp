@@ -646,7 +646,7 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                 isOpen={showCreateModal} 
                 onClose={() => setShowCreateModal(false)} 
                 isRtl={false} 
-                baseDomain="kamysoft.com"
+                baseDomain={baseDomain}
                 onSuccess={() => { 
                     setShowCreateModal(false); 
                     loadData(); 
