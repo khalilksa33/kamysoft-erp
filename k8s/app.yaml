@@ -11,13 +11,19 @@ data:
   # page offers demo / demo123. This creates the demo logins for that store only;
   # logins are bound to their store, so they cannot open any customer's store.
   SEED_DEMO_USERS: "true"
+  # Outgoing Email (dynapulsar.com via Hostinger SMTP)
+  SMTP_HOST: "smtp.hostinger.com"
+  SMTP_PORT: "465"
+  SMTP_USER: "info@dynapulsar.com"
+  EMAIL_FROM: "SME Solutions <info@dynapulsar.com>"
 ---
-# The "kamysoft-erp-secrets" Secret (JWT_SECRET, SAAS_ADMIN_KEY) is NOT stored in
+# The "kamysoft-erp-secrets" Secret (JWT_SECRET, SAAS_ADMIN_KEY, SMTP_PASS) is NOT stored in
 # this repository. The deploy workflow creates it from the GitHub Actions secrets
-# KAMYSOFT_JWT_SECRET and KAMYSOFT_SAAS_ADMIN_KEY. To create it by hand:
+# KAMYSOFT_JWT_SECRET, KAMYSOFT_SAAS_ADMIN_KEY, and KAMYSOFT_SMTP_PASS. To create it by hand:
 #   kubectl create secret generic kamysoft-erp-secrets \
 #     --from-literal=JWT_SECRET="<48+ random chars>" \
-#     --from-literal=SAAS_ADMIN_KEY="<random key>"
+#     --from-literal=SAAS_ADMIN_KEY="<random key>" \
+#     --from-literal=SMTP_PASS="<dynapulsar.com mailbox password>"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,6 +66,36 @@ spec:
                 configMapKeyRef:
                   name: kamysoft-erp-config
                   key: SEED_DEMO_USERS
+                  optional: true
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kamysoft-erp-config
+                  key: SMTP_HOST
+                  optional: true
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kamysoft-erp-config
+                  key: SMTP_PORT
+                  optional: true
+            - name: SMTP_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kamysoft-erp-config
+                  key: SMTP_USER
+                  optional: true
+            - name: EMAIL_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: kamysoft-erp-config
+                  key: EMAIL_FROM
+                  optional: true
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: kamysoft-erp-secrets
+                  key: SMTP_PASS
                   optional: true
             - name: JWT_SECRET
               valueFrom:

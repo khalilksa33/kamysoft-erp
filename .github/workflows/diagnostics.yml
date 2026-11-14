@@ -44,8 +44,13 @@ jobs:
             echo \$KUBECONFIG
             echo \"--- nodes ---\"
             kubectl --kubeconfig=/etc/kubernetes/admin.conf get nodes || true
-            kubectl --kubeconfig=/root/.kube/config get nodes || true
-            kubectl --kubeconfig=/home/cloud/.kube/config get nodes || true
+            echo \"--- pods, pvc, cronjobs ---\"
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods,pvc,cronjobs -o wide || true
+            echo \"--- mongodb init & main logs ---\"
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf logs deployment/mongodb -c mongodb-repair --tail=30 || true
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf logs deployment/mongodb -c mongodb --tail=30 || true
+            echo \"--- kamysoft-erp logs ---\"
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf logs deployment/kamysoft-erp --tail=30 || true
             echo \"--- containerd/docker status ---\"
             systemctl status containerd --no-pager || true
             systemctl status kubelet --no-pager || true

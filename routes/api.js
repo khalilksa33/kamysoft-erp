@@ -2,7 +2,6 @@ const express = require('express');
 const zatcaApi = require('../utils/zatcaApi');
 const zatcaCrypto = require('../utils/zatcaCrypto');
 const nodemailer = require('nodemailer');
-const sgMail = require('@sendgrid/mail');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -431,16 +430,16 @@ router.post('/api/auth/register-tenant', async (req, res) => {
             cfResult = await global.updateCloudflareTunnelConfig(`${normalizedTenantId}.${baseDomain}`).catch(err => ({ error: err.message }));
         }        
 
-        // Send Welcome Email
-        if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+        // Send Welcome Email via dynapulsar.com SMTP
+        if (process.env.SMTP_PASS) {
             try {
-                const nodemailer = require('nodemailer');
+                const smtpPort = Number(process.env.SMTP_PORT || 465);
                 let transporter = nodemailer.createTransport({
-                    host: process.env.SMTP_HOST,
-                    port: process.env.SMTP_PORT || 587,
-                    secure: process.env.SMTP_PORT == 465,
+                    host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+                    port: smtpPort,
+                    secure: smtpPort === 465,
                     auth: {
-                        user: process.env.SMTP_USER,
+                        user: process.env.SMTP_USER || 'info@dynapulsar.com',
                         pass: process.env.SMTP_PASS,
                     },
                 });
@@ -463,7 +462,7 @@ router.post('/api/auth/register-tenant', async (req, res) => {
                 `;
 
                 await transporter.sendMail({
-                    from: process.env.EMAIL_FROM || '"KamySoft ERP" <info@26i.uk>',
+                    from: process.env.EMAIL_FROM || '"KamySoft ERP" <info@dynapulsar.com>',
                     to: email,
                     subject: 'Welcome to KamySoft ERP - Your Login Credentials',
                     html: htmlContent,
@@ -642,40 +641,34 @@ router.post('/api/send-email', authenticateToken, async (req, res) => {
             settings = mockDb.settingsTenant[tenantId] || mockDb.settings;
         }
 
-        if (!settings || !settings.smtp || !settings.smtp.host && settings.smtp.provider !== 'sendgrid') {
-            return res.status(400).json({ error: 'SMTP settings not configured' });
+        const tenantSmtp = (settings && settings.smtp && settings.smtp.host) ? settings.smtp : null;
+        const smtpHost = tenantSmtp ? tenantSmtp.host : (process.env.SMTP_HOST || 'smtp.hostinger.com');
+        const smtpPort = Number(tenantSmtp ? (tenantSmtp.port || 465) : (process.env.SMTP_PORT || 465));
+        const smtpUser = tenantSmtp ? tenantSmtp.user : (process.env.SMTP_USER || 'info@dynapulsar.com');
+        const smtpPass = tenantSmtp ? tenantSmtp.password : process.env.SMTP_PASS;
+        const fromEmail = (tenantSmtp && tenantSmtp.fromEmail) ? tenantSmtp.fromEmail : (process.env.EMAIL_FROM || smtpUser);
+
+        if (!smtpHost || !smtpUser || !smtpPass) {
+            return res.status(400).json({ error: 'SMTP settings not configured (missing host, user, or password)' });
         }
 
         const { to, subject, html } = req.body;
-        const smtp = settings.smtp;
 
-        if (smtp.provider === 'sendgrid') {
-            if (!smtp.sendgridApiKey) return res.status(400).json({ error: 'SendGrid API key not configured' });
-            sgMail.setApiKey(smtp.sendgridApiKey);
-            const msg = {
-                to,
-                from: smtp.fromEmail || 'test@example.com',
-                subject,
-                html,
-            };
-            await sgMail.send(msg);
-        } else {
-            let transporter = nodemailer.createTransport({
-                host: smtp.host,
-                port: smtp.port,
-                secure: smtp.port == 465, // true for 465, false for other ports
-                auth: {
-                    user: smtp.user,
-                    pass: smtp.password,
-                },
-            });
-            await transporter.sendMail({
-                from: smtp.fromEmail || smtp.user,
-                to,
-                subject,
-                html,
-            });
-        }
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+                user: smtpUser,
+                pass: smtpPass,
+            },
+        });
+        await transporter.sendMail({
+            from: fromEmail,
+            to,
+            subject,
+            html,
+        });
         res.json({ success: true, message: 'Email sent successfully' });
     } catch (err) {
         console.error('Email sending error:', err);
@@ -954,32 +947,26 @@ router.post('/api/storefront/orders', async (req, res) => {
                 settings = mockDb.settingsTenant[tenantId] || mockDb.settings;
             }
 
-            if (settings && settings.smtp && (settings.smtp.host || settings.smtp.provider === 'sendgrid')) {
-                const smtp = settings.smtp;
-                if (smtp.provider === 'sendgrid' && smtp.sendgridApiKey) {
-                    const sgMail = require('@sendgrid/mail');
-                    sgMail.setApiKey(smtp.sendgridApiKey);
-                    await sgMail.send({
-                        to: email,
-                        from: smtp.fromEmail || 'test@example.com',
-                        subject: 'Your Digital Goods Order #' + orderId,
-                        html: emailHtml,
-                    }).catch(e => console.error(e));
-                } else if (smtp.host && smtp.user) {
-                    const nodemailer = require('nodemailer');
-                    let transporter = nodemailer.createTransport({
-                        host: smtp.host,
-                        port: smtp.port,
-                        secure: smtp.port == 465,
-                        auth: { user: smtp.user, pass: smtp.password },
-                    });
-                    await transporter.sendMail({
-                        from: smtp.fromEmail || smtp.user,
-                        to: email,
-                        subject: 'Your Digital Goods Order #' + orderId,
-                        html: emailHtml,
-                    }).catch(e => console.error(e));
-                }
+            const tenantSmtp = (settings && settings.smtp && settings.smtp.host) ? settings.smtp : null;
+            const smtpHost = tenantSmtp ? tenantSmtp.host : (process.env.SMTP_HOST || 'smtp.hostinger.com');
+            const smtpPort = Number(tenantSmtp ? (tenantSmtp.port || 465) : (process.env.SMTP_PORT || 465));
+            const smtpUser = tenantSmtp ? tenantSmtp.user : (process.env.SMTP_USER || 'info@dynapulsar.com');
+            const smtpPass = tenantSmtp ? tenantSmtp.password : process.env.SMTP_PASS;
+            const fromEmail = (tenantSmtp && tenantSmtp.fromEmail) ? tenantSmtp.fromEmail : (process.env.EMAIL_FROM || smtpUser);
+
+            if (smtpHost && smtpUser && smtpPass) {
+                let transporter = nodemailer.createTransport({
+                    host: smtpHost,
+                    port: smtpPort,
+                    secure: smtpPort === 465,
+                    auth: { user: smtpUser, pass: smtpPass },
+                });
+                await transporter.sendMail({
+                    from: fromEmail,
+                    to: email,
+                    subject: 'Your Digital Goods Order #' + orderId,
+                    html: emailHtml,
+                }).catch(e => console.error(e));
             }
         }
 

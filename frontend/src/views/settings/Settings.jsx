@@ -593,7 +593,7 @@ const Settings = (props) => {
                 {activeSettingsTab === 'email' && (
                     <div className="glass-card fade-in">
                         <h3 style={{ marginBottom: '20px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <i className="ri-mail-send-line"></i> {currentLanguage === 'ar' ? 'إعدادات البريد الإلكتروني (SMTP / SendGrid)' : 'Email / SMTP Settings'}
+                            <i className="ri-mail-send-line"></i> {currentLanguage === 'ar' ? 'إعدادات البريد الإلكتروني (SMTP)' : 'Email / SMTP Settings'}
                         </h3>
                         <form onSubmit={(e) => {
                             e.preventDefault();
@@ -614,46 +614,34 @@ const Settings = (props) => {
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'مزود الخدمة' : 'Provider'}</label>
                                 <select className="form-control" value={settings?.smtp?.provider || 'smtp'} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), provider: e.target.value}})}>
-                                    <option value="smtp">Custom SMTP</option>
-                                    <option value="sendgrid">SendGrid</option>
+                                    <option value="smtp">SMTP (dynapulsar.com / Custom)</option>
                                 </select>
                             </div>
                             
-                            {(!settings?.smtp?.provider || settings.smtp.provider === 'smtp') && (
-                                <>
-                                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '12px', marginBottom: '15px' }}>
-                                        <div className="form-group">
-                                            <label>SMTP Host</label>
-                                            <input type="text" className="form-control" placeholder="smtp.gmail.com" value={settings?.smtp?.host || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), host: e.target.value}})} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Port</label>
-                                            <input type="number" className="form-control" placeholder="587" value={settings?.smtp?.port || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), port: parseInt(e.target.value)}})} />
-                                        </div>
-                                    </div>
-                                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
-                                        <div className="form-group">
-                                            <label>{currentLanguage === 'ar' ? 'اسم المستخدم' : 'Username'}</label>
-                                            <input type="text" className="form-control" placeholder="user@example.com" value={settings?.smtp?.user || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), user: e.target.value}})} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>{currentLanguage === 'ar' ? 'كلمة المرور' : 'Password'}</label>
-                                            <input type="password" className="form-control" placeholder="••••••••" value={settings?.smtp?.password || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), password: e.target.value}})} />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                            
-                            {settings?.smtp?.provider === 'sendgrid' && (
+                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '12px', marginBottom: '15px' }}>
                                 <div className="form-group">
-                                    <label>SendGrid API Key</label>
-                                    <input type="password" className="form-control" placeholder="SG.xxxxxxxxxxxxxx" value={settings?.smtp?.sendgridApiKey || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), sendgridApiKey: e.target.value}})} />
+                                    <label>SMTP Host</label>
+                                    <input type="text" className="form-control" placeholder="smtp.hostinger.com" value={settings?.smtp?.host || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), host: e.target.value}})} />
                                 </div>
-                            )}
+                                <div className="form-group">
+                                    <label>Port</label>
+                                    <input type="number" className="form-control" placeholder="465" value={settings?.smtp?.port || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), port: parseInt(e.target.value)}})} />
+                                </div>
+                            </div>
+                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'اسم المستخدم' : 'Username'}</label>
+                                    <input type="text" className="form-control" placeholder="info@dynapulsar.com" value={settings?.smtp?.user || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), user: e.target.value}})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>{currentLanguage === 'ar' ? 'كلمة المرور' : 'Password'}</label>
+                                    <input type="password" className="form-control" placeholder="••••••••" value={settings?.smtp?.password || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), password: e.target.value}})} />
+                                </div>
+                            </div>
 
                             <div className="form-group">
                                 <label>{currentLanguage === 'ar' ? 'بريد المرسل' : 'From Email Address'}</label>
-                                <input type="email" className="form-control" placeholder="noreply@yourdomain.com" value={settings?.smtp?.fromEmail || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), fromEmail: e.target.value}})} />
+                                <input type="email" className="form-control" placeholder="info@dynapulsar.com" value={settings?.smtp?.fromEmail || ''} onChange={e => setSettings({...settings, smtp: {...(settings.smtp || {}), fromEmail: e.target.value}})} />
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>

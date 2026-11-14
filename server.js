@@ -36,14 +36,16 @@ const DEMO_USERS = [
 ];
 
 // ----------------------------------------------------
-// EMAIL SERVICE CONFIGURATION (SMTP)
+// EMAIL SERVICE CONFIGURATION (dynapulsar.com SMTP)
 // ----------------------------------------------------
+const smtpPort = Number(process.env.SMTP_PORT || 465);
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-    port: process.env.SMTP_PORT || 587,
+    host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+    port: smtpPort,
+    secure: smtpPort === 465,
     auth: {
-        user: process.env.SMTP_USER || 'apikey',
-        pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY || 'SG.mock-key-for-development'
+        user: process.env.SMTP_USER || 'info@dynapulsar.com',
+        pass: process.env.SMTP_PASS || ''
     }
 });
 
@@ -57,13 +59,13 @@ const getBaseDomain = (host) => {
 
 const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey, expiresAt, baseDomain = '26i.uk', verificationToken) => {
     const verifyLink = `http://${baseDomain}/api/auth/verify-email?token=${verificationToken}&tenantId=${tenantId}`;
-    if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
+    if (!process.env.SMTP_PASS) {
         console.log(`[Mock Email] Verify link for ${businessName} (${tenantId}) sent to ${tenantEmail}: ${verifyLink}`);
         return true;
     }
     try {
         await transporter.sendMail({
-            from: process.env.EMAIL_FROM || "SME Solutions <no-reply@26i.uk>",
+            from: process.env.EMAIL_FROM || "SME Solutions <info@dynapulsar.com>",
             to: tenantEmail,
             subject: 'Verify Your Email - SME Solutions',
             html: `
@@ -87,13 +89,13 @@ const sendLicenseEmail = async (tenantEmail, tenantId, businessName, licenseKey,
 
 const sendPasswordResetEmail = async (tenantEmail, tenantId, resetToken, baseDomain = '26i.uk') => {
     const resetLink = `http://${baseDomain}/reset-password?token=${resetToken}&tenantId=${tenantId}`;
-    if (!process.env.SMTP_PASS && !process.env.SENDGRID_API_KEY) {
+    if (!process.env.SMTP_PASS) {
         console.log(`[Mock Email] Password Reset link for ${tenantId} sent to ${tenantEmail}: ${resetLink}`);
         return true;
     }
     try {
         await transporter.sendMail({
-            from: process.env.EMAIL_FROM || "SME Solutions <no-reply@26i.uk>",
+            from: process.env.EMAIL_FROM || "SME Solutions <info@dynapulsar.com>",
             to: tenantEmail,
             subject: 'Password Reset - SME Solutions',
             html: `

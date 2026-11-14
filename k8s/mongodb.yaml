@@ -29,9 +29,34 @@ spec:
       labels:
         app: mongodb
     spec:
+      initContainers:
+        - name: mongodb-repair
+          image: mongo:7.0
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              rm -f /data/db/mongod.lock
+              if [ -f /data/db/WiredTiger ]; then
+                echo "[mongodb-repair] Checking and repairing existing /data/db..."
+                if ! mongod --dbpath /data/db --repair; then
+                  echo "[mongodb-repair] /data/db has an incompatible WiredTiger/FCV version (exit 62 from mongo:latest). Archiving old files so MongoDB 7.0 can initialize cleanly..."
+                  ARCHIVE_DIR="/data/db/.archived-$(date +%s)"
+                  mkdir -p "$ARCHIVE_DIR"
+                  for item in /data/db/*; do
+                    [ -e "$item" ] || continue
+                    mv "$item" "$ARCHIVE_DIR/" || true
+                  done
+                fi
+              fi
+              chown -R 999:999 /data/db || true
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
       containers:
         - name: mongodb
-          image: mongo:latest
+          image: mongo:7.0
           ports:
             - containerPort: 27017
               name: mongodb
@@ -63,3 +88,42 @@ spec:
   selector:
     app: mongodb
   type: ClusterIP
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-daily-backup
+  labels:
+    app: mongodb-backup
+spec:
+  schedule: "0 2 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: mongodump
+              image: mongo:7.0
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  mkdir -p /backups
+                  STAMP=$(date +%F_%H%M)
+                  echo "[backup] Starting mongodump to /backups/kamysoft-erp-${STAMP}.gz..."
+                  mongodump --host=mongodb --port=27017 --db=kamysoft-erp --archive="/backups/kamysoft-erp-${STAMP}.gz" --gzip
+                  ln -sf "kamysoft-erp-${STAMP}.gz" /backups/kamysoft-erp-latest.gz
+                  find /backups -name "kamysoft-erp-*.gz" -type f -mtime +14 -delete || true
+                  ls -lh /backups
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+          volumes:
+            - name: backup-storage
+              hostPath:
+                path: /var/backups/kamysoft-mongodb
+                type: DirectoryOrCreate
