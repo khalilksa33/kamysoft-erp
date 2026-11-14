@@ -64,15 +64,18 @@ export default function SaasAdmin({ baseDomain = '26i.uk' }) {
                 fetch('/api/saas/stats', { headers: apiHeaders() }),
                 fetch('/api/saas/stores', { headers: apiHeaders() })
             ]);
-            if (statsRes.status === 403 || storesRes.status === 403) {
+            if (!statsRes.ok || !storesRes.ok) {
+                const errBody = await statsRes.json().catch(() => ({}));
                 setAuthenticated(false);
-                setAuthError('Invalid admin key.');
+                setAuthError(errBody.error || (statsRes.status === 403 ? 'Invalid admin key.' : `Server error (${statsRes.status})`));
                 localStorage.removeItem(ADMIN_KEY_STORAGE);
                 setAdminKey('');
                 return;
             }
-            setStats(await statsRes.json());
-            setStores(await storesRes.json());
+            const statsData = await statsRes.json();
+            const storesData = await storesRes.json();
+            setStats(statsData);
+            setStores(Array.isArray(storesData) ? storesData : []);
             setAuthenticated(true);
         } catch {
             setAuthError('Connection error. Make sure the server is running.');

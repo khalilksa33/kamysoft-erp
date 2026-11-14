@@ -53,7 +53,7 @@ if (typeof window !== 'undefined' && !window.__kamyFetchWatcher) {
             const h = init && init.headers;
             const auth = h && (typeof h.get === 'function' ? h.get('Authorization') : (h.Authorization || h.authorization));
             const isApi = url.startsWith('/api/') || url.startsWith(window.location.origin + '/api/');
-            const isLogin = url.includes('/api/auth/') || url.includes('/api/tenant-portal/');
+            const isLogin = url.includes('/api/auth/') || url.includes('/api/tenant-portal/') || url.includes('/api/saas/');
             if (auth && isApi && !isLogin && localStorage.getItem('token') && onLoginRejected) {
                 if (response.status === 401) {
                     onLoginRejected();
@@ -158,16 +158,7 @@ window.fetch = function (url, options = {}) {
         }
     }
     
-    return originalFetch(url, options).then(response => {
-        if (response.status === 401 || response.status === 403) {
-            if (typeof url === 'string' && url.includes('/api/') && !url.includes('/api/auth/login')) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/' + window.location.search;
-            }
-        }
-        return response;
-    });
+    return originalFetch(url, options);
 };
 
 // Unified Translations Dictionary
@@ -869,8 +860,13 @@ export default function App() {
     const [salesStartDate, setSalesStartDate] = useState('');
     const [salesEndDate, setSalesEndDate] = useState('');
 
+    const isSaasAdminPath =
+        window.location.pathname === '/saas-admin' ||
+        window.location.pathname.startsWith('/saas-admin/') ||
+        (routeMode === 'marketing' && (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')));
+
     useEffect(() => {
-        if (!token) return;
+        if (!token || isSaasAdminPath || routeMode === 'marketing') return;
         
         // Fetch settings
         fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } })
@@ -955,7 +951,7 @@ export default function App() {
     const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || isSaasAdminPath || routeMode === 'marketing') return;
         
         // Fetch settings
         fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } })
@@ -2337,14 +2333,8 @@ const handleB2BSubmit = () => {
         );
     };
 
-    // Check if SaaS superadmin panel is requested via URL path (restricted to marketing/root domain on /saas-admin only)
-    const isSaaSDomain = (routeMode === 'marketing');
-    if (
-        isSaaSDomain && (
-            window.location.pathname === '/saas-admin' || 
-            window.location.pathname.startsWith('/saas-admin/')
-        )
-    ) {
+    // Check if SaaS superadmin panel is requested via URL path (/saas-admin anywhere, or /admin on root marketing domain)
+    if (isSaasAdminPath) {
         return <SaasAdmin baseDomain={baseDomain} />;
     }
 
